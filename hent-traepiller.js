@@ -13,6 +13,15 @@ function danskTid() {
     }).format(new Date());
 }
 
+function danskDato() {
+    // yyyy-mm-dd i dansk tidszone, så datoen matcher den morgen robotten faktisk kørte
+    const dele = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Copenhagen", year: "numeric", month: "2-digit", day: "2-digit"
+    }).formatToParts(new Date());
+    const get = t => dele.find(d => d.type === t).value;
+    return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
 function tal(s) {
     if (s === undefined || s === null) return null;
     const n = Number(String(s).replace(",", "."));
@@ -69,8 +78,6 @@ function udtraekSpecs(rawTekst) {
     };
 }
 
-// Finder produktlinks på en kategoriside ved at kigge efter "...Np.html"-links,
-// robust over for præcise klassenavne på siden.
 async function laesProduktLinks(page) {
     return page.evaluate(() => {
         const links = Array.from(document.querySelectorAll('a[href*="p.html"]'));
@@ -155,6 +162,42 @@ async function laesProdukt(browser, url) {
     }
 }
 
+function beregnDagligOpsummering(produkter, dato, hentetDanskTid) {
+    const paaLager = produkter.filter(p => p.paaLager === true);
+    const medPris = paaLager.filter(p => p.prisPrKg !== null);
+    const seks = medPris.filter(p => p.mm === 6);
+    const otte = medPris.filter(p => p.mm === 8);
+
+    const gns = arr => arr.length ? Math.round((arr.reduce((s, p) => s + p.prisPrKg, 0) / arr.length) * 100) / 100 : null;
+    const billigste = medPris.length ? Math.min(...medPris.map(p => p.prisPrKg)) : null;
+
+    return {
+        dato,
+        hentetDanskTid,
+        antalTotal: produkter.length,
+        antalPaaLager: paaLager.length,
+        gnsPris6mmPaaLager: gns(seks),
+        gnsPris8mmPaaLager: gns(otte),
+        billigstePaaLager: billigste
+    };
+}
+
+function opdaterHistorik(dagensOpsummering) {
+    let historik = [];
+    try {
+        const eksisterende = JSON.parse(fs.readFileSync("historik.json", "utf8"));
+        if (Array.isArray(eksisterende)) historik = eksisterende;
+    } catch (e) {
+        historik = [];
+    }
+    const idx = historik.findIndex(h => h.dato === dagensOpsummering.dato);
+    if (idx >= 0) historik[idx] = dagensOpsummering;
+    else historik.push(dagensOpsummering);
+    historik.sort((a, b) => a.dato.localeCompare(b.dato));
+    fs.writeFileSync("historik.json", JSON.stringify(historik, null, 2), "utf8");
+    return historik;
+}
+
 async function hentPriser() {
     console.log("Starter browseren...");
     const browser = await chromium.launch({ headless: true });
@@ -187,7 +230,12 @@ async function hentPriser() {
         priser: produkter
     };
     fs.writeFileSync("traepriser.json", JSON.stringify(resultat, null, 2), "utf8");
+
+    const dagensOpsummering = beregnDagligOpsummering(produkter, danskDato(), resultat.hentetDanskTid);
+    const historik = opdaterHistorik(dagensOpsummering);
+
     console.log("\nFærdig. Antal produkter:", produkter.length, "| Tid:", resultat.hentetDanskTid);
+    console.log("Historik har nu", historik.length, "dag(e) med data.");
 }
 
 hentPriser().catch(error => {
