@@ -9,181 +9,153 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#1c1611;
-    --panel:#241d16;
-    --panel-2:#2b2319;
-    --card:#231c15;
-    --cream:#f3e9d8;
-    --muted:#a99a80;
-    --muted-2:#7d7160;
-    --line:rgba(243,233,216,0.10);
-    --line-strong:rgba(243,233,216,0.20);
-    --amber:#d89b3c;
-    --amber-soft:#e8c07f;
-    --green:#7d9b5e;
-    --green-soft:#9fc178;
-    --rust:#b1502f;
-    --font-display:'Fraunces',serif;
-    --font-body:'IBM Plex Sans',system-ui,sans-serif;
-    --font-mono:'IBM Plex Mono',monospace;
+    --bg:#1c1611;--panel:#241d16;--panel-2:#2b2319;--card:#231c15;
+    --cream:#f3e9d8;--muted:#a99a80;--muted-2:#7d7160;
+    --line:rgba(243,233,216,0.10);--line-strong:rgba(243,233,216,0.20);
+    --amber:#d89b3c;--amber-soft:#e8c07f;--green:#7d9b5e;--green-soft:#9fc178;--rust:#b1502f;
+    --font-display:'Fraunces',serif;--font-body:'IBM Plex Sans',system-ui,sans-serif;--font-mono:'IBM Plex Mono',monospace;
     --radius:14px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
-    background:
-      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(216,155,60,0.10), transparent 60%),
-      var(--bg);
-    color:var(--cream);
-    font-family:var(--font-body);
-    -webkit-font-smoothing:antialiased;
-    min-height:100vh;
-    display:flex;flex-direction:column;
+    background:radial-gradient(ellipse 900px 500px at 15% -10%, rgba(216,155,60,0.10), transparent 60%), var(--bg);
+    color:var(--cream);font-family:var(--font-body);-webkit-font-smoothing:antialiased;
+    min-height:100vh;display:flex;flex-direction:column;
   }
 
-  /* ---------- Header ---------- */
+  /* ---------- Slim header ---------- */
   header{
-    position:sticky;top:0;z-index:20;
-    background:rgba(28,22,17,0.92);backdrop-filter:blur(8px);
+    position:sticky;top:0;z-index:30;
+    background:rgba(28,22,17,0.94);backdrop-filter:blur(8px);
     border-bottom:1px solid var(--line);
-    padding:16px 20px 14px;
   }
-  .header-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto}
-  .title{font-family:var(--font-display);font-weight:700;font-size:26px;letter-spacing:-0.01em}
+  .header-row{
+    max-width:1100px;margin:0 auto;padding:12px 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+  }
+  .title-block{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .title{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-0.01em}
   .title .dot{color:var(--amber)}
-  .subtitle{font-size:12.5px;color:var(--muted);margin-top:2px}
   .status{
-    display:flex;align-items:center;gap:8px;font-family:var(--font-mono);
-    font-size:11.5px;color:var(--muted);
+    display:flex;align-items:center;gap:6px;font-family:var(--font-mono);
+    font-size:10.5px;color:var(--muted);
   }
-  .status .pulse{width:7px;height:7px;border-radius:50%;background:var(--green-soft);flex:none}
+  .status .pulse{width:6px;height:6px;border-radius:50%;background:var(--green-soft);flex:none}
   .status.reserve .pulse{background:var(--rust)}
 
-  /* ---------- Filter bar ---------- */
-  .filters{
-    max-width:1100px;margin:14px auto 0;padding:0 20px 2px;
-    display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  .header-right{display:flex;align-items:center;gap:8px}
+  .gear-btn{
+    width:34px;height:34px;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--muted);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:15px;
+    position:relative;flex:none;
   }
-  .seg{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:3px}
-  .seg button{
-    border:0;background:transparent;color:var(--muted);cursor:pointer;
-    font-family:var(--font-mono);font-weight:600;font-size:12.5px;letter-spacing:.03em;
-    padding:7px 14px;border-radius:999px;transition:background .15s,color .15s;
+  .gear-btn.active{color:var(--amber-soft);border-color:var(--line-strong)}
+  .filter-badge{
+    position:absolute;top:-4px;right:-4px;background:var(--amber);color:#241a0d;
+    font-family:var(--font-mono);font-size:9px;font-weight:700;min-width:15px;height:15px;
+    border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px;
   }
+
+  /* ---------- Settings popover (does not push layout) ---------- */
+  .popover{
+    position:absolute;top:calc(100% + 8px);right:20px;width:300px;
+    background:var(--panel);border:1px solid var(--line-strong);border-radius:14px;
+    padding:14px;box-shadow:0 12px 32px rgba(0,0,0,0.4);
+    display:none;flex-direction:column;gap:12px;z-index:40;
+  }
+  .popover.open{display:flex}
+  .pop-group label{font-size:10px;color:var(--muted-2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:6px}
+  .seg{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:3px;width:fit-content}
+  .seg button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-mono);font-weight:600;font-size:12px;padding:6px 13px;border-radius:999px}
   .seg button.active{background:var(--amber);color:#241a0d}
+  select, .popover input{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--cream);
+    font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:9px;cursor:pointer;
+  }
+  .popover input{font-family:var(--font-mono);cursor:text}
+  .toggle-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer}
+  .toggle-row input{width:auto;accent-color:var(--amber)}
+  .spec-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .spec-fields div label{font-size:9px;margin-bottom:3px}
+  .pop-divider{border-top:1px solid var(--line);margin:2px 0}
+  .clear-btn{background:transparent;border:1px dashed var(--line-strong);color:var(--muted);border-radius:9px;padding:7px;font-size:11.5px;cursor:pointer;font-family:var(--font-mono)}
 
-  select{
-    background:var(--panel-2);border:1px solid var(--line);color:var(--cream);
-    font-family:var(--font-body);font-size:13px;padding:9px 12px;border-radius:10px;
-    cursor:pointer;
+  /* ---------- Tabs ---------- */
+  .tabs{max-width:1100px;margin:0 auto;padding:10px 20px 0;display:flex;gap:6px}
+  .tab-btn{
+    background:transparent;border:0;color:var(--muted);font-family:var(--font-mono);
+    font-size:12.5px;font-weight:600;padding:8px 4px;cursor:pointer;border-bottom:2px solid transparent;
   }
-  select:focus-visible, button:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+  .tab-btn.active{color:var(--amber-soft);border-color:var(--amber)}
 
-  .toggle{
-    display:flex;align-items:center;gap:7px;background:var(--panel-2);
-    border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;
-    font-size:12.5px;color:var(--muted);user-select:none;
-  }
-  .toggle input{accent-color:var(--amber)}
-  .toggle.on{color:var(--cream);border-color:var(--line-strong)}
+  main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:16px 20px 60px}
+  .view{display:none}
+  .view.active{display:block}
 
-  .adv-toggle{
-    font-family:var(--font-mono);font-size:11.5px;color:var(--amber-soft);
-    background:transparent;border:1px dashed var(--line-strong);border-radius:10px;
-    padding:8px 12px;cursor:pointer;
-  }
-
-  .advanced{
-    max-width:1100px;margin:0 auto;padding:12px 20px 0;
-    display:none;gap:14px;flex-wrap:wrap;align-items:flex-end;
-  }
-  .advanced.open{display:flex}
-  .field{display:flex;flex-direction:column;gap:4px}
-  .field label{font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);letter-spacing:.03em;text-transform:uppercase}
-  .field input{
-    background:var(--panel-2);border:1px solid var(--line);color:var(--cream);
-    font-family:var(--font-mono);font-size:13px;padding:8px 10px;border-radius:8px;width:110px;
-  }
-  .clear-adv{
-    background:transparent;border:0;color:var(--muted);text-decoration:underline;
-    font-size:12px;cursor:pointer;padding:8px 4px;
-  }
-
-  /* ---------- Summary strip ---------- */
-  .summary{
-    max-width:1100px;margin:16px auto 0;padding:0 20px;
-    display:flex;gap:10px;flex-wrap:wrap;
-  }
-  .sum-card{
-    flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);
-    border-radius:12px;padding:12px 14px;
-  }
+  /* ---------- Summary + grid (Prisliste) ---------- */
+  .summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .sum-card{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
   .sum-card .k{font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);letter-spacing:.04em;text-transform:uppercase}
   .sum-card .v{font-family:var(--font-display);font-size:20px;font-weight:600;margin-top:3px}
   .sum-card .v small{font-family:var(--font-body);font-size:12px;color:var(--muted);font-weight:400}
 
-  /* ---------- Grid ---------- */
-  main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:18px 20px 60px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
-  .empty{
-    grid-column:1/-1;text-align:center;color:var(--muted);padding:50px 20px;
-    font-size:14px;border:1px dashed var(--line-strong);border-radius:12px;
-  }
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+  .empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:50px 20px;font-size:14px;border:1px dashed var(--line-strong);border-radius:12px}
 
-  .card{
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:14px 16px 15px;display:flex;flex-direction:column;gap:10px;
-    transition:border-color .15s,transform .15s;
-  }
-  .card:hover{border-color:var(--line-strong)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 15px;display:flex;flex-direction:column;gap:9px}
   .card.udsolgt{opacity:.55}
-
   .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
   .brand-line{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-  .brand{font-family:var(--font-display);font-weight:600;font-size:16px}
-  .mm-badge{
-    font-family:var(--font-mono);font-size:10.5px;color:var(--bg);background:var(--amber-soft);
-    padding:2px 7px;border-radius:999px;font-weight:600;
-  }
-  .type-badge{
-    font-family:var(--font-mono);font-size:10.5px;color:var(--muted);
-    border:1px solid var(--line-strong);padding:2px 7px;border-radius:999px;
-  }
-  .stock{font-family:var(--font-mono);font-size:10.5px;padding:3px 8px;border-radius:999px;white-space:nowrap}
+  .brand{font-family:var(--font-display);font-weight:600;font-size:15px}
+  .mm-badge{font-family:var(--font-mono);font-size:10px;color:var(--bg);background:var(--amber-soft);padding:2px 7px;border-radius:999px;font-weight:600}
+  .type-badge{font-family:var(--font-mono);font-size:10px;color:var(--muted);border:1px solid var(--line-strong);padding:2px 7px;border-radius:999px}
+  .stock{font-family:var(--font-mono);font-size:10px;padding:3px 8px;border-radius:999px;white-space:nowrap}
   .stock.ja{background:rgba(125,155,94,0.18);color:var(--green-soft)}
   .stock.nej{background:rgba(177,80,47,0.18);color:#e58f6d}
-  .stock.ukendt{background:rgba(169,154,128,0.15);color:var(--muted)}
-
-  .produkt-navn{font-size:12.5px;color:var(--muted);line-height:1.35}
-
-  .price-row{display:flex;align-items:baseline;gap:6px;margin-top:2px}
-  .price{font-family:var(--font-display);font-weight:700;font-size:26px;color:var(--amber-soft)}
-  .price.na{color:var(--muted);font-size:16px;font-weight:500}
-  .price-unit{font-size:12px;color:var(--muted)}
-
-  .specs{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
-    border-top:1px solid var(--line);padding-top:9px;margin-top:2px;
-  }
-  .spec .k{font-size:9.5px;color:var(--muted-2);font-family:var(--font-mono);letter-spacing:.03em;text-transform:uppercase}
-  .spec .v{font-family:var(--font-mono);font-size:12.5px;margin-top:1px}
+  .produkt-navn{font-size:12px;color:var(--muted);line-height:1.35}
+  .price-row{display:flex;align-items:baseline;gap:6px}
+  .price{font-family:var(--font-display);font-weight:700;font-size:24px;color:var(--amber-soft)}
+  .price.na{color:var(--muted);font-size:15px;font-weight:500}
+  .price-unit{font-size:11px;color:var(--muted)}
+  .specs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;border-top:1px solid var(--line);padding-top:9px}
+  .spec .k{font-size:9px;color:var(--muted-2);font-family:var(--font-mono);letter-spacing:.03em;text-transform:uppercase}
+  .spec .v{font-family:var(--font-mono);font-size:12px;margin-top:1px}
   .spec .v.na{color:var(--muted-2)}
-
-  .card-link{
-    font-family:var(--font-mono);font-size:11px;color:var(--amber-soft);text-decoration:none;
-    margin-top:2px;display:inline-flex;align-items:center;gap:4px;
-  }
+  .card-link{font-family:var(--font-mono);font-size:10.5px;color:var(--amber-soft);text-decoration:none}
   .card-link:hover{text-decoration:underline}
 
-  footer{
-    text-align:center;padding:20px;color:var(--muted-2);font-size:11px;
-    font-family:var(--font-mono);border-top:1px solid var(--line);
+  /* ---------- Analyse view ---------- */
+  .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+  .metric-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+  .metric-card .k{font-size:10px;color:var(--muted-2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.03em}
+  .metric-card .v{font-family:var(--font-display);font-size:22px;font-weight:600;margin-top:4px}
+
+  .analyse-tekst{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;font-size:13.5px;line-height:1.6;color:var(--cream);margin-bottom:16px;
   }
+  .analyse-tekst .label{font-family:var(--font-mono);font-size:10px;color:var(--amber-soft);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;display:block}
+
+  .chart-row{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-bottom:16px}
+  @media (max-width:650px){ .chart-row{grid-template-columns:1fr} }
+  .chart-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .chart-card h3{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;font-weight:600;margin-bottom:10px}
+  .donut-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .donut-legend{display:flex;gap:14px;font-size:11.5px}
+  .legend-item{display:flex;align-items:center;gap:5px;color:var(--muted)}
+  .legend-dot{width:8px;height:8px;border-radius:50%}
+
+  .trend-card{background:var(--panel);border:1px dashed var(--line-strong);border-radius:12px;padding:16px 18px;text-align:center;color:var(--muted);font-size:13px}
+
+  footer{text-align:center;padding:18px;color:var(--muted-2);font-size:11px;font-family:var(--font-mono);border-top:1px solid var(--line)}
   footer a{color:var(--muted)}
 
   @media (max-width:520px){
-    .title{font-size:22px}
+    .title{font-size:17px}
     .grid{grid-template-columns:1fr}
+    .popover{right:12px;left:12px;width:auto}
   }
 </style>
 </head>
@@ -191,59 +163,88 @@
 
 <header>
   <div class="header-row">
-    <div>
+    <div class="title-block">
       <div class="title">Træpiller<span class="dot">DK</span></div>
-      <div class="subtitle">Pillemadsen · tysk webshop, 7% moms · afhentning i Harrislee</div>
+      <div class="status" id="status"><span class="pulse"></span><span id="statusText">Henter priser…</span></div>
     </div>
-    <div class="status" id="status"><span class="pulse"></span><span id="statusText">Henter priser…</span></div>
+    <div class="header-right" style="position:relative">
+      <button class="gear-btn" id="gearBtn" title="Filtre og indstillinger" aria-label="Filtre og indstillinger">
+        ⚙<span class="filter-badge" id="filterBadge" style="display:none">0</span>
+      </button>
+      <div class="popover" id="popover">
+        <div class="pop-group">
+          <label>Størrelse</label>
+          <div class="seg" id="mmSeg">
+            <button data-mm="alle" class="active">Alle</button>
+            <button data-mm="6">6 mm</button>
+            <button data-mm="8">8 mm</button>
+          </div>
+        </div>
+        <div class="pop-group">
+          <label>Mærke</label>
+          <select id="maerkeSelect"><option value="alle">Alle mærker</option></select>
+        </div>
+        <div class="pop-group">
+          <label>Sortér efter</label>
+          <select id="sortSelect">
+            <option value="pris-op">Pris: lav → høj</option>
+            <option value="pris-ned">Pris: høj → lav</option>
+            <option value="braendvaerdi-ned">Brændværdi: høj → lav</option>
+            <option value="aske-op">Aske: lav → høj</option>
+            <option value="fugt-op">Fugt: lav → høj</option>
+            <option value="navn">Navn A-Å</option>
+          </select>
+        </div>
+        <label class="toggle-row"><input type="checkbox" id="lagerToggle" checked> Kun på lager</label>
+        <div class="pop-divider"></div>
+        <div class="pop-group">
+          <label>Specifikationsgrænser</label>
+          <div class="spec-fields">
+            <div><label>Min. brændv.</label><input type="number" step="0.1" id="minBraendvaerdi" placeholder="kWh/kg"></div>
+            <div><label>Maks. aske</label><input type="number" step="0.1" id="maxAske" placeholder="%"></div>
+            <div><label>Maks. fugt</label><input type="number" step="0.5" id="maxFugt" placeholder="%"></div>
+          </div>
+        </div>
+        <button class="clear-btn" id="clearAdv">Ryd alle filtre</button>
+      </div>
+    </div>
   </div>
-
-  <div class="filters">
-    <div class="seg" id="mmSeg">
-      <button data-mm="alle" class="active">Alle</button>
-      <button data-mm="6">6 mm</button>
-      <button data-mm="8">8 mm</button>
-    </div>
-
-    <select id="maerkeSelect"><option value="alle">Alle mærker</option></select>
-
-    <select id="sortSelect">
-      <option value="pris-op">Pris: lav → høj</option>
-      <option value="pris-ned">Pris: høj → lav</option>
-      <option value="braendvaerdi-ned">Brændværdi: høj → lav</option>
-      <option value="aske-op">Aske: lav → høj</option>
-      <option value="fugt-op">Fugt: lav → høj</option>
-      <option value="navn">Navn A-Å</option>
-    </select>
-
-    <label class="toggle" id="lagerToggleWrap">
-      <input type="checkbox" id="lagerToggle" checked>
-      Kun på lager
-    </label>
-
-    <button class="adv-toggle" id="advToggle">Flere filtre ▾</button>
-  </div>
-
-  <div class="advanced" id="advanced">
-    <div class="field">
-      <label>Min. brændværdi (kWh/kg)</label>
-      <input type="number" step="0.1" id="minBraendvaerdi" placeholder="fx 4,9">
-    </div>
-    <div class="field">
-      <label>Maks. aske (%)</label>
-      <input type="number" step="0.1" id="maxAske" placeholder="fx 0,6">
-    </div>
-    <div class="field">
-      <label>Maks. fugt (%)</label>
-      <input type="number" step="0.5" id="maxFugt" placeholder="fx 10">
-    </div>
-    <button class="clear-adv" id="clearAdv">Ryd filtre</button>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="prisliste">Prisliste</button>
+    <button class="tab-btn" data-tab="analyse">Analyse</button>
   </div>
 </header>
 
 <main>
-  <div class="summary" id="summary"></div>
-  <div class="grid" id="grid" style="margin-top:16px"></div>
+  <div class="view active" id="view-prisliste">
+    <div class="summary" id="summary"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="view" id="view-analyse">
+    <div class="metric-grid" id="metricGrid"></div>
+    <div class="analyse-tekst"><span class="label">Dagens markedsbillede</span><span id="analyseTekst"></span></div>
+    <div class="chart-row">
+      <div class="chart-card">
+        <h3>Pris pr. kg, på lager nu</h3>
+        <div id="barChart"></div>
+      </div>
+      <div class="chart-card">
+        <h3>Lagerstatus</h3>
+        <div class="donut-wrap">
+          <div id="donutChart"></div>
+          <div class="donut-legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#9fc178"></span>På lager</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#b1502f"></span>Udsolgt</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Udvikling over tid</h3>
+      <div id="trendChart"></div>
+    </div>
+  </div>
 </main>
 
 <footer>
@@ -252,12 +253,8 @@
 </footer>
 
 <script>
-/* =========================================================================
-   TRÆPILLEMARKED — prisdashboard
-   Data: traepriser.json, genereret dagligt af hent-traepiller.js (GitHub Action).
-   FALLBACK herunder bruges kun hvis traepriser.json ikke kan hentes.
-   ========================================================================= */
 const DATA_URL = "./traepriser.json";
+const HISTORIK_URL = "./historik.json";
 
 const FALLBACK = {
   "hentetUTC": "2026-08-03T12:20:00.000Z",
@@ -701,13 +698,13 @@ const FALLBACK = {
 };
 
 let RAW = [];
+let HISTORIK = [];
 let state = { mm: "alle", maerke: "alle", sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
 
 function taltekst(v, decimaler, enhed){
   if (v === null || v === undefined) return "–";
   return v.toLocaleString("da-DK", { minimumFractionDigits: decimaler, maximumFractionDigits: decimaler }) + (enhed || "");
 }
-
 function braendvaerdiTekst(p){
   if (p.braendvaerdiMinKwhKg === null) return "–";
   if (p.braendvaerdiMaxKwhKg !== null && p.braendvaerdiMaxKwhKg !== p.braendvaerdiMinKwhKg){
@@ -715,12 +712,11 @@ function braendvaerdiTekst(p){
   }
   return taltekst(p.braendvaerdiMinKwhKg, 1, " kWh/kg");
 }
-
 function setStatus(tidTekst, reserve){
   const el = document.getElementById("status");
   const txt = document.getElementById("statusText");
   el.classList.toggle("reserve", !!reserve);
-  txt.textContent = reserve ? "Reservedata · kunne ikke hente traepriser.json" : ("Opdateret " + tidTekst);
+  txt.textContent = reserve ? "Reservedata" : ("Opdateret " + tidTekst);
 }
 
 async function loadData(){
@@ -735,8 +731,15 @@ async function loadData(){
     RAW = FALLBACK.priser;
     setStatus(FALLBACK.hentetDanskTid, true);
   }
+  try {
+    const res2 = await fetch(HISTORIK_URL, { cache: "no-store" });
+    if (res2.ok) HISTORIK = await res2.json();
+  } catch (err) { HISTORIK = []; }
+  if (!Array.isArray(HISTORIK)) HISTORIK = [];
+
   populateBrands();
   render();
+  renderAnalyse();
 }
 
 function populateBrands(){
@@ -762,7 +765,6 @@ function filtreret(){
     if (bv === null) return -1;
     return retning === "op" ? av - bv : bv - av;
   };
-
   switch(state.sort){
     case "pris-op": rows.sort((a,b) => naNederst(a,b,"prisPrKg","op")); break;
     case "pris-ned": rows.sort((a,b) => naNederst(a,b,"prisPrKg","ned")); break;
@@ -778,21 +780,10 @@ function renderSummary(rows){
   const paaLager = RAW.filter(p => p.paaLager === true);
   const medPris = paaLager.filter(p => p.prisPrKg !== null);
   const billigste = medPris.slice().sort((a,b) => a.prisPrKg - b.prisPrKg)[0];
-
-  const el = document.getElementById("summary");
-  el.innerHTML = `
-    <div class="sum-card">
-      <div class="k">Viser</div>
-      <div class="v">${rows.length} <small>af ${RAW.length} varer</small></div>
-    </div>
-    <div class="sum-card">
-      <div class="k">På lager lige nu</div>
-      <div class="v">${paaLager.length} <small>varer</small></div>
-    </div>
-    <div class="sum-card">
-      <div class="k">Billigst på lager</div>
-      <div class="v">${billigste ? taltekst(billigste.prisPrKg,2," kr/kg") : "–"} ${billigste ? `<small>${billigste.maerke}</small>` : ""}</div>
-    </div>
+  document.getElementById("summary").innerHTML = `
+    <div class="sum-card"><div class="k">Viser</div><div class="v">${rows.length} <small>af ${RAW.length} varer</small></div></div>
+    <div class="sum-card"><div class="k">På lager lige nu</div><div class="v">${paaLager.length} <small>varer</small></div></div>
+    <div class="sum-card"><div class="k">Billigst på lager</div><div class="v">${billigste ? taltekst(billigste.prisPrKg,2," kr/kg") : "–"} ${billigste ? `<small>${billigste.maerke}</small>` : ""}</div></div>
   `;
 }
 
@@ -800,20 +791,13 @@ function render(){
   const rows = filtreret();
   renderSummary(rows);
   const grid = document.getElementById("grid");
-
-  if (!rows.length){
-    grid.innerHTML = '<div class="empty">Ingen varer matcher de valgte filtre lige nu.</div>';
-    return;
-  }
-
+  if (!rows.length){ grid.innerHTML = '<div class="empty">Ingen varer matcher de valgte filtre lige nu.</div>'; return; }
   grid.innerHTML = rows.map(p => {
-    const lager = p.paaLager === true ? "ja" : (p.paaLager === false ? "nej" : "ukendt");
-    const lagerTekst = p.paaLager === true ? (p.antalPaaLager ? p.antalPaaLager + " på lager" : "På lager")
-      : (p.paaLager === false ? "Udsolgt" : "Ukendt");
+    const lager = p.paaLager === true ? "ja" : "nej";
+    const lagerTekst = p.paaLager === true ? (p.antalPaaLager ? p.antalPaaLager + " på lager" : "På lager") : "Udsolgt";
     const prisHtml = p.prisPrKg !== null
       ? `<span class="price">${taltekst(p.prisPrKg,2,"")}</span><span class="price-unit">kr/kg</span>`
       : `<span class="price na">Ring for pris</span>`;
-
     return `
       <div class="card ${p.paaLager === false ? "udsolgt" : ""}">
         <div class="card-top">
@@ -837,42 +821,179 @@ function render(){
   }).join("");
 }
 
-/* ---------- Event wiring ---------- */
+function svgBarChart(data, height){
+  const width = 480;
+  const padding = { top: 22, right: 6, bottom: 34, left: 6 };
+  const maxVal = Math.max(...data.map(d => d.value), 0.1);
+  const gap = 10;
+  const barW = (width - padding.left - padding.right - gap*(data.length-1)) / Math.max(data.length,1);
+  const chartH = height - padding.top - padding.bottom;
+  let out = "";
+  data.forEach((d,i) => {
+    const x = padding.left + i*(barW+gap);
+    const h = (d.value/maxVal) * chartH;
+    const y = padding.top + (chartH - h);
+    out += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="5" fill="#e8c07f"></rect>`;
+    out += `<text x="${(x+barW/2).toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="#e8c07f">${d.value.toFixed(2)}</text>`;
+    out += `<text x="${(x+barW/2).toFixed(1)}" y="${height-16}" text-anchor="middle" font-size="9.5" font-family="IBM Plex Mono, monospace" fill="#a99a80">${d.label}</text>`;
+  });
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">${out}</svg>`;
+}
+
+function svgDonut(paaLagerN, udsolgtN, size){
+  const total = paaLagerN + udsolgtN || 1;
+  const r = size/2 - 14;
+  const cx = size/2, cy = size/2;
+  const circ = 2*Math.PI*r;
+  const paaLagerLen = circ * (paaLagerN/total);
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(243,233,216,0.10)" stroke-width="16"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#9fc178" stroke-width="16"
+      stroke-dasharray="${paaLagerLen.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round"
+      transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="22" font-weight="700" font-family="Fraunces, serif" fill="#f3e9d8">${Math.round(paaLagerN/total*100)}%</text>
+    <text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="9.5" font-family="IBM Plex Mono, monospace" fill="#a99a80">på lager</text>
+  </svg>`;
+}
+
+function genererAnalyseTekst(produkter){
+  const paaLager = produkter.filter(p => p.paaLager === true);
+  const udsolgt = produkter.filter(p => p.paaLager === false);
+  const maerkerPaaLager = new Set(paaLager.map(p => p.maerke));
+  const maerkerUdsolgt = Array.from(new Set(udsolgt.map(p => p.maerke))).filter(m => !maerkerPaaLager.has(m));
+
+  const gns = arr => arr.length ? (arr.reduce((s,p)=>s+p.prisPrKg,0)/arr.length) : null;
+  const seks = paaLager.filter(p => p.mm === 6 && p.prisPrKg !== null);
+  const otte = paaLager.filter(p => p.mm === 8 && p.prisPrKg !== null);
+  const gns6 = gns(seks), gns8 = gns(otte);
+
+  let t = `${paaLager.length} af ${produkter.length} varer er på lager lige nu (${Math.round(paaLager.length/produkter.length*100)}%). `;
+  if (maerkerUdsolgt.length){
+    t += `${maerkerUdsolgt.join(", ")} er udsolgt på tværs af alle varianter hos Pillemadsen lige nu. `;
+  }
+  if (gns6 !== null) t += `Gennemsnitsprisen for 6 mm piller på lager ligger på ${gns6.toFixed(2)} kr/kg`;
+  if (gns8 !== null) t += gns6 !== null ? `, mod ${gns8.toFixed(2)} kr/kg for 8 mm. ` : `Gennemsnitsprisen for 8 mm piller på lager ligger på ${gns8.toFixed(2)} kr/kg. `;
+  else if (gns6 !== null) t += `. `;
+  return t;
+}
+
+function renderAnalyse(){
+  const paaLager = RAW.filter(p => p.paaLager === true);
+  const udsolgt = RAW.filter(p => p.paaLager === false);
+  const medPris = paaLager.filter(p => p.prisPrKg !== null);
+  const seks = medPris.filter(p => p.mm === 6);
+  const otte = medPris.filter(p => p.mm === 8);
+  const gns = arr => arr.length ? (arr.reduce((s,p)=>s+p.prisPrKg,0)/arr.length) : null;
+  const billigste = medPris.slice().sort((a,b)=>a.prisPrKg-b.prisPrKg)[0];
+
+  document.getElementById("metricGrid").innerHTML = `
+    <div class="metric-card"><div class="k">På lager</div><div class="v">${paaLager.length}<span style="font-size:13px;color:var(--muted)"> / ${RAW.length}</span></div></div>
+    <div class="metric-card"><div class="k">Udsolgt</div><div class="v">${udsolgt.length}</div></div>
+    <div class="metric-card"><div class="k">Snit 6 mm</div><div class="v">${gns(seks)!==null?gns(seks).toFixed(2):"–"}</div></div>
+    <div class="metric-card"><div class="k">Snit 8 mm</div><div class="v">${gns(otte)!==null?gns(otte).toFixed(2):"–"}</div></div>
+    <div class="metric-card"><div class="k">Billigst</div><div class="v">${billigste?billigste.prisPrKg.toFixed(2):"–"}</div></div>
+  `;
+
+  document.getElementById("analyseTekst").textContent = genererAnalyseTekst(RAW);
+
+  const perMaerke = {};
+  medPris.forEach(p => {
+    if (!perMaerke[p.maerke]) perMaerke[p.maerke] = [];
+    perMaerke[p.maerke].push(p.prisPrKg);
+  });
+  const barData = Object.keys(perMaerke).map(m => ({
+    label: m.length > 9 ? m.slice(0,8)+"…" : m,
+    value: perMaerke[m].reduce((s,v)=>s+v,0)/perMaerke[m].length
+  })).sort((a,b) => a.value - b.value);
+  document.getElementById("barChart").innerHTML = barData.length
+    ? svgBarChart(barData, 220)
+    : '<div class="trend-card">Ingen varer på lager med pris lige nu.</div>';
+
+  document.getElementById("donutChart").innerHTML = svgDonut(paaLager.length, udsolgt.length, 160);
+
+  const trendEl = document.getElementById("trendChart");
+  if (HISTORIK.length < 2){
+    trendEl.innerHTML = `<div class="trend-card">Vi er lige begyndt at gemme et dagligt øjebliksbillede (fra ${HISTORIK.length ? HISTORIK[0].dato : "i dag"}). Om nogle uger tegner der sig en rigtig tidslinje og prognose her — indtil da vises kun dagens tal.</div>`;
+  } else {
+    trendEl.innerHTML = svgTrendChart(HISTORIK, 260);
+  }
+}
+
+function svgTrendChart(historik, height){
+  const width = 1000;
+  const padding = { top: 18, right: 16, bottom: 26, left: 16 };
+  const punkter = historik.filter(h => h.gnsPris6mmPaaLager !== null);
+  if (!punkter.length) return '<div class="trend-card">Ikke nok data endnu.</div>';
+  const vals = punkter.map(h => h.gnsPris6mmPaaLager);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const span = (max - min) || 0.1;
+  const chartW = width - padding.left - padding.right;
+  const chartH = height - padding.top - padding.bottom;
+  const pts = punkter.map((h,i) => {
+    const x = padding.left + (i/(Math.max(punkter.length-1,1))) * chartW;
+    const y = padding.top + chartH - ((h.gnsPris6mmPaaLager - min)/span) * chartH;
+    return [x,y];
+  });
+  const path = pts.map((p,i) => (i===0?"M":"L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const dots = pts.map((p,i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="#e8c07f"><title>${punkter[i].dato}: ${punkter[i].gnsPris6mmPaaLager} kr/kg</title></circle>`).join("");
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">
+    <path d="${path}" fill="none" stroke="#e8c07f" stroke-width="2"/>
+    ${dots}
+  </svg>`;
+}
+
+function opdaterFilterBadge(){
+  let n = 0;
+  if (state.mm !== "alle") n++;
+  if (state.maerke !== "alle") n++;
+  if (state.minBraendvaerdi !== null) n++;
+  if (state.maxAske !== null) n++;
+  if (state.maxFugt !== null) n++;
+  const badge = document.getElementById("filterBadge");
+  badge.style.display = n ? "flex" : "none";
+  badge.textContent = n;
+}
+
+document.getElementById("gearBtn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  const pop = document.getElementById("popover");
+  pop.classList.toggle("open");
+  document.getElementById("gearBtn").classList.toggle("active", pop.classList.contains("open"));
+});
+document.addEventListener("click", (e) => {
+  const pop = document.getElementById("popover");
+  if (pop.classList.contains("open") && !pop.contains(e.target) && e.target.id !== "gearBtn"){
+    pop.classList.remove("open");
+    document.getElementById("gearBtn").classList.remove("active");
+  }
+});
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    document.getElementById("view-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
 document.getElementById("mmSeg").addEventListener("click", e => {
   const btn = e.target.closest("button");
   if (!btn) return;
   document.querySelectorAll("#mmSeg button").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
   state.mm = btn.dataset.mm;
-  render();
+  opdaterFilterBadge(); render();
 });
-
-document.getElementById("maerkeSelect").addEventListener("change", e => {
-  state.maerke = e.target.value;
-  render();
-});
-
-document.getElementById("sortSelect").addEventListener("change", e => {
-  state.sort = e.target.value;
-  render();
-});
-
-document.getElementById("lagerToggle").addEventListener("change", e => {
-  state.kunPaaLager = e.target.checked;
-  document.getElementById("lagerToggleWrap").classList.toggle("on", e.target.checked);
-  render();
-});
-document.getElementById("lagerToggleWrap").classList.add("on");
-
-document.getElementById("advToggle").addEventListener("click", () => {
-  document.getElementById("advanced").classList.toggle("open");
-});
+document.getElementById("maerkeSelect").addEventListener("change", e => { state.maerke = e.target.value; opdaterFilterBadge(); render(); });
+document.getElementById("sortSelect").addEventListener("change", e => { state.sort = e.target.value; render(); });
+document.getElementById("lagerToggle").addEventListener("change", e => { state.kunPaaLager = e.target.checked; render(); });
 
 function bindTal(id, felt){
   document.getElementById(id).addEventListener("input", e => {
     const v = e.target.value.replace(",", ".").trim();
     state[felt] = v === "" ? null : Number(v);
-    render();
+    opdaterFilterBadge(); render();
   });
 }
 bindTal("minBraendvaerdi", "minBraendvaerdi");
@@ -880,9 +1001,13 @@ bindTal("maxAske", "maxAske");
 bindTal("maxFugt", "maxFugt");
 
 document.getElementById("clearAdv").addEventListener("click", () => {
+  state = { mm: "alle", maerke: "alle", sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
+  document.querySelectorAll("#mmSeg button").forEach(b => b.classList.toggle("active", b.dataset.mm === "alle"));
+  document.getElementById("maerkeSelect").value = "alle";
+  document.getElementById("sortSelect").value = "pris-op";
+  document.getElementById("lagerToggle").checked = true;
   ["minBraendvaerdi","maxAske","maxFugt"].forEach(id => document.getElementById(id).value = "");
-  state.minBraendvaerdi = null; state.maxAske = null; state.maxFugt = null;
-  render();
+  opdaterFilterBadge(); render();
 });
 
 loadData();
