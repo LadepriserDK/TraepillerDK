@@ -26,11 +26,13 @@ jobs:
 
       - name: Hent priser fra pillemadsen.dk
         run: node hent-traepiller.js
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
       - name: Commit og push opdaterede priser
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add traepriser.json historik.json
+          git add traepriser.json historik.json tysk-markedsindeks.json ai-analyse.json
           git diff --staged --quiet || git commit -m "Opdater træpillepriser $(date -u +%Y-%m-%d)"
           git push
