@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Træpillepriser · Pillemadsen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1c1611;
+    --panel:#241d16;
+    --panel-2:#2b2319;
+    --card:#231c15;
+    --cream:#f3e9d8;
+    --muted:#a99a80;
+    --muted-2:#7d7160;
+    --line:rgba(243,233,216,0.10);
+    --line-strong:rgba(243,233,216,0.20);
+    --amber:#d89b3c;
+    --amber-soft:#e8c07f;
+    --green:#7d9b5e;
+    --green-soft:#9fc178;
+    --rust:#b1502f;
+    --font-display:'Fraunces',serif;
+    --font-body:'IBM Plex Sans',system-ui,sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(216,155,60,0.10), transparent 60%),
+      var(--bg);
+    color:var(--cream);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    display:flex;flex-direction:column;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky;top:0;z-index:20;
+    background:rgba(28,22,17,0.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:16px 20px 14px;
+  }
+  .header-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto}
+  .title{font-family:var(--font-display);font-weight:700;font-size:26px;letter-spacing:-0.01em}
+  .title .dot{color:var(--amber)}
+  .subtitle{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .status{
+    display:flex;align-items:center;gap:8px;font-family:var(--font-mono);
+    font-size:11.5px;color:var(--muted);
+  }
+  .status .pulse{width:7px;height:7px;border-radius:50%;background:var(--green-soft);flex:none}
+  .status.reserve .pulse{background:var(--rust)}
+
+  /* ---------- Filter bar ---------- */
+  .filters{
+    max-width:1100px;margin:14px auto 0;padding:0 20px 2px;
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  }
+  .seg{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .seg button{
+    border:0;background:transparent;color:var(--muted);cursor:pointer;
+    font-family:var(--font-mono);font-weight:600;font-size:12.5px;letter-spacing:.03em;
+    padding:7px 14px;border-radius:999px;transition:background .15s,color .15s;
+  }
+  .seg button.active{background:var(--amber);color:#241a0d}
+
+  select{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--cream);
+    font-family:var(--font-body);font-size:13px;padding:9px 12px;border-radius:10px;
+    cursor:pointer;
+  }
+  select:focus-visible, button:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+
+  .toggle{
+    display:flex;align-items:center;gap:7px;background:var(--panel-2);
+    border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;
+    font-size:12.5px;color:var(--muted);user-select:none;
+  }
+  .toggle input{accent-color:var(--amber)}
+  .toggle.on{color:var(--cream);border-color:var(--line-strong)}
+
+  .adv-toggle{
+    font-family:var(--font-mono);font-size:11.5px;color:var(--amber-soft);
+    background:transparent;border:1px dashed var(--line-strong);border-radius:10px;
+    padding:8px 12px;cursor:pointer;
+  }
+
+  .advanced{
+    max-width:1100px;margin:0 auto;padding:12px 20px 0;
+    display:none;gap:14px;flex-wrap:wrap;align-items:flex-end;
+  }
+  .advanced.open{display:flex}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field label{font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);letter-spacing:.03em;text-transform:uppercase}
+  .field input{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--cream);
+    font-family:var(--font-mono);font-size:13px;padding:8px 10px;border-radius:8px;width:110px;
+  }
+  .clear-adv{
+    background:transparent;border:0;color:var(--muted);text-decoration:underline;
+    font-size:12px;cursor:pointer;padding:8px 4px;
+  }
+
+  /* ---------- Summary strip ---------- */
+  .summary{
+    max-width:1100px;margin:16px auto 0;padding:0 20px;
+    display:flex;gap:10px;flex-wrap:wrap;
+  }
+  .sum-card{
+    flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:12px 14px;
+  }
+  .sum-card .k{font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);letter-spacing:.04em;text-transform:uppercase}
+  .sum-card .v{font-family:var(--font-display);font-size:20px;font-weight:600;margin-top:3px}
+  .sum-card .v small{font-family:var(--font-body);font-size:12px;color:var(--muted);font-weight:400}
+
+  /* ---------- Grid ---------- */
+  main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:18px 20px 60px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+  .empty{
+    grid-column:1/-1;text-align:center;color:var(--muted);padding:50px 20px;
+    font-size:14px;border:1px dashed var(--line-strong);border-radius:12px;
+  }
+
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px 16px 15px;display:flex;flex-direction:column;gap:10px;
+    transition:border-color .15s,transform .15s;
+  }
+  .card:hover{border-color:var(--line-strong)}
+  .card.udsolgt{opacity:.55}
+
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .brand-line{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .brand{font-family:var(--font-display);font-weight:600;font-size:16px}
+  .mm-badge{
+    font-family:var(--font-mono);font-size:10.5px;color:var(--bg);background:var(--amber-soft);
+    padding:2px 7px;border-radius:999px;font-weight:600;
+  }
+  .type-badge{
+    font-family:var(--font-mono);font-size:10.5px;color:var(--muted);
+    border:1px solid var(--line-strong);padding:2px 7px;border-radius:999px;
+  }
+  .stock{font-family:var(--font-mono);font-size:10.5px;padding:3px 8px;border-radius:999px;white-space:nowrap}
+  .stock.ja{background:rgba(125,155,94,0.18);color:var(--green-soft)}
+  .stock.nej{background:rgba(177,80,47,0.18);color:#e58f6d}
+  .stock.ukendt{background:rgba(169,154,128,0.15);color:var(--muted)}
+
+  .produkt-navn{font-size:12.5px;color:var(--muted);line-height:1.35}
+
+  .price-row{display:flex;align-items:baseline;gap:6px;margin-top:2px}
+  .price{font-family:var(--font-display);font-weight:700;font-size:26px;color:var(--amber-soft)}
+  .price.na{color:var(--muted);font-size:16px;font-weight:500}
+  .price-unit{font-size:12px;color:var(--muted)}
+
+  .specs{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
+    border-top:1px solid var(--line);padding-top:9px;margin-top:2px;
+  }
+  .spec .k{font-size:9.5px;color:var(--muted-2);font-family:var(--font-mono);letter-spacing:.03em;text-transform:uppercase}
+  .spec .v{font-family:var(--font-mono);font-size:12.5px;margin-top:1px}
+  .spec .v.na{color:var(--muted-2)}
+
+  .card-link{
+    font-family:var(--font-mono);font-size:11px;color:var(--amber-soft);text-decoration:none;
+    margin-top:2px;display:inline-flex;align-items:center;gap:4px;
+  }
+  .card-link:hover{text-decoration:underline}
+
+  footer{
+    text-align:center;padding:20px;color:var(--muted-2);font-size:11px;
+    font-family:var(--font-mono);border-top:1px solid var(--line);
+  }
+  footer a{color:var(--muted)}
+
+  @media (max-width:520px){
+    .title{font-size:22px}
+    .grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div>
+      <div class="title">Træpiller<span class="dot">DK</span></div>
+      <div class="subtitle">Pillemadsen · tysk webshop, 7% moms · afhentning i Harrislee</div>
+    </div>
+    <div class="status" id="status"><span class="pulse"></span><span id="statusText">Henter priser…</span></div>
+  </div>
+
+  <div class="filters">
+    <div class="seg" id="mmSeg">
+      <button data-mm="alle" class="active">Alle</button>
+      <button data-mm="6">6 mm</button>
+      <button data-mm="8">8 mm</button>
+    </div>
+
+    <select id="maerkeSelect"><option value="alle">Alle mærker</option></select>
+
+    <select id="sortSelect">
+      <option value="pris-op">Pris: lav → høj</option>
+      <option value="pris-ned">Pris: høj → lav</option>
+      <option value="braendvaerdi-ned">Brændværdi: høj → lav</option>
+      <option value="aske-op">Aske: lav → høj</option>
+      <option value="fugt-op">Fugt: lav → høj</option>
+      <option value="navn">Navn A-Å</option>
+    </select>
+
+    <label class="toggle" id="lagerToggleWrap">
+      <input type="checkbox" id="lagerToggle" checked>
+      Kun på lager
+    </label>
+
+    <button class="adv-toggle" id="advToggle">Flere filtre ▾</button>
+  </div>
+
+  <div class="advanced" id="advanced">
+    <div class="field">
+      <label>Min. brændværdi (kWh/kg)</label>
+      <input type="number" step="0.1" id="minBraendvaerdi" placeholder="fx 4,9">
+    </div>
+    <div class="field">
+      <label>Maks. aske (%)</label>
+      <input type="number" step="0.1" id="maxAske" placeholder="fx 0,6">
+    </div>
+    <div class="field">
+      <label>Maks. fugt (%)</label>
+      <input type="number" step="0.5" id="maxFugt" placeholder="fx 10">
+    </div>
+    <button class="clear-adv" id="clearAdv">Ryd filtre</button>
+  </div>
+</header>
+
+<main>
+  <div class="summary" id="summary"></div>
+  <div class="grid" id="grid" style="margin-top:16px"></div>
+</main>
+
+<footer>
+  Data hentes automatisk hver morgen fra <a href="https://www.pillemadsen.dk/shop/traepiller-33s1.html" target="_blank" rel="noopener">pillemadsen.dk</a> ·
+  Brændværdi/aske/fugt er producenternes egne angivelser og kan mangle for nogle varer
+</footer>
+
+<script>
+/* =========================================================================
+   TRÆPILLEMARKED — prisdashboard
+   Data: traepriser.json, genereret dagligt af hent-traepiller.js (GitHub Action).
+   FALLBACK herunder bruges kun hvis traepriser.json ikke kan hentes.
+   ========================================================================= */
+const DATA_URL = "./traepriser.json";
+
+const FALLBACK = {
+  "hentetUTC": "2026-08-03T12:20:00.000Z",
+  "hentetDanskTid": "03.08.2026, 14.20.00",
+  "hjemmeside": "https://www.pillemadsen.dk/shop/traepiller-33s1.html",
+  "antalProdukter": 27,
+  "priser": [
+    {
+      "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
+      "maerke": "Barlinek",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": 3.03,
+      "paaLager": true,
+      "antalPaaLager": 66,
+      "braendvaerdiMinKwhKg": 4.9,
+      "braendvaerdiMaxKwhKg": 5.3,
+      "fugtMaxProcent": 10,
+      "askeMaxProcent": 0.6,
+      "svovlMaxProcent": 0.04,
+      "askeSmeltepunktGrader": 1400,
+      "kilde": "https://www.pillemadsen.dk/shop/barlinek-6-mm-227p.html"
+    },
+    {
+      "produkt": "Heatlets 6 mm træpiller 10/900 kg",
+      "maerke": "Heatlets",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": 3.02,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/heatlets-6-mm-274p.html"
+    },
+    {
+      "produkt": "Barlinek Træbriketter 10/960 kg",
+      "maerke": "Barlinek",
+      "type": "briket",
+      "mm": null,
+      "prisPrKg": 2.79,
+      "paaLager": true,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/barlinek-traebriketter-215p.html"
+    },
+    {
+      "produkt": "Heatlets 6 mm træpiller 15/900kg",
+      "maerke": "Heatlets",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": 2.96,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/heatlets-6-mm-231p.html"
+    },
+    {
+      "produkt": "Vildbjerg Pellets 6 mm træpiller 16/896 kg",
+      "maerke": "Vildbjerg",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": 2.85,
+      "paaLager": true,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/vildbjerg-pellets-6-733p.html"
+    },
+    {
+      "produkt": "German Pellets 6 mm træpiller 15/990 kg",
+      "maerke": "German Pellets",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": 2.78,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": 5.4,
+      "braendvaerdiMaxKwhKg": 5.4,
+      "fugtMaxProcent": 9,
+      "askeMaxProcent": 0.6,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/german-pellets-6-230p.html"
+    },
+    {
+      "produkt": "Egetræpiller 8 mm 15 kg /990 kg",
+      "maerke": "Egetræpiller",
+      "type": "pille",
+      "mm": 8,
+      "prisPrKg": 2.89,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/egetraepiller-8-mm-268p.html"
+    },
+    {
+      "produkt": "6 mm Fågelfors 10/900kg",
+      "maerke": "Fågelfors",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": 2.88,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/6-mm-faagelfors-709p.html"
+    },
+    {
+      "produkt": "6 mm Fågelfors 16/832 kg",
+      "maerke": "Fågelfors",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": 2.88,
+      "paaLager": true,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/6-mm-faagelfors-684p.html"
+    },
+    {
+      "produkt": "8 mm Fågelfors træpiller 16/832 kg",
+      "maerke": "Fågelfors",
+      "type": "pille",
+      "mm": 8,
+      "prisPrKg": 2.88,
+      "paaLager": true,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/8-mm-faagelfors-267p.html"
+    },
+    {
+      "produkt": "Laxå Pellets 6 mm 16/832",
+      "maerke": "Laxå",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": 2.88,
+      "paaLager": true,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/laxaa-pellets-6-720p.html"
+    },
+    {
+      "produkt": "Laxå Pellets 8 mm 16/832",
+      "maerke": "Laxå",
+      "type": "pille",
+      "mm": 8,
+      "prisPrKg": 2.88,
+      "paaLager": true,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/laxaa-pellets-8-722p.html"
+    },
+    {
+      "produkt": "6 mm Mix Pellets 16 kg 896 kg",
+      "maerke": "Mix Pellets",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": 2.63,
+      "paaLager": true,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/6-mm-mix-714p.html"
+    },
+    {
+      "produkt": "6 mm no name 16 kg 896 kg",
+      "maerke": "No name",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": 2.68,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/6-mm-no-402p.html"
+    },
+    {
+      "produkt": "8 mm no name 16 kg 896 kg",
+      "maerke": "No name",
+      "type": "pille",
+      "mm": 8,
+      "prisPrKg": 2.68,
+      "paaLager": true,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/8-mm-no-395p.html"
+    },
+    {
+      "produkt": "Big Bags 10mm 950 kg",
+      "maerke": "Big Bags",
+      "type": "pille",
+      "mm": 10,
+      "prisPrKg": 2.29,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/big-bags-10mm-688p.html"
+    },
+    {
+      "produkt": "Olczyk Træpiller 6 mm 15 kg / 1050 kg",
+      "maerke": "Olczyk",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": null,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/olczyk-traepiller-6-289p.html"
+    },
+    {
+      "produkt": "Rw 8 mm træpiller 16/880 kg",
+      "maerke": "RW",
+      "type": "pille",
+      "mm": 8,
+      "prisPrKg": null,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/rw-8-mm-189p.html"
+    },
+    {
+      "produkt": "Lava 6 mm træpiller 15/975 kg",
+      "maerke": "Lava",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": null,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/lava-6-mm-240p.html"
+    },
+    {
+      "produkt": "Olimp 6 mm træpiller 15/975 kg",
+      "maerke": "Olimp",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": null,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/olimp-6-mm-247p.html"
+    },
+    {
+      "produkt": "Rw 6 mm træpiller 16/880 kg",
+      "maerke": "RW",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": null,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/rw-6-mm-275p.html"
+    },
+    {
+      "produkt": "Sylva Træpiller 6 mm 15/990 kg",
+      "maerke": "Sylva",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": null,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/sylva-traepiller-6-590p.html"
+    },
+    {
+      "produkt": "FireHeat 8 mm træpiller 15/975 kg",
+      "maerke": "Fireheat",
+      "type": "pille",
+      "mm": 8,
+      "prisPrKg": null,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/fireheat-8-mm-175p.html"
+    },
+    {
+      "produkt": "German Pellets 8 mm træpiller 15/990 kg",
+      "maerke": "German Pellets",
+      "type": "pille",
+      "mm": 8,
+      "prisPrKg": null,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/german-pellets-8-229p.html"
+    },
+    {
+      "produkt": "Biomasa Premium 6 mm 15kg 975 kg",
+      "maerke": "Biomasa",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": null,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/biomasa-premium-6-265p.html"
+    },
+    {
+      "produkt": "Fireheat 6 mm træpiller 15/975 kg",
+      "maerke": "Fireheat",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": null,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/fireheat-6-mm-264p.html"
+    },
+    {
+      "produkt": "6 mm Samba træpiller 16/896 kg",
+      "maerke": "Samba",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": null,
+      "paaLager": false,
+      "antalPaaLager": null,
+      "braendvaerdiMinKwhKg": null,
+      "braendvaerdiMaxKwhKg": null,
+      "fugtMaxProcent": null,
+      "askeMaxProcent": null,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/6-mm-samba-570p.html"
+    }
+  ]
+};
+
+let RAW = [];
+let state = { mm: "alle", maerke: "alle", sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
+
+function taltekst(v, decimaler, enhed){
+  if (v === null || v === undefined) return "–";
+  return v.toLocaleString("da-DK", { minimumFractionDigits: decimaler, maximumFractionDigits: decimaler }) + (enhed || "");
+}
+
+function braendvaerdiTekst(p){
+  if (p.braendvaerdiMinKwhKg === null) return "–";
+  if (p.braendvaerdiMaxKwhKg !== null && p.braendvaerdiMaxKwhKg !== p.braendvaerdiMinKwhKg){
+    return taltekst(p.braendvaerdiMinKwhKg,1,"") + "–" + taltekst(p.braendvaerdiMaxKwhKg,1," kWh/kg");
+  }
+  return taltekst(p.braendvaerdiMinKwhKg, 1, " kWh/kg");
+}
+
+function setStatus(tidTekst, reserve){
+  const el = document.getElementById("status");
+  const txt = document.getElementById("statusText");
+  el.classList.toggle("reserve", !!reserve);
+  txt.textContent = reserve ? "Reservedata · kunne ikke hente traepriser.json" : ("Opdateret " + tidTekst);
+}
+
+async function loadData(){
+  try {
+    const res = await fetch(DATA_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    if (!Array.isArray(json.priser) || !json.priser.length) throw new Error("Ingen priser i JSON");
+    RAW = json.priser;
+    setStatus(json.hentetDanskTid || "", false);
+  } catch (err) {
+    RAW = FALLBACK.priser;
+    setStatus(FALLBACK.hentetDanskTid, true);
+  }
+  populateBrands();
+  render();
+}
+
+function populateBrands(){
+  const sel = document.getElementById("maerkeSelect");
+  const maerker = Array.from(new Set(RAW.map(p => p.maerke))).sort((a,b) => a.localeCompare(b, "da"));
+  sel.innerHTML = '<option value="alle">Alle mærker</option>' +
+    maerker.map(m => `<option value="${m}">${m}</option>`).join("");
+}
+
+function filtreret(){
+  let rows = RAW.slice();
+  if (state.mm !== "alle") rows = rows.filter(p => String(p.mm) === state.mm);
+  if (state.maerke !== "alle") rows = rows.filter(p => p.maerke === state.maerke);
+  if (state.kunPaaLager) rows = rows.filter(p => p.paaLager === true);
+  if (state.minBraendvaerdi !== null) rows = rows.filter(p => p.braendvaerdiMaxKwhKg !== null && p.braendvaerdiMaxKwhKg >= state.minBraendvaerdi);
+  if (state.maxAske !== null) rows = rows.filter(p => p.askeMaxProcent !== null && p.askeMaxProcent <= state.maxAske);
+  if (state.maxFugt !== null) rows = rows.filter(p => p.fugtMaxProcent !== null && p.fugtMaxProcent <= state.maxFugt);
+
+  const naNederst = (a,b,key,retning) => {
+    const av = a[key], bv = b[key];
+    if (av === null && bv === null) return 0;
+    if (av === null) return 1;
+    if (bv === null) return -1;
+    return retning === "op" ? av - bv : bv - av;
+  };
+
+  switch(state.sort){
+    case "pris-op": rows.sort((a,b) => naNederst(a,b,"prisPrKg","op")); break;
+    case "pris-ned": rows.sort((a,b) => naNederst(a,b,"prisPrKg","ned")); break;
+    case "braendvaerdi-ned": rows.sort((a,b) => naNederst(a,b,"braendvaerdiMaxKwhKg","ned")); break;
+    case "aske-op": rows.sort((a,b) => naNederst(a,b,"askeMaxProcent","op")); break;
+    case "fugt-op": rows.sort((a,b) => naNederst(a,b,"fugtMaxProcent","op")); break;
+    case "navn": rows.sort((a,b) => a.produkt.localeCompare(b.produkt, "da")); break;
+  }
+  return rows;
+}
+
+function renderSummary(rows){
+  const paaLager = RAW.filter(p => p.paaLager === true);
+  const medPris = paaLager.filter(p => p.prisPrKg !== null);
+  const billigste = medPris.slice().sort((a,b) => a.prisPrKg - b.prisPrKg)[0];
+
+  const el = document.getElementById("summary");
+  el.innerHTML = `
+    <div class="sum-card">
+      <div class="k">Viser</div>
+      <div class="v">${rows.length} <small>af ${RAW.length} varer</small></div>
+    </div>
+    <div class="sum-card">
+      <div class="k">På lager lige nu</div>
+      <div class="v">${paaLager.length} <small>varer</small></div>
+    </div>
+    <div class="sum-card">
+      <div class="k">Billigst på lager</div>
+      <div class="v">${billigste ? taltekst(billigste.prisPrKg,2," kr/kg") : "–"} ${billigste ? `<small>${billigste.maerke}</small>` : ""}</div>
+    </div>
+  `;
+}
+
+function render(){
+  const rows = filtreret();
+  renderSummary(rows);
+  const grid = document.getElementById("grid");
+
+  if (!rows.length){
+    grid.innerHTML = '<div class="empty">Ingen varer matcher de valgte filtre lige nu.</div>';
+    return;
+  }
+
+  grid.innerHTML = rows.map(p => {
+    const lager = p.paaLager === true ? "ja" : (p.paaLager === false ? "nej" : "ukendt");
+    const lagerTekst = p.paaLager === true ? (p.antalPaaLager ? p.antalPaaLager + " på lager" : "På lager")
+      : (p.paaLager === false ? "Udsolgt" : "Ukendt");
+    const prisHtml = p.prisPrKg !== null
+      ? `<span class="price">${taltekst(p.prisPrKg,2,"")}</span><span class="price-unit">kr/kg</span>`
+      : `<span class="price na">Ring for pris</span>`;
+
+    return `
+      <div class="card ${p.paaLager === false ? "udsolgt" : ""}">
+        <div class="card-top">
+          <div class="brand-line">
+            <div class="brand">${p.maerke}</div>
+            ${p.mm ? `<span class="mm-badge">${p.mm} mm</span>` : ""}
+            ${p.type === "briket" ? `<span class="type-badge">briket</span>` : ""}
+          </div>
+          <span class="stock ${lager}">${lagerTekst}</span>
+        </div>
+        <div class="produkt-navn">${p.produkt}</div>
+        <div class="price-row">${prisHtml}</div>
+        <div class="specs">
+          <div class="spec"><div class="k">Brændværdi</div><div class="v ${p.braendvaerdiMinKwhKg===null?'na':''}">${braendvaerdiTekst(p)}</div></div>
+          <div class="spec"><div class="k">Fugt</div><div class="v ${p.fugtMaxProcent===null?'na':''}">${p.fugtMaxProcent===null?"–":"≤ "+taltekst(p.fugtMaxProcent,1,"%")}</div></div>
+          <div class="spec"><div class="k">Aske</div><div class="v ${p.askeMaxProcent===null?'na':''}">${p.askeMaxProcent===null?"–":"≤ "+taltekst(p.askeMaxProcent,1,"%")}</div></div>
+        </div>
+        <a class="card-link" href="${p.kilde}" target="_blank" rel="noopener">Se hos Pillemadsen →</a>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ---------- Event wiring ---------- */
+document.getElementById("mmSeg").addEventListener("click", e => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  document.querySelectorAll("#mmSeg button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  state.mm = btn.dataset.mm;
+  render();
+});
+
+document.getElementById("maerkeSelect").addEventListener("change", e => {
+  state.maerke = e.target.value;
+  render();
+});
+
+document.getElementById("sortSelect").addEventListener("change", e => {
+  state.sort = e.target.value;
+  render();
+});
+
+document.getElementById("lagerToggle").addEventListener("change", e => {
+  state.kunPaaLager = e.target.checked;
+  document.getElementById("lagerToggleWrap").classList.toggle("on", e.target.checked);
+  render();
+});
+document.getElementById("lagerToggleWrap").classList.add("on");
+
+document.getElementById("advToggle").addEventListener("click", () => {
+  document.getElementById("advanced").classList.toggle("open");
+});
+
+function bindTal(id, felt){
+  document.getElementById(id).addEventListener("input", e => {
+    const v = e.target.value.replace(",", ".").trim();
+    state[felt] = v === "" ? null : Number(v);
+    render();
+  });
+}
+bindTal("minBraendvaerdi", "minBraendvaerdi");
+bindTal("maxAske", "maxAske");
+bindTal("maxFugt", "maxFugt");
+
+document.getElementById("clearAdv").addEventListener("click", () => {
+  ["minBraendvaerdi","maxAske","maxFugt"].forEach(id => document.getElementById(id).value = "");
+  state.minBraendvaerdi = null; state.maxAske = null; state.maxFugt = null;
+  render();
+});
+
+loadData();
+</script>
+</body>
+</html>

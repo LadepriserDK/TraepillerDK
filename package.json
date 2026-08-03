@@ -1,0 +1,12 @@
+{
+  "name": "traepillemarked",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Henter tyske træpillepriser dagligt fra Pillemadsen og viser dem på et dashboard",
+  "scripts": {
+    "hent": "node hent-traepiller.js"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}
