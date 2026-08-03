@@ -198,6 +198,160 @@ function opdaterHistorik(dagensOpsummering) {
     return historik;
 }
 
+const EUR_TIL_DKK = 7.46; // omtrentlig fastkurs, brugt kun til visning
+const TYSKE_MAANEDSNAVNE = {
+    "januar": 1, "februar": 2, "märz": 3, "april": 4, "mai": 5, "juni": 6,
+    "juli": 7, "august": 8, "september": 9, "oktober": 10, "november": 11, "dezember": 12
+};
+
+// Bedste-forsøg: DEPI (Deutsches Pelletinstitut) udgiver et nyt indlæg hver måned
+// under en ny, ikke-forudsigelig URL. Vi finder derfor det nyeste indlæg fra deres
+// oversigtsside i stedet for at gætte på en fast adresse. Fejler dette (fx fordi DEPI
+// har ændret sidestruktur), springer vi det bare over - det må aldrig vælte hovedkørslen.
+async function hentTyskMarkedsindeks(browser) {
+    const page = await browser.newPage({ locale: "de-DE" });
+    try {
+        await page.goto("https://www.depi.de/mediathek/", { waitUntil: "networkidle", timeout: 60000 });
+        const links = await page.evaluate(() => {
+            return Array.from(document.querySelectorAll('a[href*="/mediathek/d/"]'))
+                .map(a => ({ href: a.getAttribute("href"), tekst: (a.textContent || "").toLowerCase() }))
+                .filter(l => l.href && l.tekst.includes("pelletpreis"));
+        });
+        if (!links.length) throw new Error("Fandt ingen artikler om pelletpris på DEPI's oversigtsside");
+
+        const url = new URL(links[0].href, "https://www.depi.de/").toString();
+        await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+        const tekst = (await page.locator("body").textContent().catch(() => "")) || "";
+
+        const prisMatch = tekst.match(/durchschnittlich\s+([\d.,]+)\s*Euro/i);
+        if (!prisMatch) throw new Error("Kunne ikke læse pris ud af DEPI-artiklen: " + url);
+        const eurPrTon = Number(prisMatch[1].replace(/\./g, "").replace(",", "."));
+
+        const maanedMatch = tekst.match(/\b(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s+(20\d{2})\b/i);
+        if (!maanedMatch) throw new Error("Kunne ikke læse måned/år ud af DEPI-artiklen: " + url);
+        const maanedNr = TYSKE_MAANEDSNAVNE[maanedMatch[1].toLowerCase()];
+        const dato = maanedMatch[2] + "-" + String(maanedNr).padStart(2, "0");
+
+        const nytPunkt = {
+            dato,
+            eurPrTon: Math.round(eurPrTon * 100) / 100,
+            dkkPrKg: Math.round((eurPrTon / 1000 * EUR_TIL_DKK) * 100) / 100,
+            kilde: url
+        };
+
+        let data;
+        try {
+            data = JSON.parse(fs.readFileSync("tysk-markedsindeks.json", "utf8"));
+        } catch (e) {
+            data = { kilde: "Deutsches Pelletinstitut (DEPI)", eurPrDkk: EUR_TIL_DKK, maaneder: [] };
+        }
+        if (!Array.isArray(data.maaneder)) data.maaneder = [];
+        const idx = data.maaneder.findIndex(m => m.dato === dato);
+        if (idx >= 0) data.maaneder[idx] = nytPunkt;
+        else data.maaneder.push(nytPunkt);
+        data.maaneder.sort((a, b) => a.dato.localeCompare(b.dato));
+
+        fs.writeFileSync("tysk-markedsindeks.json", JSON.stringify(data, null, 2), "utf8");
+        console.log("Tysk markedsindeks opdateret for", dato, "->", eurPrTon, "€/t");
+    } catch (err) {
+        console.warn("Kunne ikke opdatere tysk markedsindeks (springer over):", err.message);
+    } finally {
+        await page.close();
+    }
+}
+
+// Beder en gratis AI (Groq) om en kort dansk forklaring på markedet ud fra dagens
+// tal. Nøglen læses UDELUKKENDE fra miljøvariablen GROQ_API_KEY (sat som en GitHub
+// Secret) - den står aldrig i denne fil. Fejler dette, springes det bare over.
+async function hentAiAnalyse(produkter, dagensOpsummering) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+        console.warn("Ingen GROQ_API_KEY sat - springer AI-analyse over.");
+        return;
+    }
+    try {
+        const paaLager = produkter.filter(p => p.paaLager === true);
+        const udsolgteMaerker = Array.from(new Set(
+            produkter.filter(p => p.paaLager === false).map(p => p.maerke)
+        )).filter(m => !paaLager.some(p => p.maerke === m));
+
+        let depiSaetning = "";
+        try {
+            const depiData = JSON.parse(fs.readFileSync("tysk-markedsindeks.json", "utf8"));
+            if (Array.isArray(depiData.maaneder) && depiData.maaneder.length) {
+                const maaneder = depiData.maaneder.slice().sort((a, b) => a.dato.localeCompare(b.dato));
+                const seneste = maaneder[maaneder.length - 1];
+                depiSaetning = `Tysk markedsindeks (DEPI) for ${seneste.dato}: ${seneste.dkkPrKg} kr/kg.`;
+
+                const [aar, maaned] = seneste.dato.split("-");
+                const sidsteAar = maaneder.find(m => m.dato === (Number(aar) - 1) + "-" + maaned);
+                if (sidsteAar) {
+                    const pct = Math.round(((seneste.dkkPrKg - sidsteAar.dkkPrKg) / sidsteAar.dkkPrKg) * 100);
+                    depiSaetning += ` Det er ${pct >= 0 ? "+" : ""}${pct}% i forhold til samme måned sidste år (${sidsteAar.dato}: ${sidsteAar.dkkPrKg} kr/kg).`;
+                }
+            }
+        } catch (e) { /* ingen DEPI-data endnu, det er ok */ }
+
+        const kontekst = [
+            `Antal varer på lager hos Pillemadsen lige nu: ${dagensOpsummering.antalPaaLager} af ${dagensOpsummering.antalTotal}.`,
+            `Gennemsnitspris 6 mm på lager: ${dagensOpsummering.gnsPris6mmPaaLager ?? "ukendt"} kr/kg.`,
+            `Gennemsnitspris 8 mm på lager: ${dagensOpsummering.gnsPris8mmPaaLager ?? "ukendt"} kr/kg.`,
+            udsolgteMaerker.length ? `Helt udsolgte mærker lige nu: ${udsolgteMaerker.join(", ")}.` : "Ingen mærker er helt udsolgte lige nu.",
+            depiSaetning
+        ].filter(Boolean).join(" ");
+
+        const systemPrompt =
+            "Du er en kort, nøgtern markedskommentator for det dansk-tyske træpillemarked. " +
+            "Du svarer altid på dansk, i almindelig løbende tekst - ingen markdown, ingen overskrifter, ingen punktopstilling, ingen emojis. " +
+            "Brug KUN de tal og fakta, du får oplyst i beskeden. Opfind aldrig nye tal, procenter, kilder eller begivenheder. " +
+            "Mangler noget, så undlad at nævne det i stedet for at gætte. Tonen er rolig og faktuel - hverken sælgende eller alarmerende, " +
+            "og du giver ikke direkte købsråd eller finansiel rådgivning.";
+
+        const userPrompt =
+            "BAGGRUND (kendt kontekst, brug kun hvis det passer med dagens tal):\n" +
+            "- Polen indførte i 2025 et statstilskud til pilleovne, som øgede den indenlandske efterspørgsel i Polen " +
+            "og reducerede eksporten af polske træpiller (bl.a. mærket Barlinek) til det tyske marked.\n" +
+            "- Sæsonmønster: priserne på træpiller er normalt lavest om sommeren (maj-august) og højest i " +
+            "fyringssæsonen (november-januar).\n\n" +
+            "DAGENS TAL:\n" + kontekst + "\n\n" +
+            "OPGAVE: Skriv præcis 3-4 sætninger, der forklarer den sandsynlige markedssituation lige nu ud fra " +
+            "dagens tal og baggrunden ovenfor. Nævn kun baggrundspunkter, der faktisk understøttes af dagens tal " +
+            "(fx udsolgte mærker eller en prisstigning). Du må gerne afslutte med en kort, forsigtig antydning af " +
+            "retningen (stigende, faldende eller stabil) - men undgå bombastiske konklusioner.";
+
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + apiKey
+            },
+            body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userPrompt }
+                ],
+                temperature: 0.4,
+                max_tokens: 300
+            })
+        });
+
+        if (!res.ok) throw new Error("Groq API svarede med status " + res.status);
+        const json = await res.json();
+        const tekst = json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content;
+        if (!tekst) throw new Error("Intet svar-indhold fra AI'en");
+
+        fs.writeFileSync("ai-analyse.json", JSON.stringify({
+            genereretUTC: new Date().toISOString(),
+            genereretDanskTid: danskTid(),
+            tekst: tekst.trim()
+        }, null, 2), "utf8");
+        console.log("AI-analyse gemt.");
+    } catch (err) {
+        console.warn("Kunne ikke hente AI-analyse (springer over):", err.message);
+    }
+}
+
 async function hentPriser() {
     console.log("Starter browseren...");
     const browser = await chromium.launch({ headless: true });
@@ -236,6 +390,12 @@ async function hentPriser() {
 
     console.log("\nFærdig. Antal produkter:", produkter.length, "| Tid:", resultat.hentetDanskTid);
     console.log("Historik har nu", historik.length, "dag(e) med data.");
+
+    const browser2 = await chromium.launch({ headless: true });
+    await hentTyskMarkedsindeks(browser2);
+    await browser2.close();
+
+    await hentAiAnalyse(produkter, dagensOpsummering);
 }
 
 hentPriser().catch(error => {
