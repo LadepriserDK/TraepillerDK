@@ -241,8 +241,28 @@
       </div>
     </div>
     <div class="chart-card">
-      <h3>Udvikling over tid</h3>
+      <h3>Udvikling over tid — jeres egne data</h3>
       <div id="trendChart"></div>
+    </div>
+    <div class="chart-card" style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:2px">
+        <h3 style="margin-bottom:0">Tysk markedsindeks (DEPI) — sidste år vs. nu</h3>
+        <span id="depiYoyBadge" class="mm-badge" style="background:var(--panel-2);color:var(--muted)"></span>
+      </div>
+      <div id="depiChart"></div>
+      <div style="font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);margin-top:8px">
+        Landsdækkende gennemsnitspris i Tyskland, ikke specifikt for Pillemadsen. Kilde: <a href="https://www.depi.de/pelletpreis-wirtschaftlichkeit/" target="_blank" rel="noopener" style="color:var(--muted-2)">Deutsches Pelletinstitut (DEPI)</a>
+      </div>
+    </div>
+    <div class="chart-card" style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:2px">
+        <h3 style="margin-bottom:0">AI-forklaring</h3>
+        <button id="aiToggleBtn" class="clear-btn" style="border-style:solid;color:var(--amber-soft)">Vis forklaring</button>
+      </div>
+      <div id="aiWrap" style="display:none;margin-top:10px">
+        <div id="aiTekst" style="font-size:13px;line-height:1.65;color:var(--cream)"></div>
+        <div id="aiTid" style="font-size:10px;color:var(--muted-2);font-family:var(--font-mono);margin-top:8px"></div>
+      </div>
     </div>
   </div>
 </main>
@@ -255,6 +275,26 @@
 <script>
 const DATA_URL = "./traepriser.json";
 const HISTORIK_URL = "./historik.json";
+const DEPI_URL = "./tysk-markedsindeks.json";
+const AI_URL = "./ai-analyse.json";
+
+let AI_DATA = null;
+
+const FALLBACK_DEPI = {
+  "eurPrDkk": 7.46,
+  "maaneder": [
+    { "dato": "2025-01", "eurPrTon": 306.35, "dkkPrKg": 2.29 },
+    { "dato": "2025-03", "eurPrTon": 380.20, "dkkPrKg": 2.84 },
+    { "dato": "2025-06", "eurPrTon": 302.45, "dkkPrKg": 2.26 },
+    { "dato": "2025-07", "eurPrTon": 302.69, "dkkPrKg": 2.26 },
+    { "dato": "2025-10", "eurPrTon": 366.25, "dkkPrKg": 2.73 },
+    { "dato": "2025-11", "eurPrTon": 392.62, "dkkPrKg": 2.93 },
+    { "dato": "2026-01", "eurPrTon": 405.33, "dkkPrKg": 3.02 },
+    { "dato": "2026-04", "eurPrTon": 405.11, "dkkPrKg": 3.02 },
+    { "dato": "2026-06", "eurPrTon": 376.77, "dkkPrKg": 2.81 },
+    { "dato": "2026-07", "eurPrTon": 388.09, "dkkPrKg": 2.90 }
+  ]
+};
 
 const FALLBACK = {
   "hentetUTC": "2026-08-03T12:20:00.000Z",
@@ -699,6 +739,7 @@ const FALLBACK = {
 
 let RAW = [];
 let HISTORIK = [];
+let DEPI = FALLBACK_DEPI;
 let state = { mm: "alle", maerke: "alle", sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
 
 function taltekst(v, decimaler, enhed){
@@ -737,9 +778,26 @@ async function loadData(){
   } catch (err) { HISTORIK = []; }
   if (!Array.isArray(HISTORIK)) HISTORIK = [];
 
+  try {
+    const res3 = await fetch(DEPI_URL, { cache: "no-store" });
+    if (res3.ok) {
+      const json3 = await res3.json();
+      if (Array.isArray(json3.maaneder) && json3.maaneder.length) DEPI = json3;
+    }
+  } catch (err) { /* behold FALLBACK_DEPI */ }
+
+  try {
+    const res4 = await fetch(AI_URL, { cache: "no-store" });
+    if (res4.ok) {
+      const json4 = await res4.json();
+      if (json4.tekst) AI_DATA = json4;
+    }
+  } catch (err) { /* AI_DATA forbliver null */ }
+
   populateBrands();
   render();
   renderAnalyse();
+  renderDepiIndeks();
 }
 
 function populateBrands(){
@@ -942,6 +1000,55 @@ function svgTrendChart(historik, height){
   </svg>`;
 }
 
+function svgDepiChart(maaneder, height){
+  const width = 1000;
+  const padding = { top: 18, right: 16, bottom: 26, left: 16 };
+  if (!maaneder.length) return '<div class="trend-card">Ingen data endnu.</div>';
+  const vals = maaneder.map(m => m.dkkPrKg);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const span = (max - min) || 0.1;
+  const chartW = width - padding.left - padding.right;
+  const chartH = height - padding.top - padding.bottom;
+  const pts = maaneder.map((m,i) => {
+    const x = padding.left + (i/(Math.max(maaneder.length-1,1))) * chartW;
+    const y = padding.top + chartH - ((m.dkkPrKg - min)/span) * chartH;
+    return [x,y];
+  });
+  const path = pts.map((p,i) => (i===0?"M":"L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const dots = pts.map((p,i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="#9fc178"><title>${maaneder[i].dato}: ${maaneder[i].dkkPrKg} kr/kg (${maaneder[i].eurPrTon} €/t)</title></circle>`).join("");
+  const labels = maaneder.map((m,i) => {
+    const x = padding.left + (i/(Math.max(maaneder.length-1,1))) * chartW;
+    return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace" fill="#a99a80">${m.dato}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">
+    <path d="${path}" fill="none" stroke="#9fc178" stroke-width="2"/>
+    ${dots}${labels}
+  </svg>`;
+}
+
+function renderDepiIndeks(){
+  const maaneder = (DEPI.maaneder || []).slice().sort((a,b) => a.dato.localeCompare(b.dato));
+  document.getElementById("depiChart").innerHTML = svgDepiChart(maaneder, 200);
+
+  const badge = document.getElementById("depiYoyBadge");
+  if (maaneder.length < 2){ badge.textContent = "For få data"; return; }
+
+  const seneste = maaneder[maaneder.length - 1];
+  const [aar, maaned] = seneste.dato.split("-");
+  const sidsteAarDato = (Number(aar) - 1) + "-" + maaned;
+  const sidsteAar = maaneder.find(m => m.dato === sidsteAarDato);
+
+  if (!sidsteAar){
+    badge.textContent = "Ingen data for samme måned sidste år";
+    return;
+  }
+  const pct = ((seneste.dkkPrKg - sidsteAar.dkkPrKg) / sidsteAar.dkkPrKg) * 100;
+  const fortegn = pct >= 0 ? "+" : "";
+  badge.textContent = fortegn + pct.toFixed(0) + "% siden " + sidsteAarDato;
+  badge.style.background = pct >= 0 ? "rgba(177,80,47,0.18)" : "rgba(125,155,94,0.18)";
+  badge.style.color = pct >= 0 ? "#e58f6d" : "#9fc178";
+}
+
 function opdaterFilterBadge(){
   let n = 0;
   if (state.mm !== "alle") n++;
@@ -1008,6 +1115,26 @@ document.getElementById("clearAdv").addEventListener("click", () => {
   document.getElementById("lagerToggle").checked = true;
   ["minBraendvaerdi","maxAske","maxFugt"].forEach(id => document.getElementById(id).value = "");
   opdaterFilterBadge(); render();
+});
+
+document.getElementById("aiToggleBtn").addEventListener("click", () => {
+  const wrap = document.getElementById("aiWrap");
+  const btn = document.getElementById("aiToggleBtn");
+  const nuAaben = wrap.style.display !== "none";
+  if (nuAaben){
+    wrap.style.display = "none";
+    btn.textContent = "Vis forklaring";
+    return;
+  }
+  if (AI_DATA && AI_DATA.tekst){
+    document.getElementById("aiTekst").textContent = AI_DATA.tekst;
+    document.getElementById("aiTid").textContent = "Genereret " + (AI_DATA.genereretDanskTid || "");
+  } else {
+    document.getElementById("aiTekst").textContent = "Ingen AI-forklaring endnu. Den dukker op, når robotten har kørt mindst én gang med en gyldig API-nøgle sat op som GitHub Secret.";
+    document.getElementById("aiTid").textContent = "";
+  }
+  wrap.style.display = "block";
+  btn.textContent = "Skjul forklaring";
 });
 
 loadData();
