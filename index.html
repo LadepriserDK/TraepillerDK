@@ -3,288 +3,352 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Træpillepriser · Pillemadsen</title>
+<title>TræpillerDK</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#1c1611;--panel:#241d16;--panel-2:#2b2319;--card:#231c15;
-    --cream:#f3e9d8;--muted:#a99a80;--muted-2:#7d7160;
-    --line:rgba(243,233,216,0.10);--line-strong:rgba(243,233,216,0.20);
-    --amber:#d89b3c;--amber-soft:#e8c07f;--green:#7d9b5e;--green-soft:#9fc178;--rust:#b1502f;
+    --bg:#f6f1e6;--card:#ffffff;--header:#1f3a2c;--header-2:#284835;
+    --text:#1e2b22;--muted:#6b7568;--muted-2:#9a9f8f;
+    --line:#e8e1d0;--line-strong:#d9d0b8;
+    --green:#2f6b45;--green-soft:#e4ede1;
+    --amber:#c9862e;--amber-soft:#f7ecd8;
+    --red:#b6482f;--red-soft:#fbe8e2;
     --font-display:'Fraunces',serif;--font-body:'IBM Plex Sans',system-ui,sans-serif;--font-mono:'IBM Plex Mono',monospace;
     --radius:14px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
-    background:radial-gradient(ellipse 900px 500px at 15% -10%, rgba(216,155,60,0.10), transparent 60%), var(--bg);
-    color:var(--cream);font-family:var(--font-body);-webkit-font-smoothing:antialiased;
-    min-height:100vh;display:flex;flex-direction:column;
+    background:var(--bg);color:var(--text);font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;min-height:100vh;
+    display:flex;flex-direction:column;max-width:520px;margin:0 auto;
   }
 
-  /* ---------- Slim header ---------- */
   header{
-    position:sticky;top:0;z-index:30;
-    background:rgba(28,22,17,0.94);backdrop-filter:blur(8px);
-    border-bottom:1px solid var(--line);
+    background:var(--header);color:#f2f0e6;padding:14px 18px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    position:sticky;top:0;z-index:20;
   }
-  .header-row{
-    max-width:1100px;margin:0 auto;padding:12px 20px;
-    display:flex;align-items:center;justify-content:space-between;gap:12px;
-  }
-  .title-block{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-  .title{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-0.01em}
-  .title .dot{color:var(--amber)}
-  .status{
-    display:flex;align-items:center;gap:6px;font-family:var(--font-mono);
-    font-size:10.5px;color:var(--muted);
-  }
-  .status .pulse{width:6px;height:6px;border-radius:50%;background:var(--green-soft);flex:none}
-  .status.reserve .pulse{background:var(--rust)}
+  .brand{display:flex;align-items:center;gap:9px}
+  .brand-icon{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:15px}
+  .brand-text .h{font-family:var(--font-display);font-weight:700;font-size:16px;line-height:1.15}
+  .brand-text .s{font-size:10.5px;color:rgba(242,240,230,0.65);font-family:var(--font-mono)}
+  .bell-btn{width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);color:#f2f0e6;cursor:pointer;font-size:15px}
 
-  .header-right{display:flex;align-items:center;gap:8px}
-  .gear-btn{
-    width:34px;height:34px;border-radius:10px;border:1px solid var(--line);
-    background:var(--panel-2);color:var(--muted);cursor:pointer;
-    display:flex;align-items:center;justify-content:center;font-size:15px;
-    position:relative;flex:none;
-  }
-  .gear-btn.active{color:var(--amber-soft);border-color:var(--line-strong)}
-  .filter-badge{
-    position:absolute;top:-4px;right:-4px;background:var(--amber);color:#241a0d;
-    font-family:var(--font-mono);font-size:9px;font-weight:700;min-width:15px;height:15px;
-    border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px;
-  }
-
-  /* ---------- Settings bottom sheet (mobile-first, fixed to viewport) ---------- */
-  .popover-backdrop{
-    position:fixed;inset:0;background:rgba(0,0,0,0.55);
-    z-index:39;opacity:0;pointer-events:none;transition:opacity .2s ease;
-  }
-  .popover-backdrop.open{opacity:1;pointer-events:auto}
-  .popover{
-    position:fixed;left:0;right:0;bottom:0;top:auto;
-    max-width:480px;margin:0 auto;
-    background:var(--panel);border:1px solid var(--line-strong);border-bottom:none;
-    border-radius:18px 18px 0 0;
-    padding:16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
-    box-shadow:0 -12px 32px rgba(0,0,0,0.4);
-    display:flex;flex-direction:column;gap:12px;z-index:40;
-    max-height:82vh;overflow-y:auto;
-    transform:translateY(100%);transition:transform .25s ease;
-    pointer-events:none;
-  }
-  .popover.open{transform:translateY(0);pointer-events:auto}
-  .popover-handle{width:36px;height:4px;border-radius:999px;background:var(--line-strong);margin:0 auto 4px}
-  .pop-group label{font-size:10px;color:var(--muted-2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:6px}
-  .seg{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:3px;width:fit-content}
-  .seg button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-mono);font-weight:600;font-size:12px;padding:6px 13px;border-radius:999px}
-  .seg button.active{background:var(--amber);color:#241a0d}
-  select, .popover input{
-    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--cream);
-    font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:9px;cursor:pointer;
-  }
-  .popover input{font-family:var(--font-mono);cursor:text}
-  .toggle-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer}
-  .toggle-row input{width:auto;accent-color:var(--amber)}
-  .spec-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-  .spec-fields div label{font-size:9px;margin-bottom:3px}
-  .pop-divider{border-top:1px solid var(--line);margin:2px 0}
-  .clear-btn{background:transparent;border:1px dashed var(--line-strong);color:var(--muted);border-radius:9px;padding:7px;font-size:11.5px;cursor:pointer;font-family:var(--font-mono)}
-
-  /* ---------- Tabs ---------- */
-  .tabs{max-width:1100px;margin:0 auto;padding:10px 20px 0;display:flex;gap:6px}
-  .tab-btn{
-    background:transparent;border:0;color:var(--muted);font-family:var(--font-mono);
-    font-size:12.5px;font-weight:600;padding:8px 4px;cursor:pointer;border-bottom:2px solid transparent;
-  }
-  .tab-btn.active{color:var(--amber-soft);border-color:var(--amber)}
-
-  main{flex:1;max-width:1100px;margin:0 auto;width:100%;padding:16px 20px 60px}
+  main{flex:1;overflow-y:auto;padding:16px 16px 90px}
   .view{display:none}
   .view.active{display:block}
 
-  /* ---------- Summary + grid (Prisliste) ---------- */
-  .summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-  .sum-card{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-  .sum-card .k{font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);letter-spacing:.04em;text-transform:uppercase}
-  .sum-card .v{font-family:var(--font-display);font-size:20px;font-weight:600;margin-top:3px}
-  .sum-card .v small{font-family:var(--font-body);font-size:12px;color:var(--muted);font-weight:400}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .card + .card{margin-top:12px}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
-  .empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:50px 20px;font-size:14px;border:1px dashed var(--line-strong);border-radius:12px}
+  /* Hero */
+  .hero{background:linear-gradient(155deg,var(--header),var(--header-2));color:#f2f0e6;border-radius:18px;padding:18px 18px 16px;position:relative;overflow:hidden}
+  .hero-label{font-size:12px;color:rgba(242,240,230,0.7);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.03em}
+  .hero-price{font-family:var(--font-display);font-weight:700;font-size:38px;margin-top:6px;line-height:1}
+  .hero-price small{font-size:16px;font-weight:500;color:rgba(242,240,230,0.75)}
+  .hero-sub{font-size:13px;color:rgba(242,240,230,0.75);margin-top:4px}
+  .hero-badge{display:inline-flex;align-items:center;gap:5px;margin-top:12px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:500;font-family:var(--font-mono)}
+  .hero-badge.op{background:rgba(230,150,90,0.20);color:#f3caa0}
+  .hero-badge.ned{background:rgba(178,224,181,0.18);color:#bfe3c2}
+  .hero-badge.stabil{background:rgba(255,255,255,0.10);color:rgba(242,240,230,0.85)}
 
-  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 15px;display:flex;flex-direction:column;gap:9px}
-  .card.udsolgt{opacity:.55}
-  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-  .brand-line{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-  .brand{font-family:var(--font-display);font-weight:600;font-size:15px}
-  .mm-badge{font-family:var(--font-mono);font-size:10px;color:var(--bg);background:var(--amber-soft);padding:2px 7px;border-radius:999px;font-weight:600}
-  .type-badge{font-family:var(--font-mono);font-size:10px;color:var(--muted);border:1px solid var(--line-strong);padding:2px 7px;border-radius:999px}
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+  .stat-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 10px}
+  .stat-card .k{font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono)}
+  .stat-card .v{font-family:var(--font-display);font-weight:600;font-size:16px;margin-top:3px;display:flex;align-items:center;gap:3px}
+  .stat-card .v.op{color:var(--red)} .stat-card .v.ned{color:var(--green)} .stat-card .v.na{color:var(--muted-2);font-size:13px}
+  .stat-card .d{font-size:10.5px;color:var(--muted);margin-top:2px}
+
+  .section-title{font-family:var(--font-display);font-weight:600;font-size:15px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+  .info-btn{width:20px;height:20px;border-radius:50%;border:1px solid var(--line-strong);background:var(--card);color:var(--muted);font-size:11px;font-family:var(--font-mono);cursor:pointer;flex:none}
+  .info-box{display:none;background:var(--green-soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);margin-top:8px;line-height:1.5}
+  .info-box.open{display:block}
+
+  /* Købsvurdering gauge */
+  .gauge-track{height:10px;border-radius:999px;background:linear-gradient(90deg,var(--green) 0%,var(--amber) 50%,var(--red) 100%);position:relative;margin:16px 4px 6px}
+  .gauge-marker{position:absolute;top:-5px;width:3px;height:20px;background:var(--text);border-radius:2px;transform:translateX(-50%)}
+  .gauge-label{text-align:center;font-family:var(--font-display);font-weight:600;font-size:16px;margin-top:10px}
+  .gauge-sub{text-align:center;font-size:12px;color:var(--muted);margin-top:2px}
+
+  .mini-chart-wrap{margin-top:4px}
+  .empty-note{font-size:12px;color:var(--muted);text-align:center;padding:18px 10px;border:1px dashed var(--line-strong);border-radius:10px}
+
+  /* Produktliste (Overblik) */
+  .list-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:18px 0 10px}
+  .list-head h2{font-family:var(--font-display);font-weight:600;font-size:16px}
+  .gear-btn{width:32px;height:32px;border-radius:9px;border:1px solid var(--line-strong);background:var(--card);color:var(--muted);cursor:pointer;font-size:14px;position:relative}
+  .gear-btn.active{color:var(--green);border-color:var(--green)}
+  .filter-badge{position:absolute;top:-4px;right:-4px;background:var(--amber);color:#fff;font-family:var(--font-mono);font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+
+  .popover{background:var(--green-soft);border:1px solid var(--line);border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:11px;margin-bottom:12px}
+  .popover[hidden]{display:none}
+  .pop-group label{font-size:10px;color:var(--muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:6px}
+  .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;width:fit-content}
+  .seg button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-mono);font-weight:600;font-size:12px;padding:6px 13px;border-radius:999px}
+  .seg button.active{background:var(--green);color:#fff}
+  select,.popover input{width:100%;background:var(--card);border:1px solid var(--line);color:var(--text);font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:9px}
+  .brand-chips{display:flex;flex-wrap:wrap;gap:7px}
+  .brand-chip{background:var(--card);border:1px solid var(--line);color:var(--muted);font-family:var(--font-mono);font-size:11.5px;padding:6px 12px;border-radius:999px;cursor:pointer}
+  .brand-chip.sel{background:var(--green);border-color:var(--green);color:#fff}
+  .toggle-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+  .toggle-row input{accent-color:var(--green)}
+  .pop-divider{border-top:1px solid var(--line-strong)}
+  .spec-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .spec-fields div label{font-size:9px;margin-bottom:3px}
+  .clear-btn{background:transparent;border:1px dashed var(--line-strong);color:var(--muted);border-radius:9px;padding:7px;font-size:11.5px;cursor:pointer;font-family:var(--font-mono)}
+
+  .summary{display:flex;gap:8px;margin-bottom:12px}
+  .sum-card{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+  .sum-card .k{font-size:9.5px;color:var(--muted-2);font-family:var(--font-mono);text-transform:uppercase}
+  .sum-card .v{font-family:var(--font-display);font-weight:600;font-size:15px}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:10px}
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:7px}
+  .pcard.off{opacity:.55}
+  .pcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+  .pcard-brand{font-family:var(--font-display);font-weight:600;font-size:14.5px}
+  .mm-badge{font-family:var(--font-mono);font-size:10px;background:var(--green-soft);color:var(--green);padding:2px 7px;border-radius:999px;font-weight:600;margin-left:6px}
   .stock{font-family:var(--font-mono);font-size:10px;padding:3px 8px;border-radius:999px;white-space:nowrap}
-  .stock.ja{background:rgba(125,155,94,0.18);color:var(--green-soft)}
-  .stock.nej{background:rgba(177,80,47,0.18);color:#e58f6d}
-  .stock.ukendt{background:rgba(169,154,128,0.15);color:var(--muted)}
-  .produkt-navn{font-size:12px;color:var(--muted);line-height:1.35}
-  .price-row{display:flex;align-items:baseline;gap:6px}
-  .price{font-family:var(--font-display);font-weight:700;font-size:24px;color:var(--amber-soft)}
-  .price.na{color:var(--muted);font-size:15px;font-weight:500}
-  .price-unit{font-size:11px;color:var(--muted)}
-  .specs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;border-top:1px solid var(--line);padding-top:9px}
-  .spec .k{font-size:9px;color:var(--muted-2);font-family:var(--font-mono);letter-spacing:.03em;text-transform:uppercase}
-  .spec .v{font-family:var(--font-mono);font-size:12px;margin-top:1px}
-  .spec .v.na{color:var(--muted-2)}
-  .card-link{font-family:var(--font-mono);font-size:10.5px;color:var(--amber-soft);text-decoration:none}
-  .card-link:hover{text-decoration:underline}
+  .stock.ja{background:var(--green-soft);color:var(--green)}
+  .stock.nej{background:var(--red-soft);color:var(--red)}
+  .stock.ukendt{background:var(--line);color:var(--muted)}
+  .pcard-navn{font-size:11.5px;color:var(--muted)}
+  .pcard-price{font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--text)}
+  .pcard-price .u{font-size:11px;color:var(--muted);font-weight:400}
+  .pcard-price.na{font-size:14px;color:var(--muted);font-weight:500}
+  .pspecs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;border-top:1px solid var(--line);padding-top:8px}
+  .pspecs .k{font-size:9px;color:var(--muted-2);font-family:var(--font-mono);text-transform:uppercase}
+  .pspecs .v{font-family:var(--font-mono);font-size:11.5px}
+  .pcard-link{font-family:var(--font-mono);font-size:10.5px;color:var(--green);text-decoration:none}
 
-  /* ---------- Analyse view ---------- */
-  .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
-  .metric-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
-  .metric-card .k{font-size:10px;color:var(--muted-2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.03em}
-  .metric-card .v{font-family:var(--font-display);font-size:22px;font-weight:600;margin-top:4px}
+  /* Historik */
+  .chip-row{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+  .chip-row button{background:var(--card);border:1px solid var(--line);color:var(--muted);font-family:var(--font-mono);font-size:12px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer}
+  .chip-row button.active{background:var(--green);border-color:var(--green);color:#fff}
+  .minmax-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .minmax-card{border-radius:12px;padding:12px 13px}
+  .minmax-card.low{background:var(--green-soft)}
+  .minmax-card.high{background:var(--red-soft)}
+  .minmax-card .k{font-size:11px;font-family:var(--font-mono);display:flex;align-items:center;gap:5px}
+  .minmax-card.low .k{color:var(--green)} .minmax-card.high .k{color:var(--red)}
+  .minmax-card .v{font-family:var(--font-display);font-weight:700;font-size:19px;margin-top:4px}
+  .minmax-card .d{font-size:10.5px;color:var(--muted);margin-top:2px}
 
-  .analyse-tekst{
-    background:var(--panel);border:1px solid var(--line);border-radius:12px;
-    padding:16px 18px;font-size:13.5px;line-height:1.6;color:var(--cream);margin-bottom:16px;
+  /* Marked */
+  .ai-text{font-size:13px;line-height:1.65;color:var(--text)}
+  .driver-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .driver-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+  .driver-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+  .driver-k{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:5px}
+  .driver-dot{width:7px;height:7px;border-radius:50%;flex:none}
+  .driver-dot.g{background:var(--green)} .driver-dot.a{background:var(--amber)} .driver-dot.r{background:var(--red)}
+  .driver-v{font-family:var(--font-display);font-weight:600;font-size:14.5px;margin-top:5px}
+  .driver-info{grid-column:1/-1}
+
+  /* Varsler */
+  .alarm-input-row{display:flex;gap:8px;align-items:center;margin-top:10px}
+  .alarm-input-row input{flex:1}
+  .alarm-input-row button{background:var(--green);color:#fff;border:0;border-radius:9px;padding:9px 14px;font-family:var(--font-mono);font-size:12px;font-weight:600;cursor:pointer}
+  .alarm-status{margin-top:12px;padding:11px 13px;border-radius:10px;font-size:12.5px;display:flex;align-items:center;gap:8px}
+  .alarm-status.under{background:var(--green-soft);color:var(--green)}
+  .alarm-status.over{background:var(--card);border:1px solid var(--line);color:var(--muted)}
+  .alarm-disclaimer{font-size:11px;color:var(--muted-2);margin-top:10px;line-height:1.5}
+  .udsolgt-list{display:flex;flex-direction:column;gap:7px}
+  .udsolgt-row{display:flex;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:12.5px}
+  .udsolgt-row .n{font-weight:500}
+  .udsolgt-row .m{color:var(--muted);font-family:var(--font-mono);font-size:11px}
+
+  nav.bottomnav{
+    position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);
+    display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:20;
   }
-  .analyse-tekst .label{font-family:var(--font-mono);font-size:10px;color:var(--amber-soft);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;display:block}
-
-  .chart-row{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-bottom:16px}
-  @media (max-width:650px){ .chart-row{grid-template-columns:1fr} }
-  .chart-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-  .chart-card h3{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;font-weight:600;margin-bottom:10px}
-  .donut-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
-  .donut-legend{display:flex;gap:14px;font-size:11.5px}
-  .legend-item{display:flex;align-items:center;gap:5px;color:var(--muted)}
-  .legend-dot{width:8px;height:8px;border-radius:50%}
-
-  .trend-card{background:var(--panel);border:1px dashed var(--line-strong);border-radius:12px;padding:16px 18px;text-align:center;color:var(--muted);font-size:13px}
-
-  footer{text-align:center;padding:18px;color:var(--muted-2);font-size:11px;font-family:var(--font-mono);border-top:1px solid var(--line)}
-  footer a{color:var(--muted)}
-
-  @media (max-width:520px){
-    .title{font-size:17px}
-    .grid{grid-template-columns:1fr}
+  nav.bottomnav button{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    background:transparent;border:0;color:var(--muted-2);font-family:var(--font-mono);font-size:10px;
+    padding:6px 2px;cursor:pointer;border-radius:10px;
   }
+  nav.bottomnav button svg{width:20px;height:20px}
+  nav.bottomnav button.active{color:var(--green)}
+  nav.bottomnav button.active svg{color:var(--green)}
+
+  footer.credit{text-align:center;padding:14px;color:var(--muted-2);font-size:10.5px;font-family:var(--font-mono)}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-row">
-    <div class="title-block">
-      <div class="title">Træpiller<span class="dot">DK</span></div>
-      <div class="status" id="status"><span class="pulse"></span><span id="statusText">Henter priser…</span></div>
-    </div>
-    <div class="header-right">
-      <button class="gear-btn" id="gearBtn" title="Filtre og indstillinger" aria-label="Filtre og indstillinger">
-        ⚙<span class="filter-badge" id="filterBadge" style="display:none">0</span>
-      </button>
+  <div class="brand">
+    <div class="brand-icon">🌲</div>
+    <div class="brand-text">
+      <div class="h" id="screenTitle">TræpillerDK</div>
+      <div class="s" id="statusText">Henter priser…</div>
     </div>
   </div>
-  <div class="popover-backdrop" id="popoverBackdrop"></div>
-  <div class="popover" id="popover">
-        <div class="popover-handle"></div>
-        <div class="pop-group">
-          <label>Størrelse</label>
-          <div class="seg" id="mmSeg">
-            <button data-mm="alle">Alle</button>
-            <button data-mm="6" class="active">6 mm</button>
-            <button data-mm="8">8 mm</button>
-          </div>
-        </div>
-        <div class="pop-group">
-          <label>Mærke</label>
-          <select id="maerkeSelect"><option value="alle">Alle mærker</option></select>
-        </div>
-        <div class="pop-group">
-          <label>Sortér efter</label>
-          <select id="sortSelect">
-            <option value="pris-op">Pris: lav → høj</option>
-            <option value="pris-ned">Pris: høj → lav</option>
-            <option value="braendvaerdi-ned">Brændværdi: høj → lav</option>
-            <option value="aske-op">Aske: lav → høj</option>
-            <option value="fugt-op">Fugt: lav → høj</option>
-            <option value="navn">Navn A-Å</option>
-          </select>
-        </div>
-        <label class="toggle-row"><input type="checkbox" id="lagerToggle" checked> Kun på lager</label>
-        <div class="pop-divider"></div>
-        <div class="pop-group">
-          <label>Specifikationsgrænser</label>
-          <div class="spec-fields">
-            <div><label>Min. brændv.</label><input type="number" step="0.1" id="minBraendvaerdi" placeholder="kWh/kg"></div>
-            <div><label>Maks. aske</label><input type="number" step="0.1" id="maxAske" placeholder="%"></div>
-            <div><label>Maks. fugt</label><input type="number" step="0.5" id="maxFugt" placeholder="%"></div>
-          </div>
-        </div>
-        <button class="clear-btn" id="clearAdv">Ryd alle filtre</button>
-  </div>
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="prisliste">Prisliste</button>
-    <button class="tab-btn" data-tab="analyse">Analyse</button>
-  </div>
+  <button class="bell-btn" id="bellBtn" title="Varsler" aria-label="Gå til Varsler">🔔</button>
 </header>
 
 <main>
-  <div class="view active" id="view-prisliste">
+
+  <div class="view active" id="view-overblik">
+    <div class="hero">
+      <div class="hero-label">Aktuel markedspris · Tyskland (DEPI)</div>
+      <div class="hero-price" id="heroPris">– <small>€/ton</small></div>
+      <div class="hero-sub" id="heroPrisDkk">≈ – DKK/kg</div>
+      <div class="hero-badge stabil" id="heroBadge">Henter…</div>
+    </div>
+
+    <div class="stat-row" id="statRow"></div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="section-title">
+        Købsvurdering
+        <button class="info-btn" id="gaugeInfoBtn">ⓘ</button>
+      </div>
+      <div class="gauge-track"><div class="gauge-marker" id="gaugeMarker" style="left:50%"></div></div>
+      <div class="gauge-label" id="gaugeLabel">–</div>
+      <div class="gauge-sub" id="gaugeSub">Beregner…</div>
+      <div class="info-box" id="gaugeInfoBox">Beregnes ud fra, hvor dagens DEPI-pris ligger i forhold til det laveste og højeste punkt i de data, vi kender (ca. de seneste 18 måneder, udvalgte måneder). Nederste tredjedel af spændet = "God købstid", midten = "Neutral", øverste tredjedel = "Afvent". Det er en simpel tommelfingerregel, ikke en finansiel anbefaling.</div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="section-title">Jeres egen prisudvikling</div>
+      <div class="mini-chart-wrap" id="ownTrendChart"></div>
+    </div>
+
+    <div class="list-head">
+      <h2>Pillemadsen lige nu</h2>
+      <button class="gear-btn" id="gearBtn" title="Filtre">⚙<span class="filter-badge" id="filterBadge" style="display:none">0</span></button>
+    </div>
+
+    <div class="popover" id="popover" hidden>
+      <div class="pop-group">
+        <label>Størrelse</label>
+        <div class="seg" id="mmSeg">
+          <button data-mm="alle">Alle</button>
+          <button data-mm="6" class="active">6 mm</button>
+          <button data-mm="8">8 mm</button>
+        </div>
+      </div>
+      <div class="pop-group">
+        <label>Mærke <span id="maerkeAntal" style="color:var(--muted-2);font-weight:400;text-transform:none"></span></label>
+        <div class="brand-chips" id="brandChips"></div>
+      </div>
+      <div class="pop-group">
+        <label>Sortér efter</label>
+        <select id="sortSelect">
+          <option value="pris-op">Pris: lav → høj</option>
+          <option value="pris-ned">Pris: høj → lav</option>
+          <option value="braendvaerdi-ned">Brændværdi: høj → lav</option>
+          <option value="aske-op">Aske: lav → høj</option>
+          <option value="fugt-op">Fugt: lav → høj</option>
+          <option value="navn">Navn A-Å</option>
+        </select>
+      </div>
+      <label class="toggle-row"><input type="checkbox" id="lagerToggle" checked> Kun på lager</label>
+      <div class="pop-divider"></div>
+      <div class="pop-group">
+        <label>Specifikationsgrænser</label>
+        <div class="spec-fields">
+          <div><label>Min. brændv.</label><input type="number" step="0.1" id="minBraendvaerdi" placeholder="kWh/kg"></div>
+          <div><label>Maks. aske</label><input type="number" step="0.1" id="maxAske" placeholder="%"></div>
+          <div><label>Maks. fugt</label><input type="number" step="0.5" id="maxFugt" placeholder="%"></div>
+        </div>
+      </div>
+      <button class="clear-btn" id="clearAdv">Ryd alle filtre</button>
+    </div>
+
     <div class="summary" id="summary"></div>
     <div class="grid" id="grid"></div>
   </div>
 
-  <div class="view" id="view-analyse">
-    <div class="metric-grid" id="metricGrid"></div>
-    <div class="analyse-tekst"><span class="label">Dagens markedsbillede</span><span id="analyseTekst"></span></div>
-    <div class="chart-row">
-      <div class="chart-card">
-        <h3>Pris pr. kg, på lager nu</h3>
-        <div id="barChart"></div>
-      </div>
-      <div class="chart-card">
-        <h3>Lagerstatus</h3>
-        <div class="donut-wrap">
-          <div id="donutChart"></div>
-          <div class="donut-legend">
-            <div class="legend-item"><span class="legend-dot" style="background:#9fc178"></span>På lager</div>
-            <div class="legend-item"><span class="legend-dot" style="background:#b1502f"></span>Udsolgt</div>
-          </div>
+  <div class="view" id="view-historik">
+    <div class="chip-row" id="yearChips">
+      <button data-aar="alle" class="active">2 år</button>
+      <button data-aar="2025">2025</button>
+      <button data-aar="2026">2026</button>
+    </div>
+    <div class="card">
+      <div class="section-title">Tysk markedsindeks (DEPI), kr/kg</div>
+      <div id="depiChart"></div>
+    </div>
+    <div class="minmax-row" id="minmaxRow"></div>
+    <div class="card" style="margin-top:12px">
+      <div class="section-title">Sæsonmønster</div>
+      <div class="ai-text">Træpillepriser i Tyskland er erfaringsmæssigt lavest om sommeren (maj-august) og højest i fyringssæsonen (november-januar) - men det polske tilskudsprogram til pilleovne fra 2025 har presset niveauet op på tværs af hele sæsonen sammenlignet med tidligere år.</div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="section-title">Jeres egne data siden robotten startede</div>
+      <div id="ownTrendChart2"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-marked">
+    <div class="card">
+      <div class="section-title">Markedsanalyse</div>
+      <div class="ai-text" id="aiTekstMarked">Henter…</div>
+      <div style="font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);margin-top:8px" id="aiTidMarked"></div>
+    </div>
+    <div class="section-title" style="margin-top:16px">Drivere</div>
+    <div class="driver-grid" id="driverGrid"></div>
+    <div class="info-box" id="driverInfoBox" style="margin-top:8px"></div>
+    <div class="card" style="margin-top:14px">
+      <div class="section-title">Pris pr. mærke, på lager nu</div>
+      <div id="brandBarChart"></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="section-title">Lagerstatus</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div id="stockDonut"></div>
+        <div style="display:flex;gap:14px;font-size:11.5px;color:var(--muted)">
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:5px"></span>På lager</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:5px"></span>Udsolgt</span>
         </div>
       </div>
     </div>
-    <div class="chart-card">
-      <h3>Udvikling over tid — gnsn. pris 6 mm på lager (kr/kg)</h3>
-      <div id="trendChart"></div>
+  </div>
+
+  <div class="view" id="view-varsler">
+    <div class="card">
+      <div class="section-title">Prisalarm</div>
+      <div style="font-size:12.5px;color:var(--muted)">Sæt en grænse for billigste pris pr. kg (6-8 mm, på lager hos Pillemadsen). Vises her i appen, når du har den åben.</div>
+      <div class="alarm-input-row">
+        <input type="number" step="0.05" id="alarmInput" placeholder="fx 2,60">
+        <button id="alarmSaveBtn">Gem</button>
+      </div>
+      <div class="alarm-status" id="alarmStatus"></div>
+      <div class="alarm-disclaimer">Gemmes kun i denne browser (localStorage). Appen er en almindelig hjemmeside og kan ikke sende push-beskeder, når den ikke er åben - tjek siden selv med jævne mellemrum.</div>
     </div>
-    <div class="chart-card" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:2px">
-        <h3 style="margin-bottom:0">Tysk markedsindeks (DEPI) — sidste år vs. nu</h3>
-        <span id="depiYoyBadge" class="mm-badge" style="background:var(--panel-2);color:var(--muted)"></span>
-      </div>
-      <div id="depiChart"></div>
-      <div style="font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);margin-top:8px">
-        Landsdækkende gennemsnitspris i Tyskland, ikke specifikt for Pillemadsen. Kilde: <a href="https://www.depi.de/pelletpreis-wirtschaftlichkeit/" target="_blank" rel="noopener" style="color:var(--muted-2)">Deutsches Pelletinstitut (DEPI)</a>
-      </div>
-    </div>
-    <div class="chart-card" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:2px">
-        <h3 style="margin-bottom:0">Markedsanalyse</h3>
-        <button id="aiToggleBtn" class="clear-btn" style="border-style:solid;color:var(--amber-soft)">Vis analyse</button>
-      </div>
-      <div id="aiWrap" style="display:none;margin-top:10px">
-        <div id="aiTekst" style="font-size:13px;line-height:1.65;color:var(--cream)"></div>
-        <div id="aiTid" style="font-size:10px;color:var(--muted-2);font-family:var(--font-mono);margin-top:8px"></div>
-      </div>
+    <div class="card" style="margin-top:12px">
+      <div class="section-title">Udsolgte mærker lige nu</div>
+      <div class="udsolgt-list" id="udsolgtListe"></div>
     </div>
   </div>
+
 </main>
 
-<footer>
-  Data hentes automatisk hver morgen fra <a href="https://www.pillemadsen.dk/shop/traepiller-33s1.html" target="_blank" rel="noopener">pillemadsen.dk</a> ·
-  Brændværdi/aske/fugt er producenternes egne angivelser og kan mangle for nogle varer
-</footer>
+<nav class="bottomnav">
+  <button class="tab-btn active" data-view="overblik">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9h5v-5h2v5h5v-9"/></svg>
+    Overblik
+  </button>
+  <button class="tab-btn" data-view="historik">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M6 15l4-5 3 3 5-7"/></svg>
+    Historik
+  </button>
+  <button class="tab-btn" data-view="marked">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><rect x="7" y="12" width="2.6" height="7" fill="currentColor" stroke="none"/><rect x="11.5" y="8" width="2.6" height="11" fill="currentColor" stroke="none"/><rect x="16" y="14" width="2.6" height="5" fill="currentColor" stroke="none"/></svg>
+    Marked
+  </button>
+  <button class="tab-btn" data-view="varsler">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4a5 5 0 0 0-5 5v3.5L5 16h14l-2-3.5V9a5 5 0 0 0-5-5Z"/><path d="M10 18a2 2 0 0 0 4 0"/></svg>
+    Varsler
+  </button>
+</nav>
+
+<footer class="credit">Data: pillemadsen.dk · Deutsches Pelletinstitut (DEPI)</footer>
 
 <script>
 const DATA_URL = "./traepriser.json";
@@ -292,469 +356,15 @@ const HISTORIK_URL = "./historik.json";
 const DEPI_URL = "./tysk-markedsindeks.json";
 const AI_URL = "./ai-analyse.json";
 
-let AI_DATA = null;
-
-const FALLBACK_DEPI = {
-  "eurPrDkk": 7.46,
-  "maaneder": [
-    { "dato": "2025-01", "eurPrTon": 306.35, "dkkPrKg": 2.29 },
-    { "dato": "2025-03", "eurPrTon": 380.20, "dkkPrKg": 2.84 },
-    { "dato": "2025-06", "eurPrTon": 302.45, "dkkPrKg": 2.26 },
-    { "dato": "2025-07", "eurPrTon": 302.69, "dkkPrKg": 2.26 },
-    { "dato": "2025-10", "eurPrTon": 366.25, "dkkPrKg": 2.73 },
-    { "dato": "2025-11", "eurPrTon": 392.62, "dkkPrKg": 2.93 },
-    { "dato": "2026-01", "eurPrTon": 405.33, "dkkPrKg": 3.02 },
-    { "dato": "2026-04", "eurPrTon": 405.11, "dkkPrKg": 3.02 },
-    { "dato": "2026-06", "eurPrTon": 376.77, "dkkPrKg": 2.81 },
-    { "dato": "2026-07", "eurPrTon": 388.09, "dkkPrKg": 2.90 }
-  ]
-};
-
-const FALLBACK = {
-  "hentetUTC": "2026-08-03T12:20:00.000Z",
-  "hentetDanskTid": "03.08.2026, 14.20.00",
-  "hjemmeside": "https://www.pillemadsen.dk/shop/traepiller-33s1.html",
-  "antalProdukter": 27,
-  "priser": [
-    {
-      "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
-      "maerke": "Barlinek",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": 3.03,
-      "paaLager": true,
-      "antalPaaLager": 66,
-      "braendvaerdiMinKwhKg": 4.9,
-      "braendvaerdiMaxKwhKg": 5.3,
-      "fugtMaxProcent": 10,
-      "askeMaxProcent": 0.6,
-      "svovlMaxProcent": 0.04,
-      "askeSmeltepunktGrader": 1400,
-      "kilde": "https://www.pillemadsen.dk/shop/barlinek-6-mm-227p.html"
-    },
-    {
-      "produkt": "Heatlets 6 mm træpiller 10/900 kg",
-      "maerke": "Heatlets",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": 3.02,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/heatlets-6-mm-274p.html"
-    },
-    {
-      "produkt": "Barlinek Træbriketter 10/960 kg",
-      "maerke": "Barlinek",
-      "type": "briket",
-      "mm": null,
-      "prisPrKg": 2.79,
-      "paaLager": true,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/barlinek-traebriketter-215p.html"
-    },
-    {
-      "produkt": "Heatlets 6 mm træpiller 15/900kg",
-      "maerke": "Heatlets",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": 2.96,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/heatlets-6-mm-231p.html"
-    },
-    {
-      "produkt": "Vildbjerg Pellets 6 mm træpiller 16/896 kg",
-      "maerke": "Vildbjerg",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": 2.85,
-      "paaLager": true,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/vildbjerg-pellets-6-733p.html"
-    },
-    {
-      "produkt": "German Pellets 6 mm træpiller 15/990 kg",
-      "maerke": "German Pellets",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": 2.78,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": 5.4,
-      "braendvaerdiMaxKwhKg": 5.4,
-      "fugtMaxProcent": 9,
-      "askeMaxProcent": 0.6,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/german-pellets-6-230p.html"
-    },
-    {
-      "produkt": "Egetræpiller 8 mm 15 kg /990 kg",
-      "maerke": "Egetræpiller",
-      "type": "pille",
-      "mm": 8,
-      "prisPrKg": 2.89,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/egetraepiller-8-mm-268p.html"
-    },
-    {
-      "produkt": "6 mm Fågelfors 10/900kg",
-      "maerke": "Fågelfors",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": 2.88,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/6-mm-faagelfors-709p.html"
-    },
-    {
-      "produkt": "6 mm Fågelfors 16/832 kg",
-      "maerke": "Fågelfors",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": 2.88,
-      "paaLager": true,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/6-mm-faagelfors-684p.html"
-    },
-    {
-      "produkt": "8 mm Fågelfors træpiller 16/832 kg",
-      "maerke": "Fågelfors",
-      "type": "pille",
-      "mm": 8,
-      "prisPrKg": 2.88,
-      "paaLager": true,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/8-mm-faagelfors-267p.html"
-    },
-    {
-      "produkt": "Laxå Pellets 6 mm 16/832",
-      "maerke": "Laxå",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": 2.88,
-      "paaLager": true,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/laxaa-pellets-6-720p.html"
-    },
-    {
-      "produkt": "Laxå Pellets 8 mm 16/832",
-      "maerke": "Laxå",
-      "type": "pille",
-      "mm": 8,
-      "prisPrKg": 2.88,
-      "paaLager": true,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/laxaa-pellets-8-722p.html"
-    },
-    {
-      "produkt": "6 mm Mix Pellets 16 kg 896 kg",
-      "maerke": "Mix Pellets",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": 2.63,
-      "paaLager": true,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/6-mm-mix-714p.html"
-    },
-    {
-      "produkt": "6 mm no name 16 kg 896 kg",
-      "maerke": "No name",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": 2.68,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/6-mm-no-402p.html"
-    },
-    {
-      "produkt": "8 mm no name 16 kg 896 kg",
-      "maerke": "No name",
-      "type": "pille",
-      "mm": 8,
-      "prisPrKg": 2.68,
-      "paaLager": true,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/8-mm-no-395p.html"
-    },
-    {
-      "produkt": "Big Bags 10mm 950 kg",
-      "maerke": "Big Bags",
-      "type": "pille",
-      "mm": 10,
-      "prisPrKg": 2.29,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/big-bags-10mm-688p.html"
-    },
-    {
-      "produkt": "Olczyk Træpiller 6 mm 15 kg / 1050 kg",
-      "maerke": "Olczyk",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": null,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/olczyk-traepiller-6-289p.html"
-    },
-    {
-      "produkt": "Rw 8 mm træpiller 16/880 kg",
-      "maerke": "RW",
-      "type": "pille",
-      "mm": 8,
-      "prisPrKg": null,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/rw-8-mm-189p.html"
-    },
-    {
-      "produkt": "Lava 6 mm træpiller 15/975 kg",
-      "maerke": "Lava",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": null,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/lava-6-mm-240p.html"
-    },
-    {
-      "produkt": "Olimp 6 mm træpiller 15/975 kg",
-      "maerke": "Olimp",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": null,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/olimp-6-mm-247p.html"
-    },
-    {
-      "produkt": "Rw 6 mm træpiller 16/880 kg",
-      "maerke": "RW",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": null,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/rw-6-mm-275p.html"
-    },
-    {
-      "produkt": "Sylva Træpiller 6 mm 15/990 kg",
-      "maerke": "Sylva",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": null,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/sylva-traepiller-6-590p.html"
-    },
-    {
-      "produkt": "FireHeat 8 mm træpiller 15/975 kg",
-      "maerke": "Fireheat",
-      "type": "pille",
-      "mm": 8,
-      "prisPrKg": null,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/fireheat-8-mm-175p.html"
-    },
-    {
-      "produkt": "German Pellets 8 mm træpiller 15/990 kg",
-      "maerke": "German Pellets",
-      "type": "pille",
-      "mm": 8,
-      "prisPrKg": null,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/german-pellets-8-229p.html"
-    },
-    {
-      "produkt": "Biomasa Premium 6 mm 15kg 975 kg",
-      "maerke": "Biomasa",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": null,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/biomasa-premium-6-265p.html"
-    },
-    {
-      "produkt": "Fireheat 6 mm træpiller 15/975 kg",
-      "maerke": "Fireheat",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": null,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/fireheat-6-mm-264p.html"
-    },
-    {
-      "produkt": "6 mm Samba træpiller 16/896 kg",
-      "maerke": "Samba",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": null,
-      "paaLager": false,
-      "antalPaaLager": null,
-      "braendvaerdiMinKwhKg": null,
-      "braendvaerdiMaxKwhKg": null,
-      "fugtMaxProcent": null,
-      "askeMaxProcent": null,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/6-mm-samba-570p.html"
-    }
-  ]
-};
+const FALLBACK = {"hentetUTC":"2026-08-03T12:20:00.000Z","hentetDanskTid":"03.08.2026, 14.20.00","hjemmeside":"https://www.pillemadsen.dk/shop/traepiller-33s1.html","antalProdukter":27,"priser":[{"produkt":"Barlinek 6 mm træpiller 15/990 kg.","maerke":"Barlinek","type":"pille","mm":6,"prisPrKg":3.03,"paaLager":true,"antalPaaLager":66,"braendvaerdiMinKwhKg":4.9,"braendvaerdiMaxKwhKg":5.3,"fugtMaxProcent":10,"askeMaxProcent":0.6,"svovlMaxProcent":0.04,"askeSmeltepunktGrader":1400,"kilde":"https://www.pillemadsen.dk/shop/barlinek-6-mm-227p.html"},{"produkt":"Heatlets 6 mm træpiller 10/900 kg","maerke":"Heatlets","type":"pille","mm":6,"prisPrKg":3.02,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/heatlets-6-mm-274p.html"},{"produkt":"Barlinek Træbriketter 10/960 kg","maerke":"Barlinek","type":"briket","mm":null,"prisPrKg":2.79,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/barlinek-traebriketter-215p.html"},{"produkt":"Heatlets 6 mm træpiller 15/900kg","maerke":"Heatlets","type":"pille","mm":6,"prisPrKg":2.96,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/heatlets-6-mm-231p.html"},{"produkt":"Vildbjerg Pellets 6 mm træpiller 16/896 kg","maerke":"Vildbjerg","type":"pille","mm":6,"prisPrKg":2.85,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/vildbjerg-pellets-6-733p.html"},{"produkt":"German Pellets 6 mm træpiller 15/990 kg","maerke":"German Pellets","type":"pille","mm":6,"prisPrKg":2.78,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":5.4,"braendvaerdiMaxKwhKg":5.4,"fugtMaxProcent":9,"askeMaxProcent":0.6,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/german-pellets-6-230p.html"},{"produkt":"Egetræpiller 8 mm 15 kg /990 kg","maerke":"Egetræpiller","type":"pille","mm":8,"prisPrKg":2.89,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/egetraepiller-8-mm-268p.html"},{"produkt":"6 mm Fågelfors 10/900kg","maerke":"Fågelfors","type":"pille","mm":6,"prisPrKg":2.88,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/6-mm-faagelfors-709p.html"},{"produkt":"6 mm Fågelfors 16/832 kg","maerke":"Fågelfors","type":"pille","mm":6,"prisPrKg":2.88,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/6-mm-faagelfors-684p.html"},{"produkt":"8 mm Fågelfors træpiller 16/832 kg","maerke":"Fågelfors","type":"pille","mm":8,"prisPrKg":2.88,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/8-mm-faagelfors-267p.html"},{"produkt":"Laxå Pellets 6 mm 16/832","maerke":"Laxå","type":"pille","mm":6,"prisPrKg":2.88,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/laxaa-pellets-6-720p.html"},{"produkt":"Laxå Pellets 8 mm 16/832","maerke":"Laxå","type":"pille","mm":8,"prisPrKg":2.88,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/laxaa-pellets-8-722p.html"},{"produkt":"6 mm Mix Pellets 16 kg 896 kg","maerke":"Mix Pellets","type":"pille","mm":6,"prisPrKg":2.63,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/6-mm-mix-714p.html"},{"produkt":"6 mm no name 16 kg 896 kg","maerke":"No name","type":"pille","mm":6,"prisPrKg":2.68,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/6-mm-no-402p.html"},{"produkt":"8 mm no name 16 kg 896 kg","maerke":"No name","type":"pille","mm":8,"prisPrKg":2.68,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/8-mm-no-395p.html"},{"produkt":"Big Bags 10mm 950 kg","maerke":"Big Bags","type":"pille","mm":10,"prisPrKg":2.29,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/big-bags-10mm-688p.html"},{"produkt":"Olczyk Træpiller 6 mm 15 kg / 1050 kg","maerke":"Olczyk","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/olczyk-traepiller-6-289p.html"},{"produkt":"Rw 8 mm træpiller 16/880 kg","maerke":"RW","type":"pille","mm":8,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/rw-8-mm-189p.html"},{"produkt":"Lava 6 mm træpiller 15/975 kg","maerke":"Lava","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/lava-6-mm-240p.html"},{"produkt":"Olimp 6 mm træpiller 15/975 kg","maerke":"Olimp","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/olimp-6-mm-247p.html"},{"produkt":"Rw 6 mm træpiller 16/880 kg","maerke":"RW","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/rw-6-mm-275p.html"},{"produkt":"Sylva Træpiller 6 mm 15/990 kg","maerke":"Sylva","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/sylva-traepiller-6-590p.html"},{"produkt":"FireHeat 8 mm træpiller 15/975 kg","maerke":"Fireheat","type":"pille","mm":8,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/fireheat-8-mm-175p.html"},{"produkt":"German Pellets 8 mm træpiller 15/990 kg","maerke":"German Pellets","type":"pille","mm":8,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/german-pellets-8-229p.html"},{"produkt":"Biomasa Premium 6 mm 15kg 975 kg","maerke":"Biomasa","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/biomasa-premium-6-265p.html"},{"produkt":"Fireheat 6 mm træpiller 15/975 kg","maerke":"Fireheat","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/fireheat-6-mm-264p.html"},{"produkt":"6 mm Samba træpiller 16/896 kg","maerke":"Samba","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/6-mm-samba-570p.html"}]};
+const FALLBACK_DEPI = {"kilde":"Deutsches Pelletinstitut (DEPI), https://www.depi.de/pelletpreis-wirtschaftlichkeit/","metode":"Landsdækkende gennemsnitspris i Tyskland for 1 t ENplus A1-træpiller ved 6 t afhentning, inkl. leveringsomkostninger og moms. Offentliggøres månedligt af DEPI (indtil 2020 af DEPV).","note":"Delvis dataserie - kun udvalgte måneder er bekræftet fra flere kilder. Robotten forsøger selv at supplere med nye måneder, men fejler stille hvis DEPI's side ændrer sig.","eurPrDkk":7.46,"maaneder":[{"dato":"2025-01","eurPrTon":306.35,"dkkPrKg":2.29,"kilde":"https://www.tga-fachplaner.de/meldungen/energietraeger-januar-2026-holzpelletpreis-steigt-auf-40533-euro-t"},{"dato":"2025-03","eurPrTon":380.2,"dkkPrKg":2.84,"kilde":"https://www.raiffeisen-agil.de/portal/meldungen/depi-preisindex-mrz-2025-900000631-10008.html"},{"dato":"2025-06","eurPrTon":302.45,"dkkPrKg":2.26,"kilde":"https://www.gabot.de/ansicht/depi-pelletpreis-bleibt-im-juli-stabil-436602.html"},{"dato":"2025-07","eurPrTon":302.69,"dkkPrKg":2.26,"kilde":"https://www.gabot.de/ansicht/depi-pelletpreis-bleibt-im-juli-stabil-436602.html"},{"dato":"2025-10","eurPrTon":366.25,"dkkPrKg":2.73,"kilde":"https://www.depi.de/mediathek/d/pelletpreis-steigt-im-oktober-mit-beginn-der-heizsaison/"},{"dato":"2025-11","eurPrTon":392.62,"dkkPrKg":2.93,"kilde":"https://www.depi.de/mediathek/d/pelletpreis-zieht-im-november-an/"},{"dato":"2026-01","eurPrTon":405.33,"dkkPrKg":3.02,"kilde":"https://www.tga-fachplaner.de/meldungen/energietraeger-januar-2026-holzpelletpreis-steigt-auf-40533-euro-t"},{"dato":"2026-04","eurPrTon":405.11,"dkkPrKg":3.02,"kilde":"https://www.depi.de/mediathek/d/pelletpreis-im-april-weiter-ruecklaeufig/"},{"dato":"2026-06","eurPrTon":376.77,"dkkPrKg":2.81,"kilde":"https://www.depi.de/mediathek/d/pelletpreis-auf-ueblichem-sommertief/"},{"dato":"2026-07","eurPrTon":388.09,"dkkPrKg":2.9,"kilde":"https://www.depi.de/mediathek/d/pelletpreis-im-juli-bleibt-auf-sommerniveau/"}]};
 
 let RAW = [];
 let HISTORIK = [];
 let DEPI = FALLBACK_DEPI;
-let state = { mm: "6", maerke: "alle", sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
+let AI_DATA = null;
+let state = { mm: "6", maerker: [], sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
+let historikAar = "alle";
 
 function taltekst(v, decimaler, enhed){
   if (v === null || v === undefined) return "–";
@@ -768,10 +378,7 @@ function braendvaerdiTekst(p){
   return taltekst(p.braendvaerdiMinKwhKg, 1, " kWh/kg");
 }
 function setStatus(tidTekst, reserve){
-  const el = document.getElementById("status");
-  const txt = document.getElementById("statusText");
-  el.classList.toggle("reserve", !!reserve);
-  txt.textContent = reserve ? "Reservedata" : ("Opdateret " + tidTekst);
+  document.getElementById("statusText").textContent = reserve ? "Reservedata" : ("Opdateret " + tidTekst);
 }
 
 async function loadData(){
@@ -786,7 +393,8 @@ async function loadData(){
     RAW = FALLBACK.priser;
     setStatus(FALLBACK.hentetDanskTid, true);
   }
-  RAW = RAW.filter(p => p.type !== "briket"); // appen viser kun træpiller, ikke briketter
+  RAW = RAW.filter(p => p.type !== "briket");
+
   try {
     const res2 = await fetch(HISTORIK_URL, { cache: "no-store" });
     if (res2.ok) HISTORIK = await res2.json();
@@ -800,6 +408,7 @@ async function loadData(){
       if (Array.isArray(json3.maaneder) && json3.maaneder.length) DEPI = json3;
     }
   } catch (err) { /* behold FALLBACK_DEPI */ }
+  DEPI.maaneder = DEPI.maaneder.slice().sort((a,b) => a.dato.localeCompare(b.dato));
 
   try {
     const res4 = await fetch(AI_URL, { cache: "no-store" });
@@ -810,22 +419,165 @@ async function loadData(){
   } catch (err) { /* AI_DATA forbliver null */ }
 
   populateBrands();
+  renderHero();
+  renderStats();
+  renderGauge();
+  renderTrendInto("ownTrendChart");
+  renderTrendInto("ownTrendChart2");
   render();
-  renderAnalyse();
-  renderDepiIndeks();
+  renderHistorik();
+  renderMarked();
+  renderVarsler();
 }
 
+/* ---------- Overblik: hero / stats / gauge ---------- */
+function maanedGabTekst(a, b){
+  const [ay,am] = a.dato.split("-").map(Number);
+  const [by,bm] = b.dato.split("-").map(Number);
+  const gab = (by - ay) * 12 + (bm - am);
+  if (gab === 1) return "seneste måned";
+  if (gab > 1) return "seneste " + gab + " måneder";
+  return "seneste punkt";
+}
+
+function renderHero(){
+  const maaneder = DEPI.maaneder;
+  if (!maaneder.length){
+    document.getElementById("heroPris").innerHTML = "– <small>€/ton</small>";
+    return;
+  }
+  const seneste = maaneder[maaneder.length - 1];
+  document.getElementById("heroPris").innerHTML = taltekst(seneste.eurPrTon,0,"") + " <small>€/ton</small>";
+  document.getElementById("heroPrisDkk").textContent = "≈ " + taltekst(seneste.dkkPrKg,2,"") + " DKK/kg · " + seneste.dato;
+
+  const badge = document.getElementById("heroBadge");
+  if (maaneder.length >= 2){
+    const forrige = maaneder[maaneder.length - 2];
+    const pct = ((seneste.dkkPrKg - forrige.dkkPrKg) / forrige.dkkPrKg) * 100;
+    const gabTekst = maanedGabTekst(forrige, seneste);
+    if (Math.abs(pct) < 1.5){
+      badge.className = "hero-badge stabil";
+      badge.textContent = "Tendens: Stabil (" + gabTekst + ")";
+    } else if (pct > 0){
+      badge.className = "hero-badge op";
+      badge.textContent = "Tendens: Stigende +" + pct.toFixed(1) + "% (" + gabTekst + ")";
+    } else {
+      badge.className = "hero-badge ned";
+      badge.textContent = "Tendens: Faldende " + pct.toFixed(1) + "% (" + gabTekst + ")";
+    }
+  } else {
+    badge.className = "hero-badge stabil";
+    badge.textContent = "Ikke nok data endnu";
+  }
+}
+
+function statHtml(k, punktA, punktB, dLabel){
+  if (!punktA || !punktB){
+    return '<div class="stat-card"><div class="k">' + k + '</div><div class="v na">–</div><div class="d">Ikke nok data</div></div>';
+  }
+  const pct = ((punktB.dkkPrKg - punktA.dkkPrKg) / punktA.dkkPrKg) * 100;
+  const cls = Math.abs(pct) < 1 ? "" : (pct > 0 ? "op" : "ned");
+  const tegn = pct >= 0 ? "+" : "";
+  return '<div class="stat-card"><div class="k">' + k + '</div><div class="v ' + cls + '">' + tegn + pct.toFixed(1) + '%</div><div class="d">' + dLabel + '</div></div>';
+}
+
+function renderStats(){
+  const maaneder = DEPI.maaneder;
+  const el = document.getElementById("statRow");
+  if (maaneder.length < 2){ el.innerHTML = ""; return; }
+  const seneste = maaneder[maaneder.length - 1];
+  const forrige = maaneder[maaneder.length - 2];
+
+  const aar = seneste.dato.slice(0,4);
+  const arsStart = maaneder.find(m => m.dato.startsWith(aar));
+  const ytdPunktA = (arsStart && arsStart.dato !== seneste.dato) ? arsStart : null;
+
+  const [sy, sm] = seneste.dato.split("-");
+  const sidsteAar = maaneder.find(m => m.dato === (Number(sy)-1) + "-" + sm);
+
+  el.innerHTML =
+    statHtml("Seneste udvikling", forrige, seneste, forrige.dato + " → " + seneste.dato) +
+    statHtml("I år (YTD)", ytdPunktA, ytdPunktA ? seneste : null, ytdPunktA ? (ytdPunktA.dato + " → " + seneste.dato) : "Ikke nok data") +
+    statHtml("Vs. sidste år", sidsteAar, sidsteAar ? seneste : null, sidsteAar ? (sidsteAar.dato + " → " + seneste.dato) : "Ingen data for samme måned");
+}
+
+function renderGauge(){
+  const vals = DEPI.maaneder.map(m => m.dkkPrKg);
+  if (!vals.length) return;
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const seneste = DEPI.maaneder[DEPI.maaneder.length - 1];
+  const pos = max > min ? (seneste.dkkPrKg - min) / (max - min) : 0.5;
+  document.getElementById("gaugeMarker").style.left = (pos*100).toFixed(1) + "%";
+  let label, sub;
+  if (pos <= 0.33){ label = "God købstid"; sub = "Prisen ligger i den billige ende af det spænd, vi kender."; }
+  else if (pos <= 0.66){ label = "Neutral"; sub = "Prisen ligger midt i det kendte spænd."; }
+  else { label = "Afvent"; sub = "Prisen ligger i den dyre ende af det spænd, vi kender."; }
+  document.getElementById("gaugeLabel").textContent = label;
+  document.getElementById("gaugeSub").textContent = sub;
+}
+
+function svgTrendChart(punkter, height, key, farve){
+  const width = 1000;
+  const padding = { top: 28, right: 16, bottom: 28, left: 16 };
+  if (!punkter.length) return "";
+  const vals = punkter.map(p => p[key]);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const span = (max - min) || 0.1;
+  const chartW = width - padding.left - padding.right;
+  const chartH = height - padding.top - padding.bottom;
+  const pts = punkter.map((p,i) => {
+    const x = padding.left + (i/(Math.max(punkter.length-1,1))) * chartW;
+    const y = padding.top + chartH - ((p[key] - min)/span) * chartH;
+    return [x,y];
+  });
+  const path = pts.map((p,i) => (i===0?"M":"L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const dots = pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="${farve}"/>`).join("");
+  const vLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${(p[1]-10).toFixed(1)}" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="${farve}">${punkter[i][key].toFixed(2)}</text>`).join("");
+  const dLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${height-10}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace" fill="#9a9f8f">${(punkter[i].dato||"").slice(5)}</text>`).join("");
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">
+    <path d="${path}" fill="none" stroke="${farve}" stroke-width="2"/>
+    ${dots}${vLabels}${dLabels}
+  </svg>`;
+}
+
+function renderTrendInto(id){
+  const el = document.getElementById(id);
+  const punkter = HISTORIK.filter(h => h.gnsPris6mmPaaLager !== null);
+  if (punkter.length < 2){
+    el.innerHTML = '<div class="empty-note">Vi er lige begyndt at gemme et dagligt øjebliksbillede' + (punkter.length ? (" (fra " + punkter[0].dato + ")") : "") + '. Der tegner sig en graf her, når der er data for flere dage.</div>';
+    return;
+  }
+  el.innerHTML = svgTrendChart(punkter.map(p => ({ dato: p.dato, v: p.gnsPris6mmPaaLager })), 200, "v", "#2f6b45");
+}
+
+/* ---------- Overblik: produktliste ---------- */
 function populateBrands(){
-  const sel = document.getElementById("maerkeSelect");
+  const wrap = document.getElementById("brandChips");
   const maerker = Array.from(new Set(RAW.map(p => p.maerke))).sort((a,b) => a.localeCompare(b, "da"));
-  sel.innerHTML = '<option value="alle">Alle mærker</option>' +
-    maerker.map(m => `<option value="${m}">${m}</option>`).join("");
+  wrap.innerHTML = maerker.map(m =>
+    `<button type="button" class="brand-chip${state.maerker.includes(m) ? " sel" : ""}" data-maerke="${m}">${m}</button>`
+  ).join("");
+  wrap.querySelectorAll(".brand-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const m = chip.dataset.maerke;
+      const i = state.maerker.indexOf(m);
+      if (i > -1) state.maerker.splice(i, 1); else state.maerker.push(m);
+      chip.classList.toggle("sel");
+      opdaterMaerkeAntal();
+      opdaterFilterBadge();
+      render();
+    });
+  });
+  opdaterMaerkeAntal();
+}
+function opdaterMaerkeAntal(){
+  document.getElementById("maerkeAntal").textContent = state.maerker.length ? `(${state.maerker.length} valgt)` : "(alle)";
 }
 
 function filtreret(){
   let rows = RAW.slice();
   if (state.mm !== "alle") rows = rows.filter(p => String(p.mm) === state.mm);
-  if (state.maerke !== "alle") rows = rows.filter(p => p.maerke === state.maerke);
+  if (state.maerker.length) rows = rows.filter(p => state.maerker.includes(p.maerke));
   if (state.kunPaaLager) rows = rows.filter(p => p.paaLager === true);
   if (state.minBraendvaerdi !== null) rows = rows.filter(p => p.braendvaerdiMaxKwhKg !== null && p.braendvaerdiMaxKwhKg >= state.minBraendvaerdi);
   if (state.maxAske !== null) rows = rows.filter(p => p.askeMaxProcent !== null && p.askeMaxProcent <= state.maxAske);
@@ -854,9 +606,9 @@ function renderSummary(rows){
   const medPris = paaLager.filter(p => p.prisPrKg !== null);
   const billigste = medPris.slice().sort((a,b) => a.prisPrKg - b.prisPrKg)[0];
   document.getElementById("summary").innerHTML = `
-    <div class="sum-card"><div class="k">Viser</div><div class="v">${rows.length} <small>af ${RAW.length} varer</small></div></div>
-    <div class="sum-card"><div class="k">På lager lige nu</div><div class="v">${paaLager.length} <small>varer</small></div></div>
-    <div class="sum-card"><div class="k">Billigst på lager</div><div class="v">${billigste ? taltekst(billigste.prisPrKg,2," kr/kg") : "–"} ${billigste ? `<small>${billigste.maerke}</small>` : ""}</div></div>
+    <div class="sum-card"><div class="k">Viser</div><div class="v">${rows.length}/${RAW.length}</div></div>
+    <div class="sum-card"><div class="k">På lager</div><div class="v">${paaLager.length}</div></div>
+    <div class="sum-card"><div class="k">Billigst</div><div class="v">${billigste ? taltekst(billigste.prisPrKg,2,"") : "–"}</div></div>
   `;
 }
 
@@ -864,42 +616,60 @@ function render(){
   const rows = filtreret();
   renderSummary(rows);
   const grid = document.getElementById("grid");
-  if (!rows.length){ grid.innerHTML = '<div class="empty">Ingen varer matcher de valgte filtre lige nu.</div>'; return; }
+  if (!rows.length){ grid.innerHTML = '<div class="empty-note">Ingen varer matcher de valgte filtre lige nu.</div>'; return; }
   grid.innerHTML = rows.map(p => {
     const lager = p.paaLager === true ? "ja" : (p.paaLager === false ? "nej" : "ukendt");
     const lagerTekst = p.paaLager === true ? (p.antalPaaLager ? p.antalPaaLager + " på lager" : "På lager")
-      : (p.paaLager === false ? "Udsolgt" : "Lagerstatus ukendt");
+      : (p.paaLager === false ? "Udsolgt" : "Ukendt");
     const prisHtml = p.prisPrKg !== null
-      ? `<span class="price">${taltekst(p.prisPrKg,2,"")}</span><span class="price-unit">kr/kg</span>`
-      : `<span class="price na">Ring for pris</span>`;
+      ? `<span class="pcard-price">${taltekst(p.prisPrKg,2,"")}<span class="u"> kr/kg</span></span>`
+      : `<span class="pcard-price na">Ring for pris</span>`;
     const harSpecs = p.braendvaerdiMinKwhKg !== null || p.fugtMaxProcent !== null || p.askeMaxProcent !== null;
     const specsHtml = harSpecs ? `
-        <div class="specs">
-          <div class="spec"><div class="k">Brændværdi</div><div class="v ${p.braendvaerdiMinKwhKg===null?'na':''}">${braendvaerdiTekst(p)}</div></div>
-          <div class="spec"><div class="k">Fugt</div><div class="v ${p.fugtMaxProcent===null?'na':''}">${p.fugtMaxProcent===null?"–":"≤ "+taltekst(p.fugtMaxProcent,1,"%")}</div></div>
-          <div class="spec"><div class="k">Aske</div><div class="v ${p.askeMaxProcent===null?'na':''}">${p.askeMaxProcent===null?"–":"≤ "+taltekst(p.askeMaxProcent,1,"%")}</div></div>
+        <div class="pspecs">
+          <div><div class="k">Brændv.</div><div class="v">${braendvaerdiTekst(p)}</div></div>
+          <div><div class="k">Fugt</div><div class="v">${p.fugtMaxProcent===null?"–":"≤ "+taltekst(p.fugtMaxProcent,1,"%")}</div></div>
+          <div><div class="k">Aske</div><div class="v">${p.askeMaxProcent===null?"–":"≤ "+taltekst(p.askeMaxProcent,1,"%")}</div></div>
         </div>` : "";
     return `
-      <div class="card ${p.paaLager === false ? "udsolgt" : ""}">
-        <div class="card-top">
-          <div class="brand-line">
-            <div class="brand">${p.maerke}</div>
-            ${p.mm ? `<span class="mm-badge">${p.mm} mm</span>` : ""}
-            ${p.type === "briket" ? `<span class="type-badge">briket</span>` : ""}
-          </div>
+      <div class="pcard ${p.paaLager === false ? "off" : ""}">
+        <div class="pcard-top">
+          <div><span class="pcard-brand">${p.maerke}</span>${p.mm ? `<span class="mm-badge">${p.mm} mm</span>` : ""}</div>
           <span class="stock ${lager}">${lagerTekst}</span>
         </div>
-        <div class="produkt-navn">${p.produkt}</div>
-        <div class="price-row">${prisHtml}</div>${specsHtml}
-        <a class="card-link" href="${p.kilde}" target="_blank" rel="noopener">Se hos Pillemadsen →</a>
+        <div class="pcard-navn">${p.produkt}</div>
+        ${prisHtml}${specsHtml}
+        <a class="pcard-link" href="${p.kilde}" target="_blank" rel="noopener">Se hos Pillemadsen →</a>
       </div>
     `;
   }).join("");
 }
 
+/* ---------- Historik ---------- */
+function renderHistorik(){
+  const alle = DEPI.maaneder;
+  const filtreret = historikAar === "alle" ? alle : alle.filter(m => m.dato.startsWith(historikAar));
+  document.getElementById("depiChart").innerHTML = filtreret.length
+    ? svgTrendChart(filtreret, 220, "dkkPrKg", "#2f6b45")
+    : '<div class="empty-note">Ingen data for perioden.</div>';
+
+  if (filtreret.length){
+    const billigst = filtreret.slice().sort((a,b) => a.dkkPrKg - b.dkkPrKg)[0];
+    const dyrest = filtreret.slice().sort((a,b) => b.dkkPrKg - a.dkkPrKg)[0];
+    document.getElementById("minmaxRow").innerHTML = `
+      <div class="minmax-card low"><div class="k">↓ Laveste</div><div class="v">${taltekst(billigst.dkkPrKg,2," kr/kg")}</div><div class="d">${billigst.dato}</div></div>
+      <div class="minmax-card high"><div class="k">↑ Højeste</div><div class="v">${taltekst(dyrest.dkkPrKg,2," kr/kg")}</div><div class="d">${dyrest.dato}</div></div>
+    `;
+  } else {
+    document.getElementById("minmaxRow").innerHTML = "";
+  }
+}
+
+/* ---------- Marked ---------- */
 function svgBarChart(data, height){
-  const width = 480;
+  const width = 1000;
   const padding = { top: 22, right: 6, bottom: 34, left: 6 };
+  if (!data.length) return "";
   const maxVal = Math.max(...data.map(d => d.value), 0.1);
   const gap = 10;
   const barW = (width - padding.left - padding.right - gap*(data.length-1)) / Math.max(data.length,1);
@@ -909,202 +679,169 @@ function svgBarChart(data, height){
     const x = padding.left + i*(barW+gap);
     const h = (d.value/maxVal) * chartH;
     const y = padding.top + (chartH - h);
-    out += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="5" fill="#e8c07f"></rect>`;
-    out += `<text x="${(x+barW/2).toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="#e8c07f">${d.value.toFixed(2)}</text>`;
-    out += `<text x="${(x+barW/2).toFixed(1)}" y="${height-16}" text-anchor="middle" font-size="9.5" font-family="IBM Plex Mono, monospace" fill="#a99a80">${d.label}</text>`;
+    out += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="5" fill="#2f6b45"></rect>`;
+    out += `<text x="${(x+barW/2).toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="#2f6b45">${d.value.toFixed(2)}</text>`;
+    out += `<text x="${(x+barW/2).toFixed(1)}" y="${height-16}" text-anchor="middle" font-size="9.5" font-family="IBM Plex Mono, monospace" fill="#6b7568">${d.label}</text>`;
   });
   return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">${out}</svg>`;
 }
-
 function svgDonut(paaLagerN, udsolgtN, size){
   const total = paaLagerN + udsolgtN || 1;
   const r = size/2 - 14;
   const cx = size/2, cy = size/2;
   const circ = 2*Math.PI*r;
-  const paaLagerLen = circ * (paaLagerN/total);
+  const len = circ * (paaLagerN/total);
   return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(243,233,216,0.10)" stroke-width="16"/>
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#9fc178" stroke-width="16"
-      stroke-dasharray="${paaLagerLen.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round"
-      transform="rotate(-90 ${cx} ${cy})"/>
-    <text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="22" font-weight="700" font-family="Fraunces, serif" fill="#f3e9d8">${Math.round(paaLagerN/total*100)}%</text>
-    <text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="9.5" font-family="IBM Plex Mono, monospace" fill="#a99a80">på lager</text>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e8e1d0" stroke-width="16"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#2f6b45" stroke-width="16"
+      stroke-dasharray="${len.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="22" font-weight="700" font-family="Fraunces, serif" fill="#1e2b22">${Math.round(paaLagerN/total*100)}%</text>
+    <text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="9.5" font-family="IBM Plex Mono, monospace" fill="#6b7568">på lager</text>
   </svg>`;
 }
 
-function genererAnalyseTekst(produkter){
-  const paaLager = produkter.filter(p => p.paaLager === true);
-  const udsolgt = produkter.filter(p => p.paaLager === false);
-  const maerkerPaaLager = new Set(paaLager.map(p => p.maerke));
-  const maerkerUdsolgt = Array.from(new Set(udsolgt.map(p => p.maerke))).filter(m => !maerkerPaaLager.has(m));
+const DRIVER_FORKLARINGER = {
+  lager: "Andel af Pillemadsens 27 varer, der er på lager lige nu. Under 20% = Lav, 20-50% = Middel, over 50% = Høj. Et fald i denne andel kan tyde på knaphed i markedet.",
+  pris: "Baseret på DEPI's seneste kendte år-til-år-ændring. Under -5% = Faldende, over +5% = Stigende, derimellem = Stabil."
+};
 
-  const gns = arr => arr.length ? (arr.reduce((s,p)=>s+p.prisPrKg,0)/arr.length) : null;
-  const seks = paaLager.filter(p => p.mm === 6 && p.prisPrKg !== null);
-  const otte = paaLager.filter(p => p.mm === 8 && p.prisPrKg !== null);
-  const gns6 = gns(seks), gns8 = gns(otte);
+function renderDrivers(){
+  const paaLager = RAW.filter(p => p.paaLager === true);
+  const andel = RAW.length ? paaLager.length / RAW.length : 0;
+  let lagerLabel, lagerDot;
+  if (andel > 0.5){ lagerLabel = "Høj"; lagerDot = "g"; }
+  else if (andel > 0.2){ lagerLabel = "Middel"; lagerDot = "a"; }
+  else { lagerLabel = "Lav"; lagerDot = "r"; }
 
-  let t = `${paaLager.length} af ${produkter.length} varer er på lager lige nu (${Math.round(paaLager.length/produkter.length*100)}%). `;
-  if (maerkerUdsolgt.length){
-    t += `${maerkerUdsolgt.join(", ")} er udsolgt på tværs af alle varianter hos Pillemadsen lige nu. `;
+  let prisLabel = "Ukendt", prisDot = "a";
+  const maaneder = DEPI.maaneder;
+  if (maaneder.length){
+    const seneste = maaneder[maaneder.length - 1];
+    const [sy, sm] = seneste.dato.split("-");
+    const sidsteAar = maaneder.find(m => m.dato === (Number(sy)-1) + "-" + sm);
+    if (sidsteAar){
+      const pct = ((seneste.dkkPrKg - sidsteAar.dkkPrKg) / sidsteAar.dkkPrKg) * 100;
+      if (pct > 5){ prisLabel = "Stigende"; prisDot = "r"; }
+      else if (pct < -5){ prisLabel = "Faldende"; prisDot = "g"; }
+      else { prisLabel = "Stabil"; prisDot = "a"; }
+    }
   }
-  if (gns6 !== null) t += `Gennemsnitsprisen for 6 mm piller på lager ligger på ${gns6.toFixed(2)} kr/kg`;
-  if (gns8 !== null) t += gns6 !== null ? `, mod ${gns8.toFixed(2)} kr/kg for 8 mm. ` : `Gennemsnitsprisen for 8 mm piller på lager ligger på ${gns8.toFixed(2)} kr/kg. `;
-  else if (gns6 !== null) t += `. `;
-  return t;
+
+  document.getElementById("driverGrid").innerHTML = `
+    <div class="driver-card">
+      <div class="driver-top"><div class="driver-k"><span class="driver-dot ${lagerDot}"></span>Lagerstatus</div>
+      <button class="info-btn" data-driver="lager">ⓘ</button></div>
+      <div class="driver-v">${lagerLabel}</div>
+    </div>
+    <div class="driver-card">
+      <div class="driver-top"><div class="driver-k"><span class="driver-dot ${prisDot}"></span>Prisretning</div>
+      <button class="info-btn" data-driver="pris">ⓘ</button></div>
+      <div class="driver-v">${prisLabel}</div>
+    </div>
+  `;
+  document.querySelectorAll("[data-driver]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const box = document.getElementById("driverInfoBox");
+      const nyKey = btn.dataset.driver;
+      if (box.dataset.aktuel === nyKey && box.classList.contains("open")){
+        box.classList.remove("open"); box.dataset.aktuel = ""; return;
+      }
+      box.textContent = DRIVER_FORKLARINGER[nyKey];
+      box.dataset.aktuel = nyKey;
+      box.classList.add("open");
+    });
+  });
 }
 
-function renderAnalyse(){
+function renderMarked(){
+  if (AI_DATA && AI_DATA.tekst){
+    document.getElementById("aiTekstMarked").textContent = AI_DATA.tekst;
+    document.getElementById("aiTidMarked").textContent = "Genereret " + (AI_DATA.genereretDanskTid || "");
+  } else {
+    document.getElementById("aiTekstMarked").textContent = "Ingen markedsanalyse endnu. Den dukker op, når robotten har kørt mindst én gang med en gyldig API-nøgle sat op som GitHub Secret.";
+  }
+
+  renderDrivers();
+
   const paaLager = RAW.filter(p => p.paaLager === true);
   const udsolgt = RAW.filter(p => p.paaLager === false);
   const medPris = paaLager.filter(p => p.prisPrKg !== null);
-  const seks = medPris.filter(p => p.mm === 6);
-  const otte = medPris.filter(p => p.mm === 8);
-  const gns = arr => arr.length ? (arr.reduce((s,p)=>s+p.prisPrKg,0)/arr.length) : null;
-  const billigste = medPris.slice().sort((a,b)=>a.prisPrKg-b.prisPrKg)[0];
-
-  document.getElementById("metricGrid").innerHTML = `
-    <div class="metric-card"><div class="k">På lager</div><div class="v">${paaLager.length}<span style="font-size:13px;color:var(--muted)"> / ${RAW.length}</span></div></div>
-    <div class="metric-card"><div class="k">Udsolgt</div><div class="v">${udsolgt.length}</div></div>
-    <div class="metric-card"><div class="k">Snit 6 mm</div><div class="v">${gns(seks)!==null?gns(seks).toFixed(2):"–"}</div></div>
-    <div class="metric-card"><div class="k">Snit 8 mm</div><div class="v">${gns(otte)!==null?gns(otte).toFixed(2):"–"}</div></div>
-    <div class="metric-card"><div class="k">Billigst</div><div class="v">${billigste?billigste.prisPrKg.toFixed(2):"–"}</div></div>
-  `;
-
-  document.getElementById("analyseTekst").textContent = genererAnalyseTekst(RAW);
-
   const perMaerke = {};
-  medPris.forEach(p => {
-    if (!perMaerke[p.maerke]) perMaerke[p.maerke] = [];
-    perMaerke[p.maerke].push(p.prisPrKg);
-  });
+  medPris.forEach(p => { if (!perMaerke[p.maerke]) perMaerke[p.maerke] = []; perMaerke[p.maerke].push(p.prisPrKg); });
   const barData = Object.keys(perMaerke).map(m => ({
     label: m.length > 9 ? m.slice(0,8)+"…" : m,
     value: perMaerke[m].reduce((s,v)=>s+v,0)/perMaerke[m].length
   })).sort((a,b) => a.value - b.value);
-  document.getElementById("barChart").innerHTML = barData.length
+  document.getElementById("brandBarChart").innerHTML = barData.length
     ? svgBarChart(barData, 220)
-    : '<div class="trend-card">Ingen varer på lager med pris lige nu.</div>';
+    : '<div class="empty-note">Ingen varer på lager med pris lige nu.</div>';
 
-  document.getElementById("donutChart").innerHTML = svgDonut(paaLager.length, udsolgt.length, 160);
+  document.getElementById("stockDonut").innerHTML = svgDonut(paaLager.length, udsolgt.length, 150);
+}
 
-  const trendEl = document.getElementById("trendChart");
-  if (HISTORIK.length < 2){
-    trendEl.innerHTML = `<div class="trend-card">Vi er lige begyndt at gemme et dagligt øjebliksbillede (fra ${HISTORIK.length ? HISTORIK[0].dato : "i dag"}). Om nogle uger tegner der sig en rigtig tidslinje og prognose her — indtil da vises kun dagens tal.</div>`;
+/* ---------- Varsler ---------- */
+function renderVarsler(){
+  const gemt = localStorage.getItem("traepille_alarm_graense");
+  if (gemt) document.getElementById("alarmInput").value = gemt;
+  opdaterAlarmStatus();
+
+  const paaLager = RAW.filter(p => p.paaLager === true);
+  const udsolgt = RAW.filter(p => p.paaLager === false);
+  const maerkerPaaLager = new Set(paaLager.map(p => p.maerke));
+  const maerkerUdsolgt = Array.from(new Set(udsolgt.map(p => p.maerke))).filter(m => !maerkerPaaLager.has(m)).sort((a,b) => a.localeCompare(b,"da"));
+
+  const el = document.getElementById("udsolgtListe");
+  if (!maerkerUdsolgt.length){
+    el.innerHTML = '<div class="empty-note">Ingen mærker er helt udsolgt lige nu.</div>';
   } else {
-    trendEl.innerHTML = svgTrendChart(HISTORIK, 260);
+    el.innerHTML = maerkerUdsolgt.map(m => `<div class="udsolgt-row"><span class="n">${m}</span><span class="m">Udsolgt</span></div>`).join("");
   }
 }
-
-function svgTrendChart(historik, height){
-  const width = 1000;
-  const padding = { top: 30, right: 16, bottom: 30, left: 16 };
-  const punkter = historik.filter(h => h.gnsPris6mmPaaLager !== null);
-  if (!punkter.length) return '<div class="trend-card">Ikke nok data endnu.</div>';
-  const vals = punkter.map(h => h.gnsPris6mmPaaLager);
-  const min = Math.min(...vals), max = Math.max(...vals);
-  const span = (max - min) || 0.1;
-  const chartW = width - padding.left - padding.right;
-  const chartH = height - padding.top - padding.bottom;
-  const pts = punkter.map((h,i) => {
-    const x = padding.left + (i/(Math.max(punkter.length-1,1))) * chartW;
-    const y = padding.top + chartH - ((h.gnsPris6mmPaaLager - min)/span) * chartH;
-    return [x,y];
-  });
-  const path = pts.map((p,i) => (i===0?"M":"L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
-  const dots = pts.map((p,i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="#e8c07f"/>`).join("");
-  const vaerdiLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${(p[1]-10).toFixed(1)}" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="#e8c07f">${punkter[i].gnsPris6mmPaaLager.toFixed(2)}</text>`).join("");
-  const datoLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${height-10}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace" fill="#a99a80">${punkter[i].dato.slice(5)}/${punkter[i].dato.slice(2,4)}</text>`).join("");
-  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">
-    <path d="${path}" fill="none" stroke="#e8c07f" stroke-width="2"/>
-    ${dots}${vaerdiLabels}${datoLabels}
-  </svg>`;
-}
-
-function svgDepiChart(maaneder, height){
-  const width = 1000;
-  const padding = { top: 18, right: 16, bottom: 26, left: 16 };
-  if (!maaneder.length) return '<div class="trend-card">Ingen data endnu.</div>';
-  const vals = maaneder.map(m => m.dkkPrKg);
-  const min = Math.min(...vals), max = Math.max(...vals);
-  const span = (max - min) || 0.1;
-  const chartW = width - padding.left - padding.right;
-  const chartH = height - padding.top - padding.bottom;
-  const pts = maaneder.map((m,i) => {
-    const x = padding.left + (i/(Math.max(maaneder.length-1,1))) * chartW;
-    const y = padding.top + chartH - ((m.dkkPrKg - min)/span) * chartH;
-    return [x,y];
-  });
-  const path = pts.map((p,i) => (i===0?"M":"L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
-  const dots = pts.map((p,i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="#9fc178"><title>${maaneder[i].dato}: ${maaneder[i].dkkPrKg} kr/kg (${maaneder[i].eurPrTon} €/t)</title></circle>`).join("");
-  const labels = maaneder.map((m,i) => {
-    const x = padding.left + (i/(Math.max(maaneder.length-1,1))) * chartW;
-    return `<text x="${x.toFixed(1)}" y="${height-8}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace" fill="#a99a80">${m.dato}</text>`;
-  }).join("");
-  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">
-    <path d="${path}" fill="none" stroke="#9fc178" stroke-width="2"/>
-    ${dots}${labels}
-  </svg>`;
-}
-
-function renderDepiIndeks(){
-  const maaneder = (DEPI.maaneder || []).slice().sort((a,b) => a.dato.localeCompare(b.dato));
-  document.getElementById("depiChart").innerHTML = svgDepiChart(maaneder, 200);
-
-  const badge = document.getElementById("depiYoyBadge");
-  if (maaneder.length < 2){ badge.textContent = "For få data"; return; }
-
-  const seneste = maaneder[maaneder.length - 1];
-  const [aar, maaned] = seneste.dato.split("-");
-  const sidsteAarDato = (Number(aar) - 1) + "-" + maaned;
-  const sidsteAar = maaneder.find(m => m.dato === sidsteAarDato);
-
-  if (!sidsteAar){
-    badge.textContent = "Ingen data for samme måned sidste år";
+function opdaterAlarmStatus(){
+  const graense = Number(localStorage.getItem("traepille_alarm_graense"));
+  const medPris = RAW.filter(p => p.paaLager === true && p.prisPrKg !== null);
+  const billigste = medPris.slice().sort((a,b) => a.prisPrKg - b.prisPrKg)[0];
+  const statusEl = document.getElementById("alarmStatus");
+  if (!graense){
+    statusEl.className = "alarm-status over";
+    statusEl.textContent = "Sæt en grænse ovenfor for at aktivere alarmen.";
     return;
   }
-  const pct = ((seneste.dkkPrKg - sidsteAar.dkkPrKg) / sidsteAar.dkkPrKg) * 100;
-  const fortegn = pct >= 0 ? "+" : "";
-  badge.textContent = fortegn + pct.toFixed(0) + "% siden " + sidsteAarDato;
-  badge.style.background = pct >= 0 ? "rgba(177,80,47,0.18)" : "rgba(125,155,94,0.18)";
-  badge.style.color = pct >= 0 ? "#e58f6d" : "#9fc178";
+  if (!billigste){
+    statusEl.className = "alarm-status over";
+    statusEl.textContent = "Ingen varer på lager med pris lige nu.";
+    return;
+  }
+  if (billigste.prisPrKg <= graense){
+    statusEl.className = "alarm-status under";
+    statusEl.textContent = "🎉 " + billigste.maerke + " er nede på " + taltekst(billigste.prisPrKg,2," kr/kg") + " - under din grænse på " + taltekst(graense,2," kr/kg") + "!";
+  } else {
+    statusEl.className = "alarm-status over";
+    statusEl.textContent = "Billigst lige nu: " + taltekst(billigste.prisPrKg,2," kr/kg") + " (" + billigste.maerke + ") - over din grænse på " + taltekst(graense,2," kr/kg") + ".";
+  }
 }
 
-function opdaterFilterBadge(){
-  let n = 0;
-  if (state.mm !== "6") n++;
-  if (state.maerke !== "alle") n++;
-  if (state.minBraendvaerdi !== null) n++;
-  if (state.maxAske !== null) n++;
-  if (state.maxFugt !== null) n++;
-  const badge = document.getElementById("filterBadge");
-  badge.style.display = n ? "flex" : "none";
-  badge.textContent = n;
+/* ---------- Navigation ---------- */
+const SKAERM_TITLER = { overblik: "TræpillerDK", historik: "Prishistorik", marked: "Marked og analyse", varsler: "Varsler" };
+function skiftVisning(navn){
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.view === navn));
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + navn).classList.add("active");
+  document.getElementById("screenTitle").textContent = SKAERM_TITLER[navn] || "TræpillerDK";
 }
+document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => skiftVisning(btn.dataset.view)));
+document.getElementById("bellBtn").addEventListener("click", () => skiftVisning("varsler"));
 
-document.getElementById("gearBtn").addEventListener("click", (e) => {
-  e.stopPropagation();
+/* ---------- Filter events ---------- */
+document.getElementById("gearBtn").addEventListener("click", () => {
   const pop = document.getElementById("popover");
-  const backdrop = document.getElementById("popoverBackdrop");
-  const aabner = !pop.classList.contains("open");
-  pop.classList.toggle("open", aabner);
-  backdrop.classList.toggle("open", aabner);
+  const aabner = pop.hidden;
+  pop.hidden = !aabner;
   document.getElementById("gearBtn").classList.toggle("active", aabner);
 });
-document.getElementById("popoverBackdrop").addEventListener("click", () => {
-  document.getElementById("popover").classList.remove("open");
-  document.getElementById("popoverBackdrop").classList.remove("open");
-  document.getElementById("gearBtn").classList.remove("active");
+document.getElementById("gaugeInfoBtn").addEventListener("click", () => {
+  document.getElementById("gaugeInfoBox").classList.toggle("open");
 });
-
-document.querySelectorAll(".tab-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-    document.getElementById("view-" + btn.dataset.tab).classList.add("active");
-  });
-});
-
 document.getElementById("mmSeg").addEventListener("click", e => {
   const btn = e.target.closest("button");
   if (!btn) return;
@@ -1113,7 +850,6 @@ document.getElementById("mmSeg").addEventListener("click", e => {
   state.mm = btn.dataset.mm;
   opdaterFilterBadge(); render();
 });
-document.getElementById("maerkeSelect").addEventListener("change", e => { state.maerke = e.target.value; opdaterFilterBadge(); render(); });
 document.getElementById("sortSelect").addEventListener("change", e => { state.sort = e.target.value; render(); });
 document.getElementById("lagerToggle").addEventListener("change", e => { state.kunPaaLager = e.target.checked; render(); });
 
@@ -1128,34 +864,42 @@ bindTal("minBraendvaerdi", "minBraendvaerdi");
 bindTal("maxAske", "maxAske");
 bindTal("maxFugt", "maxFugt");
 
+function opdaterFilterBadge(){
+  let n = 0;
+  if (state.mm !== "6") n++;
+  if (state.maerker.length) n++;
+  if (state.minBraendvaerdi !== null) n++;
+  if (state.maxAske !== null) n++;
+  if (state.maxFugt !== null) n++;
+  const badge = document.getElementById("filterBadge");
+  badge.style.display = n ? "flex" : "none";
+  badge.textContent = n;
+}
 document.getElementById("clearAdv").addEventListener("click", () => {
-  state = { mm: "6", maerke: "alle", sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
+  state = { mm: "6", maerker: [], sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
   document.querySelectorAll("#mmSeg button").forEach(b => b.classList.toggle("active", b.dataset.mm === "6"));
-  document.getElementById("maerkeSelect").value = "alle";
+  document.querySelectorAll(".brand-chip").forEach(c => c.classList.remove("sel"));
+  opdaterMaerkeAntal();
   document.getElementById("sortSelect").value = "pris-op";
   document.getElementById("lagerToggle").checked = true;
   ["minBraendvaerdi","maxAske","maxFugt"].forEach(id => document.getElementById(id).value = "");
   opdaterFilterBadge(); render();
 });
 
-document.getElementById("aiToggleBtn").addEventListener("click", () => {
-  const wrap = document.getElementById("aiWrap");
-  const btn = document.getElementById("aiToggleBtn");
-  const nuAaben = wrap.style.display !== "none";
-  if (nuAaben){
-    wrap.style.display = "none";
-    btn.textContent = "Vis analyse";
-    return;
-  }
-  if (AI_DATA && AI_DATA.tekst){
-    document.getElementById("aiTekst").textContent = AI_DATA.tekst;
-    document.getElementById("aiTid").textContent = "Genereret " + (AI_DATA.genereretDanskTid || "");
-  } else {
-    document.getElementById("aiTekst").textContent = "Ingen markedsanalyse endnu. Den dukker op, når robotten har kørt mindst én gang med en gyldig API-nøgle sat op som GitHub Secret.";
-    document.getElementById("aiTid").textContent = "";
-  }
-  wrap.style.display = "block";
-  btn.textContent = "Skjul analyse";
+document.getElementById("yearChips").addEventListener("click", e => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  document.querySelectorAll("#yearChips button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  historikAar = btn.dataset.aar;
+  renderHistorik();
+});
+
+document.getElementById("alarmSaveBtn").addEventListener("click", () => {
+  const v = document.getElementById("alarmInput").value.replace(",", ".").trim();
+  if (v === "") { localStorage.removeItem("traepille_alarm_graense"); }
+  else { localStorage.setItem("traepille_alarm_graense", v); }
+  opdaterAlarmStatus();
 });
 
 loadData();
