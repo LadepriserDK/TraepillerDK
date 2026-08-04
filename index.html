@@ -58,14 +58,26 @@
     border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px;
   }
 
-  /* ---------- Settings popover (does not push layout) ---------- */
-  .popover{
-    position:absolute;top:calc(100% + 8px);right:20px;width:300px;
-    background:var(--panel);border:1px solid var(--line-strong);border-radius:14px;
-    padding:14px;box-shadow:0 12px 32px rgba(0,0,0,0.4);
-    display:none;flex-direction:column;gap:12px;z-index:40;
+  /* ---------- Settings bottom sheet (mobile-first, fixed to viewport) ---------- */
+  .popover-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,0.55);
+    z-index:39;opacity:0;pointer-events:none;transition:opacity .2s ease;
   }
-  .popover.open{display:flex}
+  .popover-backdrop.open{opacity:1;pointer-events:auto}
+  .popover{
+    position:fixed;left:0;right:0;bottom:0;top:auto;
+    max-width:480px;margin:0 auto;
+    background:var(--panel);border:1px solid var(--line-strong);border-bottom:none;
+    border-radius:18px 18px 0 0;
+    padding:16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    box-shadow:0 -12px 32px rgba(0,0,0,0.4);
+    display:flex;flex-direction:column;gap:12px;z-index:40;
+    max-height:82vh;overflow-y:auto;
+    transform:translateY(100%);transition:transform .25s ease;
+    pointer-events:none;
+  }
+  .popover.open{transform:translateY(0);pointer-events:auto}
+  .popover-handle{width:36px;height:4px;border-radius:999px;background:var(--line-strong);margin:0 auto 4px}
   .pop-group label{font-size:10px;color:var(--muted-2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:6px}
   .seg{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:3px;width:fit-content}
   .seg button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-mono);font-weight:600;font-size:12px;padding:6px 13px;border-radius:999px}
@@ -156,7 +168,6 @@
   @media (max-width:520px){
     .title{font-size:17px}
     .grid{grid-template-columns:1fr}
-    .popover{right:12px;left:12px;width:auto}
   }
 </style>
 </head>
@@ -168,16 +179,20 @@
       <div class="title">Træpiller<span class="dot">DK</span></div>
       <div class="status" id="status"><span class="pulse"></span><span id="statusText">Henter priser…</span></div>
     </div>
-    <div class="header-right" style="position:relative">
+    <div class="header-right">
       <button class="gear-btn" id="gearBtn" title="Filtre og indstillinger" aria-label="Filtre og indstillinger">
         ⚙<span class="filter-badge" id="filterBadge" style="display:none">0</span>
       </button>
-      <div class="popover" id="popover">
+    </div>
+  </div>
+  <div class="popover-backdrop" id="popoverBackdrop"></div>
+  <div class="popover" id="popover">
+        <div class="popover-handle"></div>
         <div class="pop-group">
           <label>Størrelse</label>
           <div class="seg" id="mmSeg">
-            <button data-mm="alle" class="active">Alle</button>
-            <button data-mm="6">6 mm</button>
+            <button data-mm="alle">Alle</button>
+            <button data-mm="6" class="active">6 mm</button>
             <button data-mm="8">8 mm</button>
           </div>
         </div>
@@ -207,8 +222,6 @@
           </div>
         </div>
         <button class="clear-btn" id="clearAdv">Ryd alle filtre</button>
-      </div>
-    </div>
   </div>
   <div class="tabs">
     <button class="tab-btn active" data-tab="prisliste">Prisliste</button>
@@ -242,7 +255,7 @@
       </div>
     </div>
     <div class="chart-card">
-      <h3>Udvikling over tid — jeres egne data</h3>
+      <h3>Udvikling over tid — gnsn. pris 6 mm på lager (kr/kg)</h3>
       <div id="trendChart"></div>
     </div>
     <div class="chart-card" style="margin-top:12px">
@@ -257,8 +270,8 @@
     </div>
     <div class="chart-card" style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:2px">
-        <h3 style="margin-bottom:0">AI-forklaring</h3>
-        <button id="aiToggleBtn" class="clear-btn" style="border-style:solid;color:var(--amber-soft)">Vis forklaring</button>
+        <h3 style="margin-bottom:0">Markedsanalyse</h3>
+        <button id="aiToggleBtn" class="clear-btn" style="border-style:solid;color:var(--amber-soft)">Vis analyse</button>
       </div>
       <div id="aiWrap" style="display:none;margin-top:10px">
         <div id="aiTekst" style="font-size:13px;line-height:1.65;color:var(--cream)"></div>
@@ -741,7 +754,7 @@ const FALLBACK = {
 let RAW = [];
 let HISTORIK = [];
 let DEPI = FALLBACK_DEPI;
-let state = { mm: "alle", maerke: "alle", sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
+let state = { mm: "6", maerke: "alle", sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
 
 function taltekst(v, decimaler, enhed){
   if (v === null || v === undefined) return "–";
@@ -773,6 +786,7 @@ async function loadData(){
     RAW = FALLBACK.priser;
     setStatus(FALLBACK.hentetDanskTid, true);
   }
+  RAW = RAW.filter(p => p.type !== "briket"); // appen viser kun træpiller, ikke briketter
   try {
     const res2 = await fetch(HISTORIK_URL, { cache: "no-store" });
     if (res2.ok) HISTORIK = await res2.json();
@@ -983,7 +997,7 @@ function renderAnalyse(){
 
 function svgTrendChart(historik, height){
   const width = 1000;
-  const padding = { top: 18, right: 16, bottom: 26, left: 16 };
+  const padding = { top: 30, right: 16, bottom: 30, left: 16 };
   const punkter = historik.filter(h => h.gnsPris6mmPaaLager !== null);
   if (!punkter.length) return '<div class="trend-card">Ikke nok data endnu.</div>';
   const vals = punkter.map(h => h.gnsPris6mmPaaLager);
@@ -997,10 +1011,12 @@ function svgTrendChart(historik, height){
     return [x,y];
   });
   const path = pts.map((p,i) => (i===0?"M":"L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
-  const dots = pts.map((p,i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="#e8c07f"><title>${punkter[i].dato}: ${punkter[i].gnsPris6mmPaaLager} kr/kg</title></circle>`).join("");
+  const dots = pts.map((p,i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="#e8c07f"/>`).join("");
+  const vaerdiLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${(p[1]-10).toFixed(1)}" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="#e8c07f">${punkter[i].gnsPris6mmPaaLager.toFixed(2)}</text>`).join("");
+  const datoLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${height-10}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace" fill="#a99a80">${punkter[i].dato.slice(5)}/${punkter[i].dato.slice(2,4)}</text>`).join("");
   return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">
     <path d="${path}" fill="none" stroke="#e8c07f" stroke-width="2"/>
-    ${dots}
+    ${dots}${vaerdiLabels}${datoLabels}
   </svg>`;
 }
 
@@ -1055,7 +1071,7 @@ function renderDepiIndeks(){
 
 function opdaterFilterBadge(){
   let n = 0;
-  if (state.mm !== "alle") n++;
+  if (state.mm !== "6") n++;
   if (state.maerke !== "alle") n++;
   if (state.minBraendvaerdi !== null) n++;
   if (state.maxAske !== null) n++;
@@ -1068,15 +1084,16 @@ function opdaterFilterBadge(){
 document.getElementById("gearBtn").addEventListener("click", (e) => {
   e.stopPropagation();
   const pop = document.getElementById("popover");
-  pop.classList.toggle("open");
-  document.getElementById("gearBtn").classList.toggle("active", pop.classList.contains("open"));
+  const backdrop = document.getElementById("popoverBackdrop");
+  const aabner = !pop.classList.contains("open");
+  pop.classList.toggle("open", aabner);
+  backdrop.classList.toggle("open", aabner);
+  document.getElementById("gearBtn").classList.toggle("active", aabner);
 });
-document.addEventListener("click", (e) => {
-  const pop = document.getElementById("popover");
-  if (pop.classList.contains("open") && !pop.contains(e.target) && e.target.id !== "gearBtn"){
-    pop.classList.remove("open");
-    document.getElementById("gearBtn").classList.remove("active");
-  }
+document.getElementById("popoverBackdrop").addEventListener("click", () => {
+  document.getElementById("popover").classList.remove("open");
+  document.getElementById("popoverBackdrop").classList.remove("open");
+  document.getElementById("gearBtn").classList.remove("active");
 });
 
 document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -1112,8 +1129,8 @@ bindTal("maxAske", "maxAske");
 bindTal("maxFugt", "maxFugt");
 
 document.getElementById("clearAdv").addEventListener("click", () => {
-  state = { mm: "alle", maerke: "alle", sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
-  document.querySelectorAll("#mmSeg button").forEach(b => b.classList.toggle("active", b.dataset.mm === "alle"));
+  state = { mm: "6", maerke: "alle", sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
+  document.querySelectorAll("#mmSeg button").forEach(b => b.classList.toggle("active", b.dataset.mm === "6"));
   document.getElementById("maerkeSelect").value = "alle";
   document.getElementById("sortSelect").value = "pris-op";
   document.getElementById("lagerToggle").checked = true;
@@ -1127,18 +1144,18 @@ document.getElementById("aiToggleBtn").addEventListener("click", () => {
   const nuAaben = wrap.style.display !== "none";
   if (nuAaben){
     wrap.style.display = "none";
-    btn.textContent = "Vis forklaring";
+    btn.textContent = "Vis analyse";
     return;
   }
   if (AI_DATA && AI_DATA.tekst){
     document.getElementById("aiTekst").textContent = AI_DATA.tekst;
     document.getElementById("aiTid").textContent = "Genereret " + (AI_DATA.genereretDanskTid || "");
   } else {
-    document.getElementById("aiTekst").textContent = "Ingen AI-forklaring endnu. Den dukker op, når robotten har kørt mindst én gang med en gyldig API-nøgle sat op som GitHub Secret.";
+    document.getElementById("aiTekst").textContent = "Ingen markedsanalyse endnu. Den dukker op, når robotten har kørt mindst én gang med en gyldig API-nøgle sat op som GitHub Secret.";
     document.getElementById("aiTid").textContent = "";
   }
   wrap.style.display = "block";
-  btn.textContent = "Skjul forklaring";
+  btn.textContent = "Skjul analyse";
 });
 
 loadData();
