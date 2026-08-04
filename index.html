@@ -114,6 +114,7 @@
   .stock{font-family:var(--font-mono);font-size:10px;padding:3px 8px;border-radius:999px;white-space:nowrap}
   .stock.ja{background:rgba(125,155,94,0.18);color:var(--green-soft)}
   .stock.nej{background:rgba(177,80,47,0.18);color:#e58f6d}
+  .stock.ukendt{background:rgba(169,154,128,0.15);color:var(--muted)}
   .produkt-navn{font-size:12px;color:var(--muted);line-height:1.35}
   .price-row{display:flex;align-items:baseline;gap:6px}
   .price{font-family:var(--font-display);font-weight:700;font-size:24px;color:var(--amber-soft)}
@@ -851,11 +852,19 @@ function render(){
   const grid = document.getElementById("grid");
   if (!rows.length){ grid.innerHTML = '<div class="empty">Ingen varer matcher de valgte filtre lige nu.</div>'; return; }
   grid.innerHTML = rows.map(p => {
-    const lager = p.paaLager === true ? "ja" : "nej";
-    const lagerTekst = p.paaLager === true ? (p.antalPaaLager ? p.antalPaaLager + " på lager" : "På lager") : "Udsolgt";
+    const lager = p.paaLager === true ? "ja" : (p.paaLager === false ? "nej" : "ukendt");
+    const lagerTekst = p.paaLager === true ? (p.antalPaaLager ? p.antalPaaLager + " på lager" : "På lager")
+      : (p.paaLager === false ? "Udsolgt" : "Lagerstatus ukendt");
     const prisHtml = p.prisPrKg !== null
       ? `<span class="price">${taltekst(p.prisPrKg,2,"")}</span><span class="price-unit">kr/kg</span>`
       : `<span class="price na">Ring for pris</span>`;
+    const harSpecs = p.braendvaerdiMinKwhKg !== null || p.fugtMaxProcent !== null || p.askeMaxProcent !== null;
+    const specsHtml = harSpecs ? `
+        <div class="specs">
+          <div class="spec"><div class="k">Brændværdi</div><div class="v ${p.braendvaerdiMinKwhKg===null?'na':''}">${braendvaerdiTekst(p)}</div></div>
+          <div class="spec"><div class="k">Fugt</div><div class="v ${p.fugtMaxProcent===null?'na':''}">${p.fugtMaxProcent===null?"–":"≤ "+taltekst(p.fugtMaxProcent,1,"%")}</div></div>
+          <div class="spec"><div class="k">Aske</div><div class="v ${p.askeMaxProcent===null?'na':''}">${p.askeMaxProcent===null?"–":"≤ "+taltekst(p.askeMaxProcent,1,"%")}</div></div>
+        </div>` : "";
     return `
       <div class="card ${p.paaLager === false ? "udsolgt" : ""}">
         <div class="card-top">
@@ -867,12 +876,7 @@ function render(){
           <span class="stock ${lager}">${lagerTekst}</span>
         </div>
         <div class="produkt-navn">${p.produkt}</div>
-        <div class="price-row">${prisHtml}</div>
-        <div class="specs">
-          <div class="spec"><div class="k">Brændværdi</div><div class="v ${p.braendvaerdiMinKwhKg===null?'na':''}">${braendvaerdiTekst(p)}</div></div>
-          <div class="spec"><div class="k">Fugt</div><div class="v ${p.fugtMaxProcent===null?'na':''}">${p.fugtMaxProcent===null?"–":"≤ "+taltekst(p.fugtMaxProcent,1,"%")}</div></div>
-          <div class="spec"><div class="k">Aske</div><div class="v ${p.askeMaxProcent===null?'na':''}">${p.askeMaxProcent===null?"–":"≤ "+taltekst(p.askeMaxProcent,1,"%")}</div></div>
-        </div>
+        <div class="price-row">${prisHtml}</div>${specsHtml}
         <a class="card-link" href="${p.kilde}" target="_blank" rel="noopener">Se hos Pillemadsen →</a>
       </div>
     `;
