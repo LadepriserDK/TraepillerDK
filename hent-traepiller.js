@@ -78,22 +78,36 @@ function udtraekSpecs(rawTekst) {
     };
 }
 
-async function laesProduktLinks(page) {
+// Læser navn/pris/lagerstatus fra kategori-oversigten. Denne metode er testet grundigt
+// og er den mest pålidelige kilde til pris og lagerstatus - produktsidernes egen pris kan
+// vise en misvisende standardværdi, før man selv har valgt en mængde på siden.
+async function laesKategoriside(page) {
     return page.evaluate(() => {
         const links = Array.from(document.querySelectorAll('a[href*="p.html"]'));
         const set = new Set();
+        const resultater = [];
         for (const link of links) {
             const href = link.getAttribute("href");
-            if (href) set.add(href);
+            if (!href || set.has(href)) continue;
+            let el = link, container = null;
+            for (let i = 0; i < 6 && el; i++) {
+                el = el.parentElement;
+                if (!el) break;
+                const t = el.innerText || "";
+                if (t.includes("DKK") && /pr\.?\s*kg/i.test(t)) { container = el; break; }
+            }
+            if (!container) continue;
+            set.add(href);
+            resultater.push({ href, tekst: container.innerText || "" });
         }
-        return Array.from(set);
+        return resultater;
     });
 }
 
-async function findProduktUrls(browser) {
+async function findKategoriProdukter(browser) {
     let url = START_URL;
     const besoegteSider = new Set();
-    const produktUrls = new Set();
+    const fundne = new Map();
 
     for (let side = 1; side <= MAX_KATEGORISIDER && url; side++) {
         console.log("Finder produkter på side " + side + ": " + url);
@@ -101,8 +115,11 @@ async function findProduktUrls(browser) {
         const page = await browser.newPage({ locale: "da-DK" });
         await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
 
-        const links = await laesProduktLinks(page);
-        for (const href of links) produktUrls.add(new URL(href, url).toString());
+        const raa = await laesKategoriside(page);
+        for (const p of raa) {
+            const fuldUrl = new URL(p.href, url).toString();
+            if (!fundne.has(fuldUrl)) fundne.set(fuldUrl, p.tekst);
+        }
 
         let naesteHref = null;
         const naeste = page.getByRole("link", { name: /næste/i });
@@ -116,47 +133,21 @@ async function findProduktUrls(browser) {
         if (besoegteSider.has(nyUrl)) break;
         url = nyUrl;
     }
-    return Array.from(produktUrls);
+    return fundne; // Map<fuld produkt-url, tekst fra oversigtssiden>
 }
 
-async function laesProdukt(browser, url) {
+// Besøger hver produktside udelukkende for at læse specifikationer (aske/fugt/brændværdi) -
+// de findes ikke på oversigten. Scanner hele sidens tekst frem for at stole på et bestemt
+// element-id, som kan mangle eller kræve et klik for at blive synligt.
+async function laesSpecsForProdukt(browser, url) {
     const page = await browser.newPage({ locale: "da-DK" });
     try {
         await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
-
-        const titelLoc = page.locator("h1").first();
-        const titel = (await titelLoc.count()) ? ((await titelLoc.textContent().catch(() => "")) || "").trim() : "";
-        if (!titel) return null;
-
         const bodyTekst = (await page.locator("body").textContent().catch(() => "")) || "";
-
-        const prisMatch = bodyTekst.match(/(\d[\d.]*,\d{2})\s*DKK\s*pr\.?\s*kg/i);
-        const prisPrKg = prisMatch ? tal(prisMatch[1].replace(/\./g, "")) : null;
-
-        let paaLager = null, antalPaaLager = null;
-        const lagerMatch = bodyTekst.match(/(\d+)\s*\n?\s*På lager/i);
-        if (lagerMatch) {
-            paaLager = true;
-            antalPaaLager = Number(lagerMatch[1]);
-        } else if (/Ikke\s*på\s*lager/i.test(bodyTekst) || /LEVERINGSTID\s*UKENDT/i.test(bodyTekst)) {
-            paaLager = false;
-        }
-
-        const specsLoc = page.locator("#specs");
-        const specsTekst = (await specsLoc.count()) ? ((await specsLoc.first().textContent().catch(() => "")) || "") : "";
-        const specs = udtraekSpecs(specsTekst);
-
-        return {
-            produkt: titel,
-            maerke: maerkeFraNavn(titel),
-            type: typeFraNavn(titel),
-            mm: mmFraNavn(titel),
-            prisPrKg,
-            paaLager,
-            antalPaaLager,
-            ...specs,
-            kilde: url
-        };
+        return udtraekSpecs(bodyTekst);
+    } catch (err) {
+        console.warn("Kunne ikke læse specs fra " + url + ": " + err.message);
+        return {};
     } finally {
         await page.close();
     }
@@ -326,7 +317,7 @@ async function hentAiAnalyse(produkter, dagensOpsummering) {
                 "Authorization": "Bearer " + apiKey
             },
             body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
+                model: "openai/gpt-oss-120b",
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt }
@@ -356,17 +347,37 @@ async function hentPriser() {
     console.log("Starter browseren...");
     const browser = await chromium.launch({ headless: true });
 
-    const produktUrls = await findProduktUrls(browser);
-    console.log("Fandt " + produktUrls.length + " produkter. Henter detaljer for hvert...");
+    const kategoriData = await findKategoriProdukter(browser);
+    console.log("Fandt " + kategoriData.size + " produkter på oversigtssiderne. Henter specifikationer for hvert...");
 
     const produkter = [];
-    for (const url of produktUrls) {
+    for (const [url, tekst] of kategoriData) {
+        const linjer = tekst.split("\n").map(l => l.trim()).filter(Boolean);
+        const navn = linjer[0] || "";
+        if (!navn) continue;
+
+        const prisMatch = tekst.match(/(\d[\d.]*,\d{2})\s*DKK\s*pr\.?\s*kg/i);
+        const prisPrKg = prisMatch ? tal(prisMatch[1].replace(/\./g, "")) : null;
+        const paaLager = /ikke\s*på\s*lager/i.test(tekst) ? false : (/på\s*lager/i.test(tekst) ? true : null);
+
+        let specs = {};
         try {
-            const p = await laesProdukt(browser, url);
-            if (p) produkter.push(p);
+            specs = await laesSpecsForProdukt(browser, url);
         } catch (err) {
-            console.warn("Kunne ikke læse " + url + ": " + err.message);
+            console.warn("Sprang specs over for " + url + ": " + err.message);
         }
+
+        produkter.push({
+            produkt: navn,
+            maerke: maerkeFraNavn(navn),
+            type: typeFraNavn(navn),
+            mm: mmFraNavn(navn),
+            prisPrKg,
+            paaLager,
+            antalPaaLager: null,
+            ...specs,
+            kilde: url
+        });
     }
 
     await browser.close();
