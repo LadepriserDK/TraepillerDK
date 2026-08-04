@@ -1,0 +1,12 @@
+{
+  "kilde": "Deutsches Pelletinstitut (DEPI)",
+  "eurPrDkk": 7.46,
+  "maaneder": [
+    {
+      "dato": "2026-07",
+      "eurPrTon": 388.09,
+      "dkkPrKg": 2.9,
+      "kilde": "https://www.depi.de/mediathek/d/pelletpreis-im-juli-bleibt-auf-sommerniveau/?"
+    }
+  ]
+}
