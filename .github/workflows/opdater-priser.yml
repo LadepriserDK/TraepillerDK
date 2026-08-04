@@ -1,0 +1,38 @@
+name: Opdater træpillepriser
+
+on:
+  schedule:
+    - cron: "15 5 * * *"   # ca. kl. 07:15 dansk sommertid (UTC+2). Bliver 08:15 dansk tid om vinteren.
+  workflow_dispatch:        # giver en "Run workflow"-knap til manuel kørsel
+
+permissions:
+  contents: write
+
+jobs:
+  hent-priser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer afhængigheder
+        run: npm install
+
+      - name: Installer Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Hent priser fra pillemadsen.dk
+        run: node hent-traepiller.js
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+      - name: Commit og push opdaterede priser
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add traepriser.json historik.json tysk-markedsindeks.json ai-analyse.json
+          git diff --staged --quiet || git commit -m "Opdater træpillepriser $(date -u +%Y-%m-%d)"
+          git push
