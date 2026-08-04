@@ -190,6 +190,22 @@ function opdaterHistorik(dagensOpsummering) {
 }
 
 const EUR_TIL_DKK = 7.46; // omtrentlig fastkurs, brugt kun til visning
+
+// Kendte historiske DEPI-tal (Deutsches Pelletinstitut). Bruges som selvhelbredende
+// bund-niveau, så det tyske markedsindeks aldrig står tomt - selv hvis filen på GitHub
+// skulle mangle eller blive nulstillet. Robotten lægger blot nye måneder oveni.
+const SEED_TYSK_MARKEDSINDEKS = [
+    { dato: "2025-01", eurPrTon: 306.35, dkkPrKg: 2.29 },
+    { dato: "2025-03", eurPrTon: 380.20, dkkPrKg: 2.84 },
+    { dato: "2025-06", eurPrTon: 302.45, dkkPrKg: 2.26 },
+    { dato: "2025-07", eurPrTon: 302.69, dkkPrKg: 2.26 },
+    { dato: "2025-10", eurPrTon: 366.25, dkkPrKg: 2.73 },
+    { dato: "2025-11", eurPrTon: 392.62, dkkPrKg: 2.93 },
+    { dato: "2026-01", eurPrTon: 405.33, dkkPrKg: 3.02 },
+    { dato: "2026-04", eurPrTon: 405.11, dkkPrKg: 3.02 },
+    { dato: "2026-06", eurPrTon: 376.77, dkkPrKg: 2.81 },
+    { dato: "2026-07", eurPrTon: 388.09, dkkPrKg: 2.90 }
+];
 const TYSKE_MAANEDSNAVNE = {
     "januar": 1, "februar": 2, "märz": 3, "april": 4, "mai": 5, "juni": 6,
     "juli": 7, "august": 8, "september": 9, "oktober": 10, "november": 11, "dezember": 12
@@ -237,6 +253,13 @@ async function hentTyskMarkedsindeks(browser) {
             data = { kilde: "Deutsches Pelletinstitut (DEPI)", eurPrDkk: EUR_TIL_DKK, maaneder: [] };
         }
         if (!Array.isArray(data.maaneder)) data.maaneder = [];
+
+        for (const seedPunkt of SEED_TYSK_MARKEDSINDEKS) {
+            if (!data.maaneder.some(m => m.dato === seedPunkt.dato)) {
+                data.maaneder.push({ ...seedPunkt, kilde: "https://www.depi.de/pelletpreis-wirtschaftlichkeit/" });
+            }
+        }
+
         const idx = data.maaneder.findIndex(m => m.dato === dato);
         if (idx >= 0) data.maaneder[idx] = nytPunkt;
         else data.maaneder.push(nytPunkt);
@@ -292,38 +315,39 @@ async function hentAiAnalyse(produkter, dagensOpsummering) {
         ].filter(Boolean).join(" ");
 
         const systemPrompt =
-            "Du er en kort, nøgtern markedskommentator for det dansk-tyske træpillemarked. " +
-            "Du svarer altid på dansk, i almindelig løbende tekst - ingen markdown, ingen overskrifter, ingen punktopstilling, ingen emojis. " +
-            "Brug KUN de tal og fakta, du får oplyst i beskeden. Opfind aldrig nye tal, procenter, kilder eller begivenheder. " +
-            "Mangler noget, så undlad at nævne det i stedet for at gætte. Tonen er rolig og faktuel - hverken sælgende eller alarmerende, " +
-            "og du giver ikke direkte købsråd eller finansiel rådgivning.";
+            "Du er en kort, nøgtern markedsanalytiker for det dansk-tyske træpillemarked. Du har adgang til at søge " +
+            "på nettet efter aktuelle nyheder og forhold, der påvirker markedet. Du svarer altid på dansk, i " +
+            "almindelig løbende tekst - ingen markdown, ingen overskrifter, ingen punktopstilling, ingen emojis. " +
+            "Brug de tal, du får oplyst i beskeden, sammen med det du finder ved søgning - men opfind aldrig tal, " +
+            "citater eller kilder, du ikke faktisk har fundet. Tonen er rolig og faktuel - hverken sælgende eller " +
+            "alarmerende - og du giver ikke direkte købsråd eller finansiel rådgivning.";
 
         const userPrompt =
-            "BAGGRUND (kendt kontekst, brug kun hvis det passer med dagens tal):\n" +
-            "- Polen indførte i 2025 et statstilskud til pilleovne, som øgede den indenlandske efterspørgsel i Polen " +
-            "og reducerede eksporten af polske træpiller (bl.a. mærket Barlinek) til det tyske marked.\n" +
-            "- Sæsonmønster: priserne på træpiller er normalt lavest om sommeren (maj-august) og højest i " +
-            "fyringssæsonen (november-januar).\n\n" +
-            "DAGENS TAL:\n" + kontekst + "\n\n" +
-            "OPGAVE: Skriv præcis 3-4 sætninger, der forklarer den sandsynlige markedssituation lige nu ud fra " +
-            "dagens tal og baggrunden ovenfor. Nævn kun baggrundspunkter, der faktisk understøttes af dagens tal " +
-            "(fx udsolgte mærker eller en prisstigning). Du må gerne afslutte med en kort, forsigtig antydning af " +
-            "retningen (stigende, faldende eller stabil) - men undgå bombastiske konklusioner.";
+            "Søg efter aktuelle nyheder og markedsforhold, der kan forklare situationen på det danske og tyske " +
+            "træpillemarked lige nu - fx forsyningsproblemer, det polske statstilskud til pilleovne (indført 2025, " +
+            "som har reduceret polsk eksport af træpiller), vejrudsigt/fyringssæson, energipriser i øvrigt, eller " +
+            "andre relevante begivenheder fra den seneste tid.\n\n" +
+            "KOMBINÉR det du finder med disse tal:\n" + kontekst + "\n\n" +
+            "OPGAVE: Skriv 4-6 sætninger på dansk med en samlet markedsanalyse - både hvad tallene viser, og hvad " +
+            "du har fundet af forklaringer i nyhederne. Nævn kort hvor en central oplysning kommer fra (fx 'ifølge " +
+            "nyheder fra...'), hvis du bruger noget fra søgningen. Du må gerne afslutte med en kort, forsigtig " +
+            "antydning af retningen (stigende, faldende eller stabil) - men undgå bombastiske konklusioner.";
 
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + apiKey
+                "Authorization": "Bearer " + apiKey,
+                "Groq-Model-Version": "latest"
             },
             body: JSON.stringify({
-                model: "openai/gpt-oss-120b",
+                model: "groq/compound",
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt }
                 ],
                 temperature: 0.4,
-                max_tokens: 300
+                max_tokens: 500
             })
         });
 
@@ -337,7 +361,7 @@ async function hentAiAnalyse(produkter, dagensOpsummering) {
             genereretDanskTid: danskTid(),
             tekst: tekst.trim()
         }, null, 2), "utf8");
-        console.log("AI-analyse gemt.");
+        console.log("Markedsanalyse gemt.");
     } catch (err) {
         console.warn("Kunne ikke hente AI-analyse (springer over):", err.message);
     }
