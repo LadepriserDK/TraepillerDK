@@ -7,6 +7,7 @@
     "hent": "node hent-traepiller.js"
   },
   "dependencies": {
-    "playwright": "^1.48.0"
+    "playwright": "^1.48.0",
+    "web-push": "^3.6.7"
   }
 }

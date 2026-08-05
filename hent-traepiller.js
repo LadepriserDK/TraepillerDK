@@ -367,6 +367,61 @@ async function hentAiAnalyse(produkter, dagensOpsummering) {
     }
 }
 
+const webpush = require("web-push");
+
+// Den offentlige VAPID-nøgle er IKKE hemmelig - den skal netop deles med browseren.
+// Kun den private nøgle er hemmelig og hentes fra en GitHub Secret.
+const VAPID_PUBLIC_KEY = "BNsOC00BEuHqjo7vy39nm2qfjET9cOuXljmXp9J-Xi3yLPJPfVKFwzyAm0dv7gd32Mw1nNGfknL9-izYPIumUxk";
+
+// Sender en rigtig push-besked til hver gemt abonnent, hvis billigste pris på
+// lager er faldet til eller under deres grænse. Kører kun hvis den private
+// VAPID-nøgle er sat som GitHub Secret - ellers springes det stille over.
+async function sendPushAlarmer(produkter) {
+    const privateKey = process.env.PUSH_VAPID_PRIVATE_KEY;
+    if (!privateKey) {
+        console.warn("Ingen PUSH_VAPID_PRIVATE_KEY sat - springer push-alarmer over.");
+        return;
+    }
+
+    let abonnenter = [];
+    try {
+        abonnenter = JSON.parse(fs.readFileSync("push-abonnementer.json", "utf8"));
+        if (!Array.isArray(abonnenter)) abonnenter = [];
+    } catch (e) {
+        console.warn("Kunne ikke læse push-abonnementer.json - springer push-alarmer over.");
+        return;
+    }
+    if (!abonnenter.length) {
+        console.log("Ingen push-abonnenter endnu.");
+        return;
+    }
+
+    webpush.setVapidDetails("mailto:traepillerdk@example.com", VAPID_PUBLIC_KEY, privateKey);
+
+    const medPris = produkter.filter(p => p.paaLager === true && p.prisPrKg !== null);
+    const billigste = medPris.slice().sort((a, b) => a.prisPrKg - b.prisPrKg)[0];
+    if (!billigste) {
+        console.log("Ingen varer på lager med pris - springer push-alarmer over.");
+        return;
+    }
+
+    for (const ab of abonnenter) {
+        if (!ab.subscription || typeof ab.graense !== "number") continue;
+        if (billigste.prisPrKg > ab.graense) continue;
+        const payload = JSON.stringify({
+            titel: "Prisalarm: " + billigste.maerke,
+            tekst: billigste.maerke + " er nede på " + billigste.prisPrKg.toFixed(2) + " kr/kg (din grænse: " + ab.graense.toFixed(2) + " kr/kg)",
+            url: "./index.html"
+        });
+        try {
+            await webpush.sendNotification(ab.subscription, payload);
+            console.log("Push sendt til abonnent.");
+        } catch (err) {
+            console.warn("Kunne ikke sende push til en abonnent (springer over):", err.message);
+        }
+    }
+}
+
 async function hentPriser() {
     console.log("Starter browseren...");
     const browser = await chromium.launch({ headless: true });
@@ -425,6 +480,8 @@ async function hentPriser() {
 
     console.log("\nFærdig. Antal produkter:", produkter.length, "| Tid:", resultat.hentetDanskTid);
     console.log("Historik har nu", historik.length, "dag(e) med data.");
+
+    await sendPushAlarmer(produkter);
 
     const browser2 = await chromium.launch({ headless: true });
     await hentTyskMarkedsindeks(browser2);

@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="theme-color" content="#1f3a2c">
 <style>
   :root{
     --bg:#f6f1e6;--card:#ffffff;--header:#1f3a2c;--header-2:#284835;
@@ -320,6 +323,17 @@
       </div>
       <div class="alarm-status" id="alarmStatus"></div>
       <div class="alarm-disclaimer">Gemmes kun i denne browser (localStorage). Appen er en almindelig hjemmeside og kan ikke sende push-beskeder, når den ikke er åben - tjek siden selv med jævne mellemrum.</div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="section-title">Push-beskeder til din telefon</div>
+      <div style="font-size:12.5px;color:var(--muted)">Sæt din grænse ovenfor, og tryk nedenfor for at få en rigtig besked på denne enhed, når prisen falder til eller under grænsen - også når appen ikke er åben.</div>
+      <button class="clear-btn" id="pushSubBtn" style="border-style:solid;color:var(--green);margin-top:10px;width:100%">Aktivér push-beskeder på denne enhed</button>
+      <div id="pushStatus" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
+      <div id="pushKopiWrap" style="display:none;margin-top:10px">
+        <label style="font-size:10px;color:var(--muted-2);font-family:var(--font-mono);text-transform:uppercase;display:block;margin-bottom:6px">Kopiér dette ind i push-abonnementer.json på GitHub</label>
+        <textarea id="pushKopiTekst" readonly style="width:100%;height:110px;font-family:var(--font-mono);font-size:10.5px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px;color:var(--text)"></textarea>
+        <button class="clear-btn" id="pushKopiBtn" style="border-style:solid;margin-top:6px;width:100%">Kopiér</button>
+      </div>
     </div>
     <div class="card" style="margin-top:12px">
       <div class="section-title">Udsolgte mærker lige nu</div>
@@ -900,6 +914,66 @@ document.getElementById("alarmSaveBtn").addEventListener("click", () => {
   if (v === "") { localStorage.removeItem("traepille_alarm_graense"); }
   else { localStorage.setItem("traepille_alarm_graense", v); }
   opdaterAlarmStatus();
+});
+
+/* ---------- Rigtige push-beskeder (Web Push, ingen Firebase nødvendig) ---------- */
+const VAPID_PUBLIC_KEY = "BNsOC00BEuHqjo7vy39nm2qfjET9cOuXljmXp9J-Xi3yLPJPfVKFwzyAm0dv7gd32Mw1nNGfknL9-izYPIumUxk";
+
+function urlBase64ToUint8Array(base64String){
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function registrerServiceWorker(){
+  if (!("serviceWorker" in navigator)) return null;
+  try { return await navigator.serviceWorker.register("./sw.js"); }
+  catch (err) { console.warn("Kunne ikke registrere service worker:", err); return null; }
+}
+registrerServiceWorker();
+
+document.getElementById("pushSubBtn").addEventListener("click", async () => {
+  const status = document.getElementById("pushStatus");
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)){
+    status.textContent = "Denne browser understøtter ikke push-beskeder.";
+    return;
+  }
+  const graenseRaw = document.getElementById("alarmInput").value.replace(",", ".").trim();
+  const graense = graenseRaw === "" ? null : Number(graenseRaw);
+  if (graense === null){
+    status.textContent = "Sæt en grænse i feltet ovenfor først.";
+    return;
+  }
+  status.textContent = "Beder om tilladelse…";
+  try {
+    const tilladelse = await Notification.requestPermission();
+    if (tilladelse !== "granted"){
+      status.textContent = "Tilladelse blev ikke givet.";
+      return;
+    }
+    const reg = await registrerServiceWorker();
+    if (!reg){ status.textContent = "Kunne ikke registrere service worker."; return; }
+    const subscription = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+    const abonnement = { subscription: subscription.toJSON(), graense, tilfoejet: new Date().toISOString() };
+    document.getElementById("pushKopiTekst").value = JSON.stringify(abonnement, null, 2) + ",";
+    document.getElementById("pushKopiWrap").style.display = "block";
+    status.textContent = "Denne enhed er klar. Kopiér teksten nedenfor ind i push-abonnementer.json på GitHub (som et element i listen), så robotten kan sende til den.";
+  } catch (err) {
+    status.textContent = "Noget gik galt: " + err.message;
+  }
+});
+
+document.getElementById("pushKopiBtn").addEventListener("click", () => {
+  const ta = document.getElementById("pushKopiTekst");
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(() => {
+    document.getElementById("pushKopiBtn").textContent = "Kopieret!";
+    setTimeout(() => { document.getElementById("pushKopiBtn").textContent = "Kopiér"; }, 1800);
+  }).catch(() => {});
 });
 
 loadData();
