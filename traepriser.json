@@ -1,6 +1,6 @@
 {
-  "hentetUTC": "2026-08-05T06:17:36.332Z",
-  "hentetDanskTid": "05.08.2026, 08.17.36",
+  "hentetUTC": "2026-08-05T12:26:38.626Z",
+  "hentetDanskTid": "05.08.2026, 14.26.38",
   "hjemmeside": "https://www.pillemadsen.dk/shop/traepiller-33s1.html",
   "antalProdukter": 27,
   "priser": [
@@ -154,7 +154,7 @@
       "type": "pille",
       "mm": 8,
       "prisPrKg": 2.88,
-      "paaLager": true,
+      "paaLager": false,
       "antalPaaLager": null,
       "braendvaerdiMinKwhKg": null,
       "braendvaerdiMaxKwhKg": null,
