@@ -368,14 +368,57 @@ async function hentAiAnalyse(produkter, dagensOpsummering) {
 }
 
 const webpush = require("web-push");
+const { GoogleAuth } = require("google-auth-library");
 
 // Den offentlige VAPID-nøgle er IKKE hemmelig - den skal netop deles med browseren.
 // Kun den private nøgle er hemmelig og hentes fra en GitHub Secret.
 const VAPID_PUBLIC_KEY = "BNsOC00BEuHqjo7vy39nm2qfjET9cOuXljmXp9J-Xi3yLPJPfVKFwzyAm0dv7gd32Mw1nNGfknL9-izYPIumUxk";
+const FIRESTORE_SAMLING = "push-abonnementer";
 
-// Sender en rigtig push-besked til hver gemt abonnent, hvis billigste pris på
-// lager er faldet til eller under deres grænse. Kører kun hvis den private
-// VAPID-nøgle er sat som GitHub Secret - ellers springes det stille over.
+// Henter alle tilmeldte enheder fra Firestore. Appen skriver dem selv derind,
+// så hverken du eller familien skal røre GitHub for at tilmelde sig.
+async function hentAbonnenterFraFirestore() {
+    const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (!serviceAccountJson) {
+        console.warn("Ingen FIREBASE_SERVICE_ACCOUNT sat - springer push-alarmer over.");
+        return null;
+    }
+    const credentials = JSON.parse(serviceAccountJson);
+    const projectId = credentials.project_id;
+
+    const auth = new GoogleAuth({
+        credentials,
+        scopes: ["https://www.googleapis.com/auth/datastore"]
+    });
+    const client = await auth.getClient();
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${FIRESTORE_SAMLING}`;
+    const res = await client.request({ url });
+
+    const dokumenter = (res.data && res.data.documents) || [];
+    return {
+        projectId,
+        client,
+        abonnenter: dokumenter.map(doc => {
+            const f = doc.fields || {};
+            const tal = v => (v && (v.doubleValue !== undefined ? v.doubleValue : Number(v.integerValue)));
+            return {
+                docNavn: doc.name,
+                graense: tal(f.graense),
+                subscription: {
+                    endpoint: f.endpoint && f.endpoint.stringValue,
+                    keys: {
+                        p256dh: f.p256dh && f.p256dh.stringValue,
+                        auth: f.auth && f.auth.stringValue
+                    }
+                }
+            };
+        }).filter(a => a.subscription.endpoint && typeof a.graense === "number")
+    };
+}
+
+// Sender en rigtig push-besked til hver tilmeldt enhed, hvis billigste pris på
+// lager er faldet til eller under deres grænse. Fejler dette, springes det
+// stille over - det må aldrig vælte selve prisopdateringen.
 async function sendPushAlarmer(produkter) {
     const privateKey = process.env.PUSH_VAPID_PRIVATE_KEY;
     if (!privateKey) {
@@ -383,20 +426,18 @@ async function sendPushAlarmer(produkter) {
         return;
     }
 
-    let abonnenter = [];
+    let data;
     try {
-        abonnenter = JSON.parse(fs.readFileSync("push-abonnementer.json", "utf8"));
-        if (!Array.isArray(abonnenter)) abonnenter = [];
-    } catch (e) {
-        console.warn("Kunne ikke læse push-abonnementer.json - springer push-alarmer over.");
+        data = await hentAbonnenterFraFirestore();
+    } catch (err) {
+        console.warn("Kunne ikke hente abonnenter fra Firestore (springer over):", err.message);
         return;
     }
-    if (!abonnenter.length) {
-        console.log("Ingen push-abonnenter endnu.");
+    if (!data) return;
+    if (!data.abonnenter.length) {
+        console.log("Ingen tilmeldte enheder endnu.");
         return;
     }
-
-    webpush.setVapidDetails("mailto:traepillerdk@example.com", VAPID_PUBLIC_KEY, privateKey);
 
     const medPris = produkter.filter(p => p.paaLager === true && p.prisPrKg !== null);
     const billigste = medPris.slice().sort((a, b) => a.prisPrKg - b.prisPrKg)[0];
@@ -405,21 +446,36 @@ async function sendPushAlarmer(produkter) {
         return;
     }
 
-    for (const ab of abonnenter) {
-        if (!ab.subscription || typeof ab.graense !== "number") continue;
+    webpush.setVapidDetails("mailto:traepillerdk@example.com", VAPID_PUBLIC_KEY, privateKey);
+
+    let sendt = 0, ryddet = 0;
+    for (const ab of data.abonnenter) {
         if (billigste.prisPrKg > ab.graense) continue;
         const payload = JSON.stringify({
             titel: "Prisalarm: " + billigste.maerke,
-            tekst: billigste.maerke + " er nede på " + billigste.prisPrKg.toFixed(2) + " kr/kg (din grænse: " + ab.graense.toFixed(2) + " kr/kg)",
+            tekst: billigste.maerke + " er nede på " + billigste.prisPrKg.toFixed(2) +
+                " kr/kg (din grænse: " + ab.graense.toFixed(2) + " kr/kg)",
             url: "./index.html"
         });
         try {
             await webpush.sendNotification(ab.subscription, payload);
-            console.log("Push sendt til abonnent.");
+            sendt++;
         } catch (err) {
-            console.warn("Kunne ikke sende push til en abonnent (springer over):", err.message);
+            // 404/410 betyder at enheden har afmeldt sig - så rydder vi op i Firestore
+            if (err.statusCode === 404 || err.statusCode === 410) {
+                try {
+                    await data.client.request({
+                        url: `https://firestore.googleapis.com/v1/${ab.docNavn}`,
+                        method: "DELETE"
+                    });
+                    ryddet++;
+                } catch (e) { /* ikke kritisk */ }
+            } else {
+                console.warn("Kunne ikke sende push til en enhed:", err.message);
+            }
         }
     }
+    console.log("Push sendt til " + sendt + " enhed(er)." + (ryddet ? " Ryddede " + ryddet + " udløbne." : ""));
 }
 
 async function hentPriser() {

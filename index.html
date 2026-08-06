@@ -325,15 +325,10 @@
       <div class="alarm-disclaimer">Gemmes kun i denne browser (localStorage). Appen er en almindelig hjemmeside og kan ikke sende push-beskeder, når den ikke er åben - tjek siden selv med jævne mellemrum.</div>
     </div>
     <div class="card" style="margin-top:12px">
-      <div class="section-title">Push-beskeder til din telefon</div>
-      <div style="font-size:12.5px;color:var(--muted)">Sæt din grænse ovenfor, og tryk nedenfor for at få en rigtig besked på denne enhed, når prisen falder til eller under grænsen - også når appen ikke er åben.</div>
-      <button class="clear-btn" id="pushSubBtn" style="border-style:solid;color:var(--green);margin-top:10px;width:100%">Aktivér push-beskeder på denne enhed</button>
+      <div class="section-title">Push-beskeder til denne enhed</div>
+      <div style="font-size:12.5px;color:var(--muted)">Sæt din grænse ovenfor, og tryk nedenfor. Så får du en besked på denne enhed, når prisen falder til eller under grænsen - også når appen er lukket.</div>
+      <button class="clear-btn" id="pushSubBtn" style="border-style:solid;color:var(--green);margin-top:10px;width:100%">Aktivér push-beskeder</button>
       <div id="pushStatus" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
-      <div id="pushKopiWrap" style="display:none;margin-top:10px">
-        <label style="font-size:10px;color:var(--muted-2);font-family:var(--font-mono);text-transform:uppercase;display:block;margin-bottom:6px">Kopiér dette ind i push-abonnementer.json på GitHub</label>
-        <textarea id="pushKopiTekst" readonly style="width:100%;height:110px;font-family:var(--font-mono);font-size:10.5px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px;color:var(--text)"></textarea>
-        <button class="clear-btn" id="pushKopiBtn" style="border-style:solid;margin-top:6px;width:100%">Kopiér</button>
-      </div>
     </div>
     <div class="card" style="margin-top:12px">
       <div class="section-title">Udsolgte mærker lige nu</div>
@@ -916,14 +911,58 @@ document.getElementById("alarmSaveBtn").addEventListener("click", () => {
   opdaterAlarmStatus();
 });
 
-/* ---------- Rigtige push-beskeder (Web Push, ingen Firebase nødvendig) ---------- */
+/* ---------- Rigtige push-beskeder (Web Push + Firestore) ---------- */
 const VAPID_PUBLIC_KEY = "BNsOC00BEuHqjo7vy39nm2qfjET9cOuXljmXp9J-Xi3yLPJPfVKFwzyAm0dv7gd32Mw1nNGfknL9-izYPIumUxk";
+
+// Udfyldes med jeres eget Firebase-projekt. Begge værdier er offentlige efter
+// design - sikkerheden ligger i Firestores regler, ikke i at skjule dem.
+const FIREBASE_PROJECT_ID = "traepillerdk";
+const FIREBASE_API_KEY = "AIzaSyCiwKYy4hXl6e-GK0i5e0TCZdvdyOlgy4o";
+const FIRESTORE_SAMLING = "push-abonnementer";
+
+function firestoreErOpsat(){
+  return FIREBASE_PROJECT_ID !== "DIT-PROJEKT-ID" && FIREBASE_API_KEY !== "DIN-API-NOEGLE";
+}
 
 function urlBase64ToUint8Array(base64String){
   const padding = "=".repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(base64);
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+function enhedsId(){
+  let id = localStorage.getItem("traepille_enheds_id");
+  if (!id){
+    id = "enhed-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem("traepille_enheds_id", id);
+  }
+  return id;
+}
+
+async function gemAbonnementIFirestore(subscription, graense){
+  const sub = subscription.toJSON();
+  const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${FIRESTORE_SAMLING}/${enhedsId()}?key=${FIREBASE_API_KEY}`;
+  const body = {
+    fields: {
+      endpoint: { stringValue: sub.endpoint },
+      p256dh: { stringValue: sub.keys.p256dh },
+      auth: { stringValue: sub.keys.auth },
+      graense: { doubleValue: graense },
+      opdateret: { stringValue: new Date().toISOString() }
+    }
+  };
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error("Firestore svarede " + res.status);
+}
+
+async function sletAbonnementIFirestore(){
+  const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${FIRESTORE_SAMLING}/${enhedsId()}?key=${FIREBASE_API_KEY}`;
+  await fetch(url, { method: "DELETE" });
 }
 
 async function registrerServiceWorker(){
@@ -933,48 +972,77 @@ async function registrerServiceWorker(){
 }
 registrerServiceWorker();
 
-document.getElementById("pushSubBtn").addEventListener("click", async () => {
+async function opdaterPushKnap(){
+  const btn = document.getElementById("pushSubBtn");
   const status = document.getElementById("pushStatus");
   if (!("serviceWorker" in navigator) || !("PushManager" in window)){
+    btn.disabled = true;
     status.textContent = "Denne browser understøtter ikke push-beskeder.";
+    return;
+  }
+  const reg = await navigator.serviceWorker.getRegistration();
+  const sub = reg ? await reg.pushManager.getSubscription() : null;
+  if (sub){
+    btn.textContent = "Slå push-beskeder fra";
+    btn.dataset.tilmeldt = "ja";
+    status.textContent = "Push-beskeder er aktive på denne enhed.";
+  } else {
+    btn.textContent = "Aktivér push-beskeder";
+    btn.dataset.tilmeldt = "nej";
+    status.textContent = "";
+  }
+}
+
+document.getElementById("pushSubBtn").addEventListener("click", async () => {
+  const status = document.getElementById("pushStatus");
+  const btn = document.getElementById("pushSubBtn");
+
+  if (btn.dataset.tilmeldt === "ja"){
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      const sub = reg && await reg.pushManager.getSubscription();
+      if (sub) await sub.unsubscribe();
+      if (firestoreErOpsat()) await sletAbonnementIFirestore();
+      status.textContent = "Push-beskeder er slået fra på denne enhed.";
+      opdaterPushKnap();
+    } catch (err) { status.textContent = "Kunne ikke slå fra: " + err.message; }
+    return;
+  }
+
+  if (!firestoreErOpsat()){
+    status.textContent = "Firebase er ikke sat op endnu - indsæt projekt-id og API-nøgle i index.html.";
     return;
   }
   const graenseRaw = document.getElementById("alarmInput").value.replace(",", ".").trim();
   const graense = graenseRaw === "" ? null : Number(graenseRaw);
-  if (graense === null){
+  if (graense === null || !Number.isFinite(graense)){
     status.textContent = "Sæt en grænse i feltet ovenfor først.";
     return;
   }
+
   status.textContent = "Beder om tilladelse…";
   try {
     const tilladelse = await Notification.requestPermission();
     if (tilladelse !== "granted"){
-      status.textContent = "Tilladelse blev ikke givet.";
+      status.textContent = "Tilladelse blev ikke givet. Tjek notifikationstilladelser for denne side i browserens indstillinger.";
       return;
     }
     const reg = await registrerServiceWorker();
     if (!reg){ status.textContent = "Kunne ikke registrere service worker."; return; }
+    await navigator.serviceWorker.ready;
     const subscription = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
     });
-    const abonnement = { subscription: subscription.toJSON(), graense, tilfoejet: new Date().toISOString() };
-    document.getElementById("pushKopiTekst").value = JSON.stringify(abonnement, null, 2) + ",";
-    document.getElementById("pushKopiWrap").style.display = "block";
-    status.textContent = "Denne enhed er klar. Kopiér teksten nedenfor ind i push-abonnementer.json på GitHub (som et element i listen), så robotten kan sende til den.";
+    await gemAbonnementIFirestore(subscription, graense);
+    status.textContent = "Klar! Du får en besked, når prisen falder til " + taltekst(graense,2," kr/kg") + " eller derunder.";
+    opdaterPushKnap();
   } catch (err) {
     status.textContent = "Noget gik galt: " + err.message;
   }
 });
 
-document.getElementById("pushKopiBtn").addEventListener("click", () => {
-  const ta = document.getElementById("pushKopiTekst");
-  ta.select();
-  navigator.clipboard.writeText(ta.value).then(() => {
-    document.getElementById("pushKopiBtn").textContent = "Kopieret!";
-    setTimeout(() => { document.getElementById("pushKopiBtn").textContent = "Kopiér"; }, 1800);
-  }).catch(() => {});
-});
+opdaterPushKnap();
 
 loadData();
 </script>
