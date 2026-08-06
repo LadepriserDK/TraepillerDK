@@ -28,6 +28,8 @@ jobs:
         run: node hent-traepiller.js
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          PUSH_VAPID_PRIVATE_KEY: ${{ secrets.PUSH_VAPID_PRIVATE_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Commit og push opdaterede priser
         run: |
