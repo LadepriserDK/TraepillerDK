@@ -1,12 +1,25 @@
 // Service worker for TræpillerDK - modtager rigtige Web Push-beskeder,
 // selv når appen ikke er åben, og viser dem som en systemnotifikation.
+//
+// VERSION: 2026-08-06-2
+// Ændr dette versionsnummer, hver gang filen opdateres. Browseren henter kun
+// en ny service worker, hvis selve filen har ændret sig - derfor er markøren
+// nødvendig, også selvom resten af koden er uændret.
+
+const SW_VERSION = "2026-08-06-2";
 
 self.addEventListener("install", (event) => {
     self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-    event.waitUntil(self.clients.claim());
+    // Rydder alle gamle caches, så en forældet index.html ikke bliver ved med
+    // at blive serveret fra denne enhed.
+    event.waitUntil(
+        caches.keys()
+            .then(navne => Promise.all(navne.map(navn => caches.delete(navn))))
+            .then(() => self.clients.claim())
+    );
 });
 
 self.addEventListener("push", (event) => {

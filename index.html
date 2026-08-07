@@ -985,7 +985,20 @@ async function opdaterPushKnap(){
   if (sub){
     btn.textContent = "Slå push-beskeder fra";
     btn.dataset.tilmeldt = "ja";
-    status.textContent = "Push-beskeder er aktive på denne enhed.";
+    // Sikrer at en tilmelding fra en tidligere version af appen også havner i
+    // Firestore - ellers ville knappen se aktiv ud, uden at robotten kender enheden.
+    const graenseRaw = (localStorage.getItem("traepille_alarm_graense") || "").replace(",", ".");
+    const graense = graenseRaw === "" ? null : Number(graenseRaw);
+    if (firestoreErOpsat() && graense !== null && Number.isFinite(graense)){
+      try {
+        await gemAbonnementIFirestore(sub, graense);
+        status.textContent = "Push-beskeder er aktive på denne enhed.";
+      } catch (err) {
+        status.textContent = "Push er slået til i browseren, men kunne ikke gemmes hos serveren: " + err.message;
+      }
+    } else {
+      status.textContent = "Push-beskeder er aktive på denne enhed.";
+    }
   } else {
     btn.textContent = "Aktivér push-beskeder";
     btn.dataset.tilmeldt = "nej";
