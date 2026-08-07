@@ -1,6 +1,6 @@
 {
-  "hentetUTC": "2026-08-06T13:15:40.822Z",
-  "hentetDanskTid": "06.08.2026, 15.15.40",
+  "hentetUTC": "2026-08-07T08:41:10.548Z",
+  "hentetDanskTid": "07.08.2026, 10.41.10",
   "hjemmeside": "https://www.pillemadsen.dk/shop/traepiller-33s1.html",
   "antalProdukter": 27,
   "priser": [
@@ -206,7 +206,7 @@
       "antalPaaLager": null,
       "braendvaerdiMinKwhKg": 4.9,
       "braendvaerdiMaxKwhKg": 4.9,
-      "fugtMaxProcent": 8,
+      "fugtMaxProcent": 6,
       "askeMaxProcent": 0.5,
       "svovlMaxProcent": null,
       "askeSmeltepunktGrader": null,
