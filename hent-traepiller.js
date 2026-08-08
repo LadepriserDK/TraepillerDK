@@ -277,7 +277,7 @@ async function hentTyskMarkedsindeks(browser) {
 // Beder en gratis AI (Groq) om en kort dansk forklaring på markedet ud fra dagens
 // tal. Nøglen læses UDELUKKENDE fra miljøvariablen GROQ_API_KEY (sat som en GitHub
 // Secret) - den står aldrig i denne fil. Fejler dette, springes det bare over.
-async function hentAiAnalyse(produkter, dagensOpsummering) {
+async function hentAiAnalyse(produkter, dagensOpsummering, drivere) {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
         console.warn("Ingen GROQ_API_KEY sat - springer AI-analyse over.");
@@ -306,61 +306,70 @@ async function hentAiAnalyse(produkter, dagensOpsummering) {
             }
         } catch (e) { /* ingen DEPI-data endnu, det er ok */ }
 
-        const kontekst = [
-            `Antal varer på lager hos Pillemadsen lige nu: ${dagensOpsummering.antalPaaLager} af ${dagensOpsummering.antalTotal}.`,
-            `Gennemsnitspris 6 mm på lager: ${dagensOpsummering.gnsPris6mmPaaLager ?? "ukendt"} kr/kg.`,
-            `Gennemsnitspris 8 mm på lager: ${dagensOpsummering.gnsPris8mmPaaLager ?? "ukendt"} kr/kg.`,
-            udsolgteMaerker.length ? `Helt udsolgte mærker lige nu: ${udsolgteMaerker.join(", ")}.` : "Ingen mærker er helt udsolgte lige nu.",
-            depiSaetning
-        ].filter(Boolean).join(" ");
+        const driverLinjer = [];
+        if (drivere && drivere.vejr) {
+            const v = drivere.vejr;
+            let l = `VEJR: Kommende 14 dage i Østjylland ventes at have ${v.snitTemp14dage} °C i snit (${v.graddage14dage} graddage - et mål for fyringsbehov).`;
+            if (v.pctAendringGraddage !== null) {
+                l += ` Det er ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% fyringsbehov i forhold til samme periode sidste år, altså ${v.retning} end sidste år.`;
+            }
+            driverLinjer.push(l);
+        }
+        if (drivere && drivere.elpris) {
+            const e = drivere.elpris;
+            driverLinjer.push(`ENERGIMARKED: Dansk elspotpris (DK1) har de seneste 7 dage ligget på ${e.snitSeneste7DageKrKwh} kr/kWh mod ${e.snitForrige7DageKrKwh} kr/kWh ugen før - ${e.retning} (${e.pctAendring >= 0 ? "+" : ""}${e.pctAendring}%).`);
+        }
+        if (drivere && drivere.lager) {
+            const lg = drivere.lager;
+            driverLinjer.push(`LAGER: ${lg.antalPaaLager} af ${lg.antalTotal} varer på lager hos Pillemadsen (${lg.andelProcent}%) - ${lg.retning} lagerdækning.` +
+                (udsolgteMaerker.length ? ` Helt udsolgte mærker: ${udsolgteMaerker.join(", ")}.` : ""));
+        }
+        if (drivere && drivere.depi) {
+            const d = drivere.depi;
+            driverLinjer.push(`TYSK MARKEDSINDEKS: ${d.dkkPrKg} kr/kg (${d.dato})` +
+                (d.pctAarTilAar !== null ? `, ${d.pctAarTilAar >= 0 ? "+" : ""}${d.pctAarTilAar}% år-til-år - ${d.retning}.` : "."));
+        }
+        driverLinjer.push(`PILLEMADSEN: Gennemsnitspris 6 mm på lager ${dagensOpsummering.gnsPris6mmPaaLager ?? "ukendt"} kr/kg, 8 mm ${dagensOpsummering.gnsPris8mmPaaLager ?? "ukendt"} kr/kg.`);
+
+        const kontekst = driverLinjer.join("\n");
 
         const systemPrompt =
-            "Du er en kort, nøgtern markedsanalytiker for det dansk-tyske træpillemarked med adgang til websøgning. " +
+            "Du er en kort, nøgtern markedsanalytiker for det dansk-tyske træpillemarked. " +
             "Svar altid på dansk i almindelig løbende tekst - ingen markdown, overskrifter, punktopstilling eller emojis. " +
-            "Opfind aldrig tal, citater eller kilder. Rolig og faktuel tone, ingen købsråd eller finansiel rådgivning.";
+            "Brug kun de tal, du får oplyst. Opfind aldrig nye tal eller kilder. " +
+            "Rolig og faktuel tone, ingen købsråd eller finansiel rådgivning.";
 
         const userPrompt =
-            "Søg efter aktuelle nyheder om det danske og tyske træpillemarked - fx forsyningsproblemer, " +
-            "det polske statstilskud til pilleovne fra 2025 (som har reduceret polsk eksport), fyringssæson " +
-            "eller energipriser.\n\n" +
-            "TAL: " + kontekst + "\n\n" +
-            "Skriv 4-6 sætninger på dansk med en samlet markedsanalyse ud fra tallene og det, du finder. " +
-            "Nævn kort hvor en central oplysning kommer fra. Afslut gerne med en forsigtig antydning af " +
-            "retningen (stigende, faldende eller stabil).";
+            "Herunder er dagens måletal for de forhold, der driver træpilleprisen:\n\n" + kontekst + "\n\n" +
+            "Baggrund du må bruge, hvis tallene understøtter det: koldt vejr og fyringssæson øger efterspørgslen; " +
+            "stigende energipriser generelt trækker træpiller med op; lav lagerdækning presser prisen op; " +
+            "Polens statstilskud til pilleovne fra 2025 har reduceret polsk eksport til det tyske marked.\n\n" +
+            "Skriv 4-6 sætninger på dansk, der forklarer markedssituationen ud fra disse tal. Nævn de drivere, " +
+            "der faktisk peger i en retning, og spring dem over, der er neutrale. Afslut med en forsigtig " +
+            "vurdering af retningen (stigende, faldende eller stabil) de kommende uger.";
 
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + apiKey,
-                "Groq-Model-Version": "latest"
+                "Authorization": "Bearer " + apiKey
             },
             body: JSON.stringify({
-                model: "groq/compound",
+                model: "llama-3.3-70b-versatile",
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt }
                 ],
                 temperature: 0.4,
-                max_tokens: 400,
-                // Begrænser hvor meget websøgning modellen laver. Uden dette kan den
-                // samlede forespørgsel blive så stor, at Groq svarer med status 413.
-                compound_custom: {
-                    tools: {
-                        enabled_tools: ["web_search"]
-                    }
-                },
-                search_settings: {
-                    max_results: 3
-                }
+                max_tokens: 400
             })
         });
 
         if (!res.ok) {
-            // Falder tilbage til en almindelig model uden websøgning. Den kan ikke
-            // finde nyheder, men laver stadig en analyse ud fra dagens tal - bedre
-            // end slet ingen markedsanalyse.
-            console.warn("Søgemodellen svarede " + res.status + " - forsøger uden websøgning.");
+            // Falder tilbage til en mindre model. Den er lidt kortere i spyttet,
+            // men bedre end slet ingen markedsanalyse, hvis hovedmodellen er
+            // optaget eller minutkvoten er opbrugt.
+            console.warn("Hovedmodellen svarede " + res.status + " - forsøger med mindre model.");
             const reserveRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -368,10 +377,10 @@ async function hentAiAnalyse(produkter, dagensOpsummering) {
                     "Authorization": "Bearer " + apiKey
                 },
                 body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
+                    model: "llama-3.1-8b-instant",
                     messages: [
                         { role: "system", content: systemPrompt },
-                        { role: "user", content: "TAL: " + kontekst + "\n\nSkriv 4-5 sætninger på dansk med en markedsanalyse ud fra disse tal. Afslut med en forsigtig antydning af retningen." }
+                        { role: "user", content: userPrompt }
                     ],
                     temperature: 0.4,
                     max_tokens: 400
@@ -386,7 +395,7 @@ async function hentAiAnalyse(produkter, dagensOpsummering) {
                 genereretDanskTid: danskTid(),
                 tekst: reserveTekst.trim()
             }, null, 2), "utf8");
-            console.log("Markedsanalyse gemt (uden websøgning).");
+            console.log("Markedsanalyse gemt (reservemodel).");
             return;
         }
         const json = await res.json();
@@ -515,6 +524,179 @@ async function sendPushAlarmer(produkter) {
     console.log("Push sendt til " + sendt + " enhed(er)." + (ryddet ? " Ryddede " + ryddet + " udløbne." : ""));
 }
 
+// ---------------------------------------------------------------------------
+// DRIVERE: rigtige tal for de forhold, der påvirker træpillemarkedet.
+// Alle kilder er gratis og kræver ingen API-nøgle.
+// ---------------------------------------------------------------------------
+
+// Odder/Østjylland - repræsentativt for det danske marked
+const VEJR_BREDDE = 55.97;
+const VEJR_LAENGDE = 10.15;
+const VARMEGRAENSE = 17; // °C - under denne temperatur regnes der med fyringsbehov
+
+function isoDato(d) {
+    return d.toISOString().slice(0, 10);
+}
+
+// Graddage er et standardmål for fyringsbehov: for hver dag lægges forskellen
+// mellem 17 °C og døgnets middeltemperatur sammen. Jo flere graddage, jo koldere
+// og jo større forbrug af træpiller.
+function graddage(temperaturer) {
+    return temperaturer
+        .filter(t => typeof t === "number")
+        .reduce((sum, t) => sum + Math.max(0, VARMEGRAENSE - t), 0);
+}
+
+async function hentVejrdriver() {
+    const idag = new Date();
+    const om14dage = new Date(idag.getTime() + 13 * 86400000);
+
+    const prognoseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${VEJR_BREDDE}&longitude=${VEJR_LAENGDE}` +
+        `&daily=temperature_2m_mean&forecast_days=14&timezone=Europe%2FCopenhagen`;
+    const prognoseRes = await fetch(prognoseUrl);
+    if (!prognoseRes.ok) throw new Error("Open-Meteo prognose svarede " + prognoseRes.status);
+    const prognose = await prognoseRes.json();
+    const prognoseTemps = (prognose.daily && prognose.daily.temperature_2m_mean) || [];
+    if (!prognoseTemps.length) throw new Error("Ingen temperaturer i prognosen");
+
+    // Samme kalenderperiode sidste år, som sammenligningsgrundlag
+    const sidsteAarStart = new Date(idag.getTime()); sidsteAarStart.setFullYear(idag.getFullYear() - 1);
+    const sidsteAarSlut = new Date(om14dage.getTime()); sidsteAarSlut.setFullYear(om14dage.getFullYear() - 1);
+    const arkivUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${VEJR_BREDDE}&longitude=${VEJR_LAENGDE}` +
+        `&start_date=${isoDato(sidsteAarStart)}&end_date=${isoDato(sidsteAarSlut)}` +
+        `&daily=temperature_2m_mean&timezone=Europe%2FCopenhagen`;
+    let sidsteAarGraddage = null, sidsteAarSnit = null;
+    try {
+        const arkivRes = await fetch(arkivUrl);
+        if (arkivRes.ok) {
+            const arkiv = await arkivRes.json();
+            const arkivTemps = (arkiv.daily && arkiv.daily.temperature_2m_mean) || [];
+            const gyldige = arkivTemps.filter(t => typeof t === "number");
+            if (gyldige.length) {
+                sidsteAarGraddage = Math.round(graddage(gyldige));
+                sidsteAarSnit = Math.round((gyldige.reduce((a, b) => a + b, 0) / gyldige.length) * 10) / 10;
+            }
+        }
+    } catch (e) { /* sammenligning er valgfri */ }
+
+    const snit = Math.round((prognoseTemps.reduce((a, b) => a + b, 0) / prognoseTemps.length) * 10) / 10;
+    const gd = Math.round(graddage(prognoseTemps));
+
+    let retning = "ukendt", pctAendring = null;
+    if (sidsteAarGraddage !== null && sidsteAarGraddage > 0) {
+        pctAendring = Math.round(((gd - sidsteAarGraddage) / sidsteAarGraddage) * 100);
+        if (pctAendring > 15) retning = "koldere";
+        else if (pctAendring < -15) retning = "mildere";
+        else retning = "normalt";
+    }
+
+    return {
+        snitTemp14dage: snit,
+        graddage14dage: gd,
+        graddageSammeTidSidsteAar: sidsteAarGraddage,
+        snitTempSidsteAar: sidsteAarSnit,
+        pctAendringGraddage: pctAendring,
+        retning,
+        kilde: "Open-Meteo (DMI/ECMWF-modeller)"
+    };
+}
+
+async function hentElpriser() {
+    const idag = new Date();
+    const for14dageSiden = new Date(idag.getTime() - 14 * 86400000);
+    const url = "https://api.energidataservice.dk/dataset/Elspotprices" +
+        `?start=${isoDato(for14dageSiden)}&end=${isoDato(idag)}` +
+        `&filter=${encodeURIComponent('{"PriceArea":"DK1"}')}&limit=1000`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Energi Data Service svarede " + res.status);
+    const json = await res.json();
+    const poster = (json.records || []).filter(r => typeof r.SpotPriceDKK === "number");
+    if (poster.length < 48) throw new Error("For få elpris-poster (" + poster.length + ")");
+
+    // SpotPriceDKK er kr pr. MWh - divider med 1000 for kr/kWh
+    const medTid = poster.map(r => ({ tid: new Date(r.HourDK), pris: r.SpotPriceDKK / 1000 }))
+        .sort((a, b) => a.tid - b.tid);
+    const midt = new Date(idag.getTime() - 7 * 86400000);
+    const seneste7 = medTid.filter(p => p.tid >= midt).map(p => p.pris);
+    const forrige7 = medTid.filter(p => p.tid < midt).map(p => p.pris);
+    const snit = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+
+    const nu = snit(seneste7), foer = snit(forrige7);
+    let pctAendring = null, retning = "ukendt";
+    if (nu !== null && foer !== null && foer !== 0) {
+        pctAendring = Math.round(((nu - foer) / foer) * 100);
+        if (pctAendring > 10) retning = "stigende";
+        else if (pctAendring < -10) retning = "faldende";
+        else retning = "stabil";
+    }
+
+    return {
+        snitSeneste7DageKrKwh: nu !== null ? Math.round(nu * 100) / 100 : null,
+        snitForrige7DageKrKwh: foer !== null ? Math.round(foer * 100) / 100 : null,
+        pctAendring,
+        retning,
+        kilde: "Energi Data Service (elspot DK1, uden afgifter)"
+    };
+}
+
+// Samler alle drivere. Hver kilde fejler for sig, så én nedbrudt kilde ikke
+// vælter de øvrige - der skrives blot null for den pågældende driver.
+async function hentDrivere(produkter, dagensOpsummering) {
+    const drivere = {
+        hentetUTC: new Date().toISOString(),
+        hentetDanskTid: danskTid(),
+        vejr: null,
+        elpris: null,
+        lager: null,
+        depi: null
+    };
+
+    try { drivere.vejr = await hentVejrdriver(); }
+    catch (err) { console.warn("Kunne ikke hente vejrdata:", err.message); }
+
+    try { drivere.elpris = await hentElpriser(); }
+    catch (err) { console.warn("Kunne ikke hente elpriser:", err.message); }
+
+    const paaLager = produkter.filter(p => p.paaLager === true);
+    const andel = produkter.length ? paaLager.length / produkter.length : 0;
+    drivere.lager = {
+        antalPaaLager: paaLager.length,
+        antalTotal: produkter.length,
+        andelProcent: Math.round(andel * 100),
+        retning: andel > 0.5 ? "høj" : (andel > 0.2 ? "middel" : "lav"),
+        kilde: "Pillemadsen.dk"
+    };
+
+    try {
+        const depiData = JSON.parse(fs.readFileSync("tysk-markedsindeks.json", "utf8"));
+        const maaneder = (depiData.maaneder || []).slice().sort((a, b) => a.dato.localeCompare(b.dato));
+        if (maaneder.length) {
+            const seneste = maaneder[maaneder.length - 1];
+            const [aar, maaned] = seneste.dato.split("-");
+            const sidsteAar = maaneder.find(m => m.dato === (Number(aar) - 1) + "-" + maaned);
+            let pct = null, retning = "ukendt";
+            if (sidsteAar) {
+                pct = Math.round(((seneste.dkkPrKg - sidsteAar.dkkPrKg) / sidsteAar.dkkPrKg) * 100);
+                if (pct > 5) retning = "stigende";
+                else if (pct < -5) retning = "faldende";
+                else retning = "stabil";
+            }
+            drivere.depi = {
+                dato: seneste.dato,
+                dkkPrKg: seneste.dkkPrKg,
+                pctAarTilAar: pct,
+                retning,
+                kilde: "Deutsches Pelletinstitut (DEPI)"
+            };
+        }
+    } catch (e) { /* DEPI-driver er valgfri */ }
+
+    fs.writeFileSync("drivere.json", JSON.stringify(drivere, null, 2), "utf8");
+    console.log("Drivere gemt.");
+    return drivere;
+}
+
 async function hentPriser() {
     console.log("Starter browseren...");
     const browser = await chromium.launch({ headless: true });
@@ -580,7 +762,14 @@ async function hentPriser() {
     await hentTyskMarkedsindeks(browser2);
     await browser2.close();
 
-    await hentAiAnalyse(produkter, dagensOpsummering);
+    let drivere = null;
+    try {
+        drivere = await hentDrivere(produkter, dagensOpsummering);
+    } catch (err) {
+        console.warn("Kunne ikke samle drivere (springer over):", err.message);
+    }
+
+    await hentAiAnalyse(produkter, dagensOpsummering, drivere);
 }
 
 hentPriser().catch(error => {
