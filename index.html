@@ -147,7 +147,7 @@
   .driver-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
   .driver-k{font-size:11.5px;color:var(--text);font-weight:500;display:flex;align-items:center;gap:5px}
   .driver-dot{width:7px;height:7px;border-radius:50%;flex:none}
-  .driver-dot.g{background:var(--green)} .driver-dot.a{background:#9a9f8f} .driver-dot.r{background:var(--red)}
+  .driver-dot.g{background:#2e9e4f} .driver-dot.a{background:#e8a317} .driver-dot.r{background:var(--red)}
   .driver-v{font-family:var(--font-display);font-weight:600;font-size:14.5px;margin-top:5px}
   .driver-info{grid-column:1/-1}
   .driver-gruppe{grid-column:1/-1;font-family:var(--font-mono);font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
@@ -160,9 +160,11 @@
   .tal-felt::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   .tal-felt{-moz-appearance:textfield;appearance:textfield}
 
-  .alarm-input-row{display:flex;gap:8px;align-items:center;margin-top:10px}
-  .stepper{display:flex;align-items:center;gap:8px;flex:1}
-  .stepper input{flex:1;text-align:center;font-family:var(--font-mono);font-size:18px;font-weight:600;padding:12px 6px}
+  /* Stepperen fylder én række, Gem-knappen ligger under. På en telefon er der
+     ikke plads til begge dele ved siden af hinanden. */
+  .alarm-input-row{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+  .stepper{display:flex;align-items:center;gap:10px;width:100%}
+  .stepper input{flex:1;min-width:0;text-align:center;font-family:var(--font-mono);font-size:18px;font-weight:600;padding:12px 6px}
   .step-btn{
     width:52px;height:52px;flex:none;border-radius:12px;border:1px solid var(--line-strong);
     background:var(--card);color:var(--green);font-size:24px;font-weight:600;line-height:1;
@@ -170,7 +172,7 @@
     -webkit-tap-highlight-color:transparent;touch-action:manipulation;
   }
   .step-btn:active{background:var(--green-soft)}
-  .alarm-input-row button#alarmSaveBtn{min-height:52px;padding:0 18px}
+  .alarm-input-row button#alarmSaveBtn{width:100%;min-height:48px;padding:0 18px}
   .alarm-input-row button{background:var(--green);color:#fff;border:0;border-radius:9px;padding:9px 14px;font-family:var(--font-mono);font-size:12px;font-weight:600;cursor:pointer}
   .alarm-status{margin-top:12px;padding:11px 13px;border-radius:10px;font-size:12.5px;display:flex;align-items:center;gap:8px}
   .alarm-status.under{background:var(--green-soft);color:var(--green)}
@@ -356,7 +358,7 @@
       <div class="section-title">Push-beskeder til denne enhed</div>
       <div style="font-size:12.5px;color:var(--muted)">Sæt din grænse ovenfor, og tryk nedenfor. Så får du en besked på denne enhed, når prisen falder til eller under grænsen - også når appen er lukket.</div>
       <button class="clear-btn" id="pushSubBtn" style="border-style:solid;color:var(--green);margin-top:10px;width:100%">Aktivér push-beskeder</button>
-      <div id="pushStatus" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
+      <div id="pushStatus" style="font-size:13px;font-weight:600;margin-top:10px"></div>
     </div>
     <div class="card" style="margin-top:12px">
       <div class="section-title">Udsolgte mærker lige nu</div>
@@ -1242,7 +1244,7 @@ async function opdaterPushKnap(){
   const status = document.getElementById("pushStatus");
   if (!("serviceWorker" in navigator) || !("PushManager" in window)){
     btn.disabled = true;
-    status.textContent = "Denne browser understøtter ikke push-beskeder.";
+    status.style.color = "var(--red)"; status.textContent = "Denne browser understøtter ikke push-beskeder.";
     return;
   }
   const reg = await navigator.serviceWorker.getRegistration();
@@ -1250,6 +1252,7 @@ async function opdaterPushKnap(){
   if (sub){
     btn.textContent = "Slå push-beskeder fra";
     btn.dataset.tilmeldt = "ja";
+    status.style.color = "var(--green)";
     // Sikrer at en tilmelding fra en tidligere version af appen også havner i
     // Firestore - ellers ville knappen se aktiv ud, uden at robotten kender enheden.
     const graenseRaw = (localStorage.getItem("traepille_alarm_graense") || "").replace(",", ".");
@@ -1267,7 +1270,8 @@ async function opdaterPushKnap(){
   } else {
     btn.textContent = "Aktivér push-beskeder";
     btn.dataset.tilmeldt = "nej";
-    status.textContent = "";
+    status.style.color = "var(--red)";
+    status.textContent = "Push-beskeder er IKKE aktive på denne enhed.";
   }
 }
 
@@ -1281,7 +1285,7 @@ document.getElementById("pushSubBtn").addEventListener("click", async () => {
       const sub = reg && await reg.pushManager.getSubscription();
       if (sub) await sub.unsubscribe();
       if (firestoreErOpsat()) await sletAbonnementIFirestore();
-      status.textContent = "Push-beskeder er slået fra på denne enhed.";
+      status.style.color = "var(--red)"; status.textContent = "Push-beskeder er slået fra på denne enhed.";
       opdaterPushKnap();
     } catch (err) { status.textContent = "Kunne ikke slå fra: " + err.message; }
     return;
@@ -1294,7 +1298,7 @@ document.getElementById("pushSubBtn").addEventListener("click", async () => {
   const graenseRaw = document.getElementById("alarmInput").value.replace(",", ".").trim();
   const graense = graenseRaw === "" ? null : Number(graenseRaw);
   if (graense === null || !Number.isFinite(graense)){
-    status.textContent = "Sæt en grænse i feltet ovenfor først.";
+    status.style.color = "var(--red)"; status.textContent = "Sæt en grænse i feltet ovenfor først.";
     return;
   }
 
@@ -1313,9 +1317,11 @@ document.getElementById("pushSubBtn").addEventListener("click", async () => {
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
     });
     await gemAbonnementIFirestore(subscription, graense);
+    status.style.color = "var(--green)";
     status.textContent = "Klar! Du får en besked, når prisen falder til " + taltekst(graense,2," kr/kg") + " eller derunder.";
     opdaterPushKnap();
   } catch (err) {
+    status.style.color = "var(--red)";
     status.textContent = "Noget gik galt: " + err.message;
   }
 });
