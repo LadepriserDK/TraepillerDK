@@ -702,18 +702,33 @@ async function hentTyskElpris() {
 async function hentElpriser() {
     const idag = new Date();
     const for14dageSiden = new Date(idag.getTime() - 14 * 86400000);
-    const url = "https://api.energidataservice.dk/dataset/Elspotprices" +
+    // Elspotprices-datasættet blev nedlagt 30-09-2025; DayAheadPrices er efterfølgeren.
+    const url = "https://api.energidataservice.dk/dataset/DayAheadPrices" +
         `?start=${isoDato(for14dageSiden)}&end=${isoDato(idag)}` +
         `&filter=${encodeURIComponent('{"PriceArea":"DK1"}')}&limit=1000`;
 
     const res = await fetch(url);
     if (!res.ok) throw new Error("Energi Data Service svarede " + res.status);
     const json = await res.json();
-    const poster = (json.records || []).filter(r => typeof r.SpotPriceDKK === "number");
+
+    // Feltnavnene varierer mellem datasæt-versioner, så vi tager det første, der findes
+    const prisFelt = r => {
+        for (const navn of ["DayAheadPriceDKK", "SpotPriceDKK", "PriceDKK"]) {
+            if (typeof r[navn] === "number") return r[navn];
+        }
+        // Hvis kun EUR findes, omregnes med fastkursen
+        for (const navn of ["DayAheadPriceEUR", "SpotPriceEUR", "PriceEUR"]) {
+            if (typeof r[navn] === "number") return r[navn] * EUR_TIL_DKK;
+        }
+        return null;
+    };
+    const tidsFelt = r => r.HourDK || r.TimeDK || r.HourUTC || r.TimeUTC;
+
+    const poster = (json.records || []).filter(r => prisFelt(r) !== null && tidsFelt(r));
     if (poster.length < 48) throw new Error("For få elpris-poster (" + poster.length + ")");
 
-    // SpotPriceDKK er kr pr. MWh - divider med 1000 for kr/kWh
-    const medTid = poster.map(r => ({ tid: new Date(r.HourDK), pris: r.SpotPriceDKK / 1000 }))
+    // Priserne er kr pr. MWh - divider med 1000 for kr/kWh
+    const medTid = poster.map(r => ({ tid: new Date(tidsFelt(r)), pris: prisFelt(r) / 1000 }))
         .sort((a, b) => a.tid - b.tid);
     const midt = new Date(idag.getTime() - 7 * 86400000);
     const seneste7 = medTid.filter(p => p.tid >= midt).map(p => p.pris);
