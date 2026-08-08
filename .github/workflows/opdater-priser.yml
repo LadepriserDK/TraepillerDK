@@ -36,5 +36,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add traepriser.json historik.json tysk-markedsindeks.json ai-analyse.json drivere.json lager-historik.json tysk-produktion.json diesel-historik.json
-          git diff --staged --quiet || git commit -m "Opdater træpillepriser $(date -u +%Y-%m-%d)"
-          git push
+          git diff --staged --quiet && echo "Ingen ændringer at gemme." && exit 0
+          git commit -m "Opdater træpillepriser $(date -u +%Y-%m-%d)"
+          # Hvis en anden kørsel har committet imens, hentes den ind først.
+          # Uden dette afvises push som non-fast-forward.
+          for forsoeg in 1 2 3; do
+            if git push; then
+              echo "Push lykkedes i forsøg $forsoeg."
+              exit 0
+            fi
+            echo "Push afvist - henter nyeste ændringer og prøver igen..."
+            git pull --rebase --autostash origin main || true
+            sleep 5
+          done
+          echo "Kunne ikke pushe efter 3 forsøg." && exit 1
