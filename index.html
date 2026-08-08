@@ -638,8 +638,9 @@ function render(){
   if (!rows.length){ grid.innerHTML = '<div class="empty-note">Ingen varer matcher de valgte filtre lige nu.</div>'; return; }
   grid.innerHTML = rows.map(p => {
     const lager = p.paaLager === true ? "ja" : (p.paaLager === false ? "nej" : "ukendt");
-    const lagerTekst = p.paaLager === true ? (p.antalPaaLager ? p.antalPaaLager + " på lager" : "På lager")
-      : (p.paaLager === false ? "Udsolgt" : "Ukendt");
+    const lagerTekst = p.paaLager === true
+      ? (typeof p.antalPaaLager === "number" ? p.antalPaaLager + (p.antalErMindst ? "+" : "") + " på lager" : "På lager")
+      : (p.forlaengetLevering ? "Forlænget lev.tid" : (p.paaLager === false ? "Udsolgt" : "Ukendt"));
     const prisHtml = p.prisPrKg !== null
       ? `<span class="pcard-price">${taltekst(p.prisPrKg,2,"")}<span class="u"> kr/kg</span></span>`
       : `<span class="pcard-price na">Ring for pris</span>`;
@@ -723,7 +724,7 @@ const DRIVER_FORKLARINGER = {
   vejrDE: "Fyringsbehovet i Tyskland de kommende 14 dage, målt i graddage (summen af grader under 17 °C). Koldt vejr i Tyskland øger det samlede tyske varmebehov og presser hele markedets pris op - det er den underliggende prisretning. Sammenlignes med samme kalenderperiode sidste år. Kilde: Open-Meteo (DWD/ECMWF-modeller), målt for Midttyskland.",
   vejrDK: "Fyringsbehovet i Danmark de kommende 14 dage. Da de fleste af Pillemadsens kunder er danske, øger dansk kulde især DERES efterspørgsel og tømmer deres lager hurtigere - også selvom det tyske marked ikke rører sig. Det er derfor et tidligt lokalt varsel. Kilde: Open-Meteo, målt for Østjylland.",
   elprisDE: "Tysk day-ahead elpris, gennemsnit af de seneste 7 dage mod ugen før. Strøm er en væsentlig omkostning i pelletproduktion (tørring og presning), så stigende elpriser presser produktionsomkostningerne op. Under -10% = Faldende, over +10% = Stigende. Kilde: Fraunhofer ISE / Energy-Charts.",
-  lager: "Andel af Pillemadsens varer på lager, samt udviklingen i det samlede antal enheder de seneste 7 dage. Hurtigt faldende lager er potentielt et tidligt varsel om prisstigning. Kilde: pillemadsen.dk. Bemærk at tendensen først bliver pålidelig, når der er gemt data i nogle uger.",
+  lager: "Hvor mange varer der er på lager, og hvordan den samlede beholdning har ændret sig de seneste 7 dage. Pillemadsen viser antal paller pr. vare, men afrunder store beholdninger til 50+ og 100+ - så tallene er grove i toppen, og summen skal læses som et minimum. Et fald er til gengæld reelt, og hurtigt faldende beholdning er et tidligt varsel om prisstigning, før den slår igennem på hyldeprisen. Kilde: pillemadsen.dk. Tendensen bliver først pålidelig efter nogle ugers data.",
   produktion: "Hvor mange ton træpiller der faktisk blev produceret i Tyskland i det seneste offentliggjorte kvartal. Høj produktion betyder god forsyning og dæmper prisen; lav produktion strammer markedet. Bemærk at over 90% af råmaterialet er savværksrester - så byggeaktivitet og savværksdrift er i praksis afgørende for råvareudbuddet. Opdateres kvartalsvis. Kilde: Deutsches Pelletinstitut (DEPI).",
   diesel: "Dieselpris i Danmark inkl. afgifter, fra EU-Kommissionens ugentlige Oil Bulletin. Den påvirker ikke Pillemadsens hyldepris, men derimod hvad din vognmand skal have for at hente pillerne hjem - altså din SAMLEDE pris. Diesel svinger langsomt, så der skal mere end 5% til over en måned, før det regnes som en bevægelse. Kilde: EU-Kommissionen, Weekly Oil Bulletin.",
   depi: "Det tyske markedsindeks sammenlignet med samme måned sidste år. Det er et landsdækkende tysk gennemsnit for ENplus A1-piller inkl. levering og moms - ikke Pillemadsens egen pris, som er ab lager i Harrislee. Brug det som markedsindikator, ikke som forventet Pillemadsen-pris. Kilde: Deutsches Pelletinstitut (DEPI)."
@@ -804,9 +805,25 @@ function renderDrivers(){
   else if (andel > 0.2){ lagerLabel = "Middel"; lagerPrik = "a"; }
   else { lagerLabel = "Lav"; lagerPrik = "r"; }
   let lagerUnder = `${paaLager.length} af ${RAW.length} varer (${Math.round(andel*100)}%)`;
+  const medAntal = RAW.filter(p => typeof p.antalPaaLager === "number" && p.paaLager === true);
+  if (medAntal.length){
+    const sum = medAntal.reduce((s,p) => s + p.antalPaaLager, 0);
+    const harMindst = medAntal.some(p => p.antalErMindst);
+    lagerUnder += ` · ${harMindst ? "mindst " : ""}${sum} paller`;
+  }
   const t7 = DRIVERE && DRIVERE.lager && DRIVERE.lager.tendens7dage;
   if (t7){
-    lagerUnder += ` · ${t7.pctAendring >= 0 ? "+" : ""}${t7.pctAendring}% enheder på 7 dage`;
+    if (t7.beholdning){
+      lagerUnder += ` · ${t7.beholdning.pctAendring >= 0 ? "+" : ""}${t7.beholdning.pctAendring}% beholdning på 7 dage`;
+      if (t7.beholdning.pctAendring <= -25) lagerPrik = "r";
+    }
+    if (t7.stoersteFald && t7.stoersteFald.length){
+      const f = t7.stoersteFald[0];
+      lagerUnder += ` · størst fald: ${f.maerke} ${f.fra}→${f.til}`;
+    }
+    if (t7.maerkerGaaetUdsolgt && t7.maerkerGaaetUdsolgt.length){
+      lagerUnder += ` · udsolgt: ${t7.maerkerGaaetUdsolgt.join(", ")}`;
+    }
     if (t7.pctAendring <= -20) lagerPrik = "r";
   }
   lokaleKort.push(driverKort("lager", "Lager hos Pillemadsen", lagerLabel, lagerUnder, lagerPrik));
