@@ -1,0 +1,13 @@
+{
+  "kilde": "Deutsches Pelletinstitut (DEPI)",
+  "kvartaler": [
+    {
+      "kvartal": "2026-Q2",
+      "produktionTon": 1034000,
+      "saegerestholzProcent": 93.1,
+      "eksportProcent": 10.1,
+      "sackwareProcent": 25.5,
+      "kilde": "https://www.depi.de/mediathek/d/deutsche-pelletproduktion-steigt-im-2-quartal-2026-weiter-an/?"
+    }
+  ]
+}

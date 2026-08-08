@@ -1,20 +1,48 @@
 {
-  "hentetUTC": "2026-08-08T05:40:09.484Z",
-  "hentetDanskTid": "08.08.2026, 07.40.09",
-  "vejr": {
-    "snitTemp14dage": 16.5,
-    "graddage14dage": 15,
+  "hentetUTC": "2026-08-08T07:40:21.185Z",
+  "hentetDanskTid": "08.08.2026, 09.40.21",
+  "vejrDK": {
+    "sted": "Østjylland",
+    "snitTemp14dage": 16.8,
+    "graddage14dage": 12,
     "graddageSammeTidSidsteAar": 8,
     "snitTempSidsteAar": 17.1,
-    "pctAendringGraddage": 88,
+    "pctAendringGraddage": 50,
     "retning": "koldere",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
-  "elpris": null,
+  "vejrDE": {
+    "sted": "Midttyskland",
+    "snitTemp14dage": 19.6,
+    "graddage14dage": 4,
+    "graddageSammeTidSidsteAar": 1,
+    "snitTempSidsteAar": 20.6,
+    "pctAendringGraddage": 300,
+    "retning": "koldere",
+    "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
+  },
+  "elprisDK": {
+    "snitSeneste7DageKrKwh": 0.85,
+    "snitForrige7DageKrKwh": 1,
+    "pctAendring": -16,
+    "retning": "faldende",
+    "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
+  },
+  "elprisDE": {
+    "snitSeneste7DageEurMwh": 114.8,
+    "snitForrige7DageEurMwh": 112.6,
+    "pctAendring": 2,
+    "retning": "stabil",
+    "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
+  },
   "lager": {
     "antalPaaLager": 6,
     "antalTotal": 27,
     "andelProcent": 22,
+    "samletAntalEnheder": null,
+    "varerMedAntal": 0,
+    "tendens7dage": null,
+    "tendens30dage": null,
     "retning": "middel",
     "kilde": "Pillemadsen.dk"
   },
@@ -24,5 +52,24 @@
     "pctAarTilAar": 28,
     "retning": "stigende",
     "kilde": "Deutsches Pelletinstitut (DEPI)"
+  },
+  "produktion": {
+    "kvartal": "2026-Q2",
+    "produktionTon": 1034000,
+    "pctVsForrigeKvartal": null,
+    "pctVsSammeKvartalSidsteAar": null,
+    "saegerestholzProcent": 93.1,
+    "eksportProcent": 10.1,
+    "retning": "ukendt",
+    "kilde": "Deutsches Pelletinstitut (DEPI)"
+  },
+  "diesel": {
+    "dato": "2026-08-08",
+    "dieselDKEurPrLiter": 2.264,
+    "dieselDEEurPrLiter": 2.208,
+    "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202024-02-19.xlsx",
+    "pctAendring30dage": null,
+    "sammenlignDato": null,
+    "retning": "ukendt"
   }
 }
