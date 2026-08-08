@@ -136,17 +136,25 @@ async function findKategoriProdukter(browser) {
     return fundne; // Map<fuld produkt-url, tekst fra oversigtssiden>
 }
 
-// Besøger hver produktside udelukkende for at læse specifikationer (aske/fugt/brændværdi) -
-// de findes ikke på oversigten. Scanner hele sidens tekst frem for at stole på et bestemt
-// element-id, som kan mangle eller kræve et klik for at blive synligt.
+// Besøger hver produktside for at læse specifikationer (aske/fugt/brændværdi) OG
+// det konkrete lagerantal - begge dele findes kun her, ikke på oversigten.
+// Prisen hentes derimod fra oversigten, fordi produktsiden kan vise 0,00 kr,
+// indtil man selv har valgt en mængde.
 async function laesSpecsForProdukt(browser, url) {
     const page = await browser.newPage({ locale: "da-DK" });
     try {
         await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
         const bodyTekst = (await page.locator("body").textContent().catch(() => "")) || "";
-        return udtraekSpecs(bodyTekst);
+        const specs = udtraekSpecs(bodyTekst);
+
+        // Fx "66 På lager" eller "66\nPå lager"
+        let antalPaaLager = null;
+        const lagerMatch = bodyTekst.match(/(\d+)\s*\n?\s*På\s*lager/i);
+        if (lagerMatch) antalPaaLager = Number(lagerMatch[1]);
+
+        return { ...specs, antalPaaLager };
     } catch (err) {
-        console.warn("Kunne ikke læse specs fra " + url + ": " + err.message);
+        console.warn("Kunne ikke læse produktside " + url + ": " + err.message);
         return {};
     } finally {
         await page.close();
@@ -306,47 +314,92 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere) {
             }
         } catch (e) { /* ingen DEPI-data endnu, det er ok */ }
 
-        const driverLinjer = [];
-        if (drivere && drivere.vejr) {
-            const v = drivere.vejr;
-            let l = `VEJR: Kommende 14 dage i Østjylland ventes at have ${v.snitTemp14dage} °C i snit (${v.graddage14dage} graddage - et mål for fyringsbehov).`;
-            if (v.pctAendringGraddage !== null) {
-                l += ` Det er ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% fyringsbehov i forhold til samme periode sidste år, altså ${v.retning} end sidste år.`;
-            }
-            driverLinjer.push(l);
+        const linjerDE = [], linjerLokal = [];
+
+        if (drivere && drivere.vejrDE) {
+            const v = drivere.vejrDE;
+            let l = `Vejr i Tyskland: ${v.snitTemp14dage} °C i snit de kommende 14 dage (${v.graddage14dage} graddage).`;
+            if (v.pctAendringGraddage !== null) l += ` ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% fyringsbehov vs. samme periode sidste år - ${v.retning}.`;
+            linjerDE.push(l);
         }
-        if (drivere && drivere.elpris) {
-            const e = drivere.elpris;
-            driverLinjer.push(`ENERGIMARKED: Dansk elspotpris (DK1) har de seneste 7 dage ligget på ${e.snitSeneste7DageKrKwh} kr/kWh mod ${e.snitForrige7DageKrKwh} kr/kWh ugen før - ${e.retning} (${e.pctAendring >= 0 ? "+" : ""}${e.pctAendring}%).`);
-        }
-        if (drivere && drivere.lager) {
-            const lg = drivere.lager;
-            driverLinjer.push(`LAGER: ${lg.antalPaaLager} af ${lg.antalTotal} varer på lager hos Pillemadsen (${lg.andelProcent}%) - ${lg.retning} lagerdækning.` +
-                (udsolgteMaerker.length ? ` Helt udsolgte mærker: ${udsolgteMaerker.join(", ")}.` : ""));
+        if (drivere && drivere.elprisDE && drivere.elprisDE.snitSeneste7DageEurMwh !== null) {
+            const e = drivere.elprisDE;
+            linjerDE.push(`Tysk elpris (produktionsomkostning): ${e.snitSeneste7DageEurMwh} €/MWh seneste 7 dage mod ${e.snitForrige7DageEurMwh} ugen før - ${e.retning}.`);
         }
         if (drivere && drivere.depi) {
             const d = drivere.depi;
-            driverLinjer.push(`TYSK MARKEDSINDEKS: ${d.dkkPrKg} kr/kg (${d.dato})` +
+            linjerDE.push(`Tysk markedsindeks (DEPI): ${d.dkkPrKg} kr/kg (${d.dato})` +
                 (d.pctAarTilAar !== null ? `, ${d.pctAarTilAar >= 0 ? "+" : ""}${d.pctAarTilAar}% år-til-år - ${d.retning}.` : "."));
         }
-        driverLinjer.push(`PILLEMADSEN: Gennemsnitspris 6 mm på lager ${dagensOpsummering.gnsPris6mmPaaLager ?? "ukendt"} kr/kg, 8 mm ${dagensOpsummering.gnsPris8mmPaaLager ?? "ukendt"} kr/kg.`);
+        if (drivere && drivere.produktion) {
+            const p = drivere.produktion;
+            let l = `Tysk pelletproduktion ${p.kvartal}: ${p.produktionTon.toLocaleString("da-DK")} ton`;
+            if (p.pctVsSammeKvartalSidsteAar !== null) l += `, ${p.pctVsSammeKvartalSidsteAar >= 0 ? "+" : ""}${p.pctVsSammeKvartalSidsteAar}% vs. samme kvartal sidste år`;
+            else if (p.pctVsForrigeKvartal !== null) l += `, ${p.pctVsForrigeKvartal >= 0 ? "+" : ""}${p.pctVsForrigeKvartal}% vs. forrige kvartal`;
+            l += ` - forsyning ${p.retning}.`;
+            if (p.saegerestholzProcent !== null) l += ` ${p.saegerestholzProcent}% af råmaterialet er savværksrester, så savværksaktiviteten er afgørende for råvareudbuddet.`;
+            linjerDE.push(l);
+        }
 
-        const kontekst = driverLinjer.join("\n");
+        if (drivere && drivere.vejrDK) {
+            const v = drivere.vejrDK;
+            let l = `Vejr i Danmark: ${v.snitTemp14dage} °C i snit de kommende 14 dage (${v.graddage14dage} graddage).`;
+            if (v.pctAendringGraddage !== null) l += ` ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% fyringsbehov vs. sidste år - ${v.retning}.`;
+            linjerLokal.push(l);
+        }
+        if (drivere && drivere.lager) {
+            const lg = drivere.lager;
+            let l = `Lager hos Pillemadsen: ${lg.antalPaaLager} af ${lg.antalTotal} varer på lager (${lg.andelProcent}%).`;
+            if (lg.samletAntalEnheder !== null) l += ` Samlet ${lg.samletAntalEnheder} enheder på tværs af ${lg.varerMedAntal} varer.`;
+            if (lg.tendens7dage) l += ` Lagerbeholdningen er ændret ${lg.tendens7dage.pctAendring >= 0 ? "+" : ""}${lg.tendens7dage.pctAendring}% de seneste 7 dage.`;
+            if (udsolgteMaerker.length) l += ` Helt udsolgte mærker: ${udsolgteMaerker.join(", ")}.`;
+            linjerLokal.push(l);
+        }
+        linjerLokal.push(`Priser hos Pillemadsen: 6 mm ${dagensOpsummering.gnsPris6mmPaaLager ?? "ukendt"} kr/kg, 8 mm ${dagensOpsummering.gnsPris8mmPaaLager ?? "ukendt"} kr/kg (gennemsnit af varer på lager).`);
+        if (drivere && drivere.elprisDK && drivere.elprisDK.snitSeneste7DageKrKwh !== null) {
+            const e = drivere.elprisDK;
+            linjerLokal.push(`Dansk elpris (DK1) som indikator for det generelle energimarked: ${e.snitSeneste7DageKrKwh} kr/kWh seneste 7 dage mod ${e.snitForrige7DageKrKwh} ugen før - ${e.retning}.`);
+        }
+
+        const linjerTransport = [];
+        if (drivere && drivere.diesel && drivere.diesel.dieselDKEurPrLiter !== null) {
+            const d = drivere.diesel;
+            let l = `Dieselpris i Danmark: ${d.dieselDKEurPrLiter} EUR/liter inkl. afgifter`;
+            if (d.dieselDEEurPrLiter !== null) l += ` (Tyskland: ${d.dieselDEEurPrLiter} EUR/liter)`;
+            if (d.pctAendring30dage !== null) l += `. ${d.pctAendring30dage >= 0 ? "+" : ""}${d.pctAendring30dage}% siden ${d.sammenlignDato} - ${d.retning}.`;
+            else l += ".";
+            linjerTransport.push(l);
+        }
+
+        let kontekst = "DET TYSKE MARKED (den underliggende prisretning):\n" + linjerDE.join("\n") +
+            "\n\nPILLEMADSEN / GRÆNSEHANDEL (det marked brugeren køber i):\n" + linjerLokal.join("\n");
+        if (linjerTransport.length) {
+            kontekst += "\n\nTRANSPORT (påvirker brugerens leverede pris, ikke hyldeprisen):\n" + linjerTransport.join("\n");
+        }
 
         const systemPrompt =
-            "Du er en kort, nøgtern markedsanalytiker for det dansk-tyske træpillemarked. " +
+            "Du er en kort, nøgtern markedsanalytiker for træpiller. Brugeren køber træpiller hos Pillemadsen " +
+            "i Harrislee lige syd for den dansk-tyske grænse, med 7% tysk moms, og får dem hentet hjem af en " +
+            "dansk vognmand. De fleste af Pillemadsens kunder er danske. " +
             "Svar altid på dansk i almindelig løbende tekst - ingen markdown, overskrifter, punktopstilling eller emojis. " +
             "Brug kun de tal, du får oplyst. Opfind aldrig nye tal eller kilder. " +
             "Rolig og faktuel tone, ingen købsråd eller finansiel rådgivning.";
 
         const userPrompt =
-            "Herunder er dagens måletal for de forhold, der driver træpilleprisen:\n\n" + kontekst + "\n\n" +
-            "Baggrund du må bruge, hvis tallene understøtter det: koldt vejr og fyringssæson øger efterspørgslen; " +
-            "stigende energipriser generelt trækker træpiller med op; lav lagerdækning presser prisen op; " +
-            "Polens statstilskud til pilleovne fra 2025 har reduceret polsk eksport til det tyske marked.\n\n" +
-            "Skriv 4-6 sætninger på dansk, der forklarer markedssituationen ud fra disse tal. Nævn de drivere, " +
-            "der faktisk peger i en retning, og spring dem over, der er neutrale. Afslut med en forsigtig " +
-            "vurdering af retningen (stigende, faldende eller stabil) de kommende uger.";
+            "Dagens måletal:\n\n" + kontekst + "\n\n" +
+            "Sådan hænger tingene typisk sammen: Koldt vejr i TYSKLAND øger det samlede tyske varmebehov og " +
+            "presser hele markedets pris op. Koldt vejr i DANMARK øger derimod især efterspørgslen hos " +
+            "Pillemadsen, fordi kunderne er danske - det tømmer deres lager hurtigere, uden at det tyske " +
+            "marked nødvendigvis flytter sig. Faldende lagerbeholdning er derfor et tidligt lokalt varsel. " +
+            "Stigende energipriser trækker produktionsomkostningerne op. Høj tysk pelletproduktion betyder god " +
+            "forsyning og dæmper prisen; lav produktion strammer markedet. Polens statstilskud til pilleovne " +
+            "fra 2025 har reduceret polsk eksport til det tyske marked.\n\n" +
+            "Brugeren får pillerne hentet hjem af en dansk vognmand, så dieselprisen påvirker den samlede " +
+            "leverede pris - også selvom Pillemadsens hyldepris ikke ændrer sig. Nævn kun diesel, hvis den " +
+            "har flyttet sig mærkbart.\n\n" +
+            "Skriv 5-7 sætninger på dansk. Behandl først det tyske marked, derefter situationen specifikt hos " +
+            "Pillemadsen. Nævn kun de drivere, der faktisk peger i en retning, og spring de neutrale over. " +
+            "Afslut med en forsigtig vurdering af, hvor Pillemadsens priser er på vej hen de kommende uger.";
 
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
@@ -529,9 +582,10 @@ async function sendPushAlarmer(produkter) {
 // Alle kilder er gratis og kræver ingen API-nøgle.
 // ---------------------------------------------------------------------------
 
-// Odder/Østjylland - repræsentativt for det danske marked
-const VEJR_BREDDE = 55.97;
-const VEJR_LAENGDE = 10.15;
+// To vejrpunkter: dansk vejr driver Pillemadsens lokale efterspørgsel (de fleste
+// kunder er danske), mens tysk vejr driver det underliggende tyske pelletmarked.
+const VEJR_DK = { bredde: 55.97, laengde: 10.15, navn: "Østjylland" };
+const VEJR_DE = { bredde: 51.16, laengde: 10.45, navn: "Midttyskland" };
 const VARMEGRAENSE = 17; // °C - under denne temperatur regnes der med fyringsbehov
 
 function isoDato(d) {
@@ -547,12 +601,12 @@ function graddage(temperaturer) {
         .reduce((sum, t) => sum + Math.max(0, VARMEGRAENSE - t), 0);
 }
 
-async function hentVejrdriver() {
+async function hentVejrdriver(bredde, laengde, stednavn) {
     const idag = new Date();
     const om14dage = new Date(idag.getTime() + 13 * 86400000);
 
-    const prognoseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${VEJR_BREDDE}&longitude=${VEJR_LAENGDE}` +
-        `&daily=temperature_2m_mean&forecast_days=14&timezone=Europe%2FCopenhagen`;
+    const prognoseUrl = `https://api.open-meteo.com/v1/forecast?latitude=${bredde}&longitude=${laengde}` +
+        `&daily=temperature_2m_mean&forecast_days=14&timezone=Europe%2FBerlin`;
     const prognoseRes = await fetch(prognoseUrl);
     if (!prognoseRes.ok) throw new Error("Open-Meteo prognose svarede " + prognoseRes.status);
     const prognose = await prognoseRes.json();
@@ -562,9 +616,9 @@ async function hentVejrdriver() {
     // Samme kalenderperiode sidste år, som sammenligningsgrundlag
     const sidsteAarStart = new Date(idag.getTime()); sidsteAarStart.setFullYear(idag.getFullYear() - 1);
     const sidsteAarSlut = new Date(om14dage.getTime()); sidsteAarSlut.setFullYear(om14dage.getFullYear() - 1);
-    const arkivUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${VEJR_BREDDE}&longitude=${VEJR_LAENGDE}` +
+    const arkivUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${bredde}&longitude=${laengde}` +
         `&start_date=${isoDato(sidsteAarStart)}&end_date=${isoDato(sidsteAarSlut)}` +
-        `&daily=temperature_2m_mean&timezone=Europe%2FCopenhagen`;
+        `&daily=temperature_2m_mean&timezone=Europe%2FBerlin`;
     let sidsteAarGraddage = null, sidsteAarSnit = null;
     try {
         const arkivRes = await fetch(arkivUrl);
@@ -591,6 +645,7 @@ async function hentVejrdriver() {
     }
 
     return {
+        sted: stednavn,
         snitTemp14dage: snit,
         graddage14dage: gd,
         graddageSammeTidSidsteAar: sidsteAarGraddage,
@@ -598,6 +653,49 @@ async function hentVejrdriver() {
         pctAendringGraddage: pctAendring,
         retning,
         kilde: "Open-Meteo (DMI/ECMWF-modeller)"
+    };
+}
+
+// Tysk day-ahead elpris fra Fraunhofer ISE (gratis, ingen nøgle).
+// Strøm er en væsentlig omkostning i pelletproduktion (tørring, presning).
+async function hentTyskElpris() {
+    const idag = new Date();
+    const for14dageSiden = new Date(idag.getTime() - 14 * 86400000);
+    const url = "https://api.energy-charts.info/price?bzn=DE-LU" +
+        `&start=${isoDato(for14dageSiden)}&end=${isoDato(idag)}`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Energy-Charts svarede " + res.status);
+    const json = await res.json();
+    const tider = json.unix_seconds || [];
+    const priser = json.price || [];
+    if (tider.length < 48 || priser.length !== tider.length) {
+        throw new Error("For få tyske elpris-poster (" + tider.length + ")");
+    }
+
+    const midtSek = Math.floor((idag.getTime() - 7 * 86400000) / 1000);
+    const seneste7 = [], forrige7 = [];
+    for (let i = 0; i < tider.length; i++) {
+        if (typeof priser[i] !== "number") continue;
+        (tider[i] >= midtSek ? seneste7 : forrige7).push(priser[i]);
+    }
+    const snit = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+    const nu = snit(seneste7), foer = snit(forrige7);
+
+    let pctAendring = null, retning = "ukendt";
+    if (nu !== null && foer !== null && foer !== 0) {
+        pctAendring = Math.round(((nu - foer) / foer) * 100);
+        if (pctAendring > 10) retning = "stigende";
+        else if (pctAendring < -10) retning = "faldende";
+        else retning = "stabil";
+    }
+
+    return {
+        snitSeneste7DageEurMwh: nu !== null ? Math.round(nu * 10) / 10 : null,
+        snitForrige7DageEurMwh: foer !== null ? Math.round(foer * 10) / 10 : null,
+        pctAendring,
+        retning,
+        kilde: "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
     };
 }
 
@@ -642,28 +740,48 @@ async function hentElpriser() {
 
 // Samler alle drivere. Hver kilde fejler for sig, så én nedbrudt kilde ikke
 // vælter de øvrige - der skrives blot null for den pågældende driver.
-async function hentDrivere(produkter, dagensOpsummering) {
+async function hentDrivere(produkter, dagensOpsummering, lagerHistorik, browser) {
     const drivere = {
         hentetUTC: new Date().toISOString(),
         hentetDanskTid: danskTid(),
-        vejr: null,
-        elpris: null,
+        vejrDK: null,
+        vejrDE: null,
+        elprisDK: null,
+        elprisDE: null,
         lager: null,
-        depi: null
+        depi: null,
+        produktion: null,
+        diesel: null
     };
 
-    try { drivere.vejr = await hentVejrdriver(); }
-    catch (err) { console.warn("Kunne ikke hente vejrdata:", err.message); }
+    if (browser) {
+        try { drivere.diesel = await hentDieselpris(browser); }
+        catch (err) { console.warn("Kunne ikke hente dieselpris:", err.message); }
+    }
 
-    try { drivere.elpris = await hentElpriser(); }
-    catch (err) { console.warn("Kunne ikke hente elpriser:", err.message); }
+    try { drivere.vejrDK = await hentVejrdriver(VEJR_DK.bredde, VEJR_DK.laengde, VEJR_DK.navn); }
+    catch (err) { console.warn("Kunne ikke hente dansk vejrdata:", err.message); }
+
+    try { drivere.vejrDE = await hentVejrdriver(VEJR_DE.bredde, VEJR_DE.laengde, VEJR_DE.navn); }
+    catch (err) { console.warn("Kunne ikke hente tysk vejrdata:", err.message); }
+
+    try { drivere.elprisDK = await hentElpriser(); }
+    catch (err) { console.warn("Kunne ikke hente danske elpriser:", err.message); }
+
+    try { drivere.elprisDE = await hentTyskElpris(); }
+    catch (err) { console.warn("Kunne ikke hente tyske elpriser:", err.message); }
 
     const paaLager = produkter.filter(p => p.paaLager === true);
     const andel = produkter.length ? paaLager.length / produkter.length : 0;
+    const medAntal = produkter.filter(p => typeof p.antalPaaLager === "number");
     drivere.lager = {
         antalPaaLager: paaLager.length,
         antalTotal: produkter.length,
         andelProcent: Math.round(andel * 100),
+        samletAntalEnheder: medAntal.length ? medAntal.reduce((s, p) => s + p.antalPaaLager, 0) : null,
+        varerMedAntal: medAntal.length,
+        tendens7dage: lagerTendens(lagerHistorik, 7),
+        tendens30dage: lagerTendens(lagerHistorik, 30),
         retning: andel > 0.5 ? "høj" : (andel > 0.2 ? "middel" : "lav"),
         kilde: "Pillemadsen.dk"
     };
@@ -692,9 +810,270 @@ async function hentDrivere(produkter, dagensOpsummering) {
         }
     } catch (e) { /* DEPI-driver er valgfri */ }
 
+    try {
+        const prodData = JSON.parse(fs.readFileSync("tysk-produktion.json", "utf8"));
+        const kvartaler = (prodData.kvartaler || []).slice().sort((a, b) => a.kvartal.localeCompare(b.kvartal));
+        if (kvartaler.length) {
+            const seneste = kvartaler[kvartaler.length - 1];
+            const forrige = kvartaler.length > 1 ? kvartaler[kvartaler.length - 2] : null;
+            // Samme kvartal året før, hvis vi har det
+            const [pAar, pKv] = seneste.kvartal.split("-");
+            const sammeKvSidsteAar = kvartaler.find(k => k.kvartal === (Number(pAar) - 1) + "-" + pKv);
+
+            let pctKvartal = null, pctAar = null, retning = "ukendt";
+            if (forrige && forrige.produktionTon) {
+                pctKvartal = Math.round(((seneste.produktionTon - forrige.produktionTon) / forrige.produktionTon) * 100);
+            }
+            if (sammeKvSidsteAar && sammeKvSidsteAar.produktionTon) {
+                pctAar = Math.round(((seneste.produktionTon - sammeKvSidsteAar.produktionTon) / sammeKvSidsteAar.produktionTon) * 100);
+            }
+            // Stigende produktion = bedre forsyning = nedadgående prispres
+            const maalePct = pctAar !== null ? pctAar : pctKvartal;
+            if (maalePct !== null) {
+                if (maalePct > 3) retning = "høj";
+                else if (maalePct < -3) retning = "lav";
+                else retning = "stabil";
+            }
+
+            drivere.produktion = {
+                kvartal: seneste.kvartal,
+                produktionTon: seneste.produktionTon,
+                pctVsForrigeKvartal: pctKvartal,
+                pctVsSammeKvartalSidsteAar: pctAar,
+                saegerestholzProcent: seneste.saegerestholzProcent,
+                eksportProcent: seneste.eksportProcent,
+                retning,
+                kilde: "Deutsches Pelletinstitut (DEPI)"
+            };
+        }
+    } catch (e) { /* produktionsdriver er valgfri */ }
+
     fs.writeFileSync("drivere.json", JSON.stringify(drivere, null, 2), "utf8");
     console.log("Drivere gemt.");
     return drivere;
+}
+
+// Gemmer et dagligt øjebliksbillede af lagerantal og pris pr. produkt.
+// Over tid gør det os i stand til at se, om hurtigt faldende lager kommer
+// FØR en prisstigning - potentielt appens stærkeste tidlige købssignal.
+function opdaterLagerHistorik(produkter, dato) {
+    let historik = [];
+    try {
+        const eksisterende = JSON.parse(fs.readFileSync("lager-historik.json", "utf8"));
+        if (Array.isArray(eksisterende)) historik = eksisterende;
+    } catch (e) {
+        historik = [];
+    }
+
+    const dagensPost = {
+        dato,
+        varer: produkter
+            .filter(p => p.antalPaaLager !== null && p.antalPaaLager !== undefined)
+            .map(p => ({ produkt: p.produkt, maerke: p.maerke, antal: p.antalPaaLager, prisPrKg: p.prisPrKg }))
+    };
+
+    const idx = historik.findIndex(h => h.dato === dato);
+    if (idx >= 0) historik[idx] = dagensPost;
+    else historik.push(dagensPost);
+    historik.sort((a, b) => a.dato.localeCompare(b.dato));
+
+    // Behold ca. et år, så filen ikke vokser i det uendelige
+    if (historik.length > 400) historik = historik.slice(historik.length - 400);
+
+    fs.writeFileSync("lager-historik.json", JSON.stringify(historik, null, 2), "utf8");
+    console.log("Lagerhistorik har nu " + historik.length + " dag(e) med data (" + dagensPost.varer.length + " varer med antal i dag).");
+    return historik;
+}
+
+// Beregner udviklingen i samlet lagerantal over de seneste dage.
+function lagerTendens(lagerHistorik, dage) {
+    if (!Array.isArray(lagerHistorik) || lagerHistorik.length < 2) return null;
+    const sidste = lagerHistorik[lagerHistorik.length - 1];
+    const maalDato = new Date(new Date(sidste.dato).getTime() - dage * 86400000).toISOString().slice(0, 10);
+    // Find den ældste post, der ikke er ældre end målperioden
+    const tidligere = lagerHistorik.filter(h => h.dato <= maalDato).pop() || lagerHistorik[0];
+    if (tidligere.dato === sidste.dato) return null;
+
+    const sum = post => post.varer.reduce((s, v) => s + (v.antal || 0), 0);
+    const nu = sum(sidste), foer = sum(tidligere);
+    if (foer === 0) return null;
+    return {
+        fraDato: tidligere.dato,
+        tilDato: sidste.dato,
+        antalNu: nu,
+        antalFoer: foer,
+        pctAendring: Math.round(((nu - foer) / foer) * 100)
+    };
+}
+
+const TYSKE_KVARTALER = { "ersten": 1, "zweiten": 2, "dritten": 3, "vierten": 4 };
+
+// DEPI offentliggør hvert kvartal, hvor mange ton pellets der faktisk produceres
+// i Tyskland, samt hvor råmaterialet kommer fra. Høj produktion betyder god
+// forsyning og dermed nedadgående prispres. Tallene ændrer sig kun 4 gange om
+// året, men gemmes som historik, så vi kan se udviklingen.
+async function hentTyskProduktion(browser) {
+    const page = await browser.newPage({ locale: "de-DE" });
+    try {
+        await page.goto("https://www.depi.de/mediathek/", { waitUntil: "networkidle", timeout: 60000 });
+        const links = await page.evaluate(() => {
+            return Array.from(document.querySelectorAll('a[href*="/mediathek/d/"]'))
+                .map(a => ({ href: a.getAttribute("href"), tekst: (a.textContent || "").toLowerCase() }))
+                .filter(l => l.href && l.tekst.includes("pelletproduktion"));
+        });
+        if (!links.length) throw new Error("Fandt ingen artikler om pelletproduktion på DEPI");
+
+        const url = new URL(links[0].href, "https://www.depi.de/").toString();
+        await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+        const tekst = (await page.locator("body").textContent().catch(() => "")) || "";
+
+        const kvartalMatch = tekst.match(/Im\s+(ersten|zweiten|dritten|vierten)\s+Quartal\s+(20\d{2})/i);
+        if (!kvartalMatch) throw new Error("Kunne ikke læse kvartal fra DEPI-artiklen: " + url);
+        const kvartalNr = TYSKE_KVARTALER[kvartalMatch[1].toLowerCase()];
+        const aar = kvartalMatch[2];
+        const kvartal = aar + "-Q" + kvartalNr;
+
+        // "rund 1.034.000 Tonnen" - tyske tusindtalsseparatorer er punktummer
+        const tonMatch = tekst.match(/rund\s+([\d.]+)\s*Tonnen/i);
+        if (!tonMatch) throw new Error("Kunne ikke læse produktionsmængde fra DEPI-artiklen");
+        const produktionTon = Number(tonMatch[1].replace(/\./g, ""));
+
+        const tyskProcent = m => (m ? Number(m[1].replace(",", ".")) : null);
+        const saegerest = tyskProcent(tekst.match(/Sägerestholz[^%\d]*?([\d,]+)\s*Prozent/i));
+        const eksport = tyskProcent(tekst.match(/Exportanteil[^%\d]*?([\d,]+)\s*Prozent/i));
+        const sackware = tyskProcent(tekst.match(/Anteil der Sackware beträgt\s*([\d,]+)\s*Prozent/i));
+
+        const nytPunkt = {
+            kvartal,
+            produktionTon,
+            saegerestholzProcent: saegerest,
+            eksportProcent: eksport,
+            sackwareProcent: sackware,
+            kilde: url
+        };
+
+        let data;
+        try {
+            data = JSON.parse(fs.readFileSync("tysk-produktion.json", "utf8"));
+        } catch (e) {
+            data = { kilde: "Deutsches Pelletinstitut (DEPI)", kvartaler: [] };
+        }
+        if (!Array.isArray(data.kvartaler)) data.kvartaler = [];
+
+        const idx = data.kvartaler.findIndex(k => k.kvartal === kvartal);
+        if (idx >= 0) data.kvartaler[idx] = nytPunkt;
+        else data.kvartaler.push(nytPunkt);
+        data.kvartaler.sort((a, b) => a.kvartal.localeCompare(b.kvartal));
+
+        fs.writeFileSync("tysk-produktion.json", JSON.stringify(data, null, 2), "utf8");
+        console.log("Tysk produktion opdateret for " + kvartal + " -> " + produktionTon.toLocaleString("da-DK") + " t");
+    } catch (err) {
+        console.warn("Kunne ikke opdatere tysk produktion (springer over):", err.message);
+    } finally {
+        await page.close();
+    }
+}
+
+const XLSX = require("xlsx");
+
+// EU-Kommissionens Weekly Oil Bulletin offentliggør hver torsdag brændstofpriser
+// for alle EU-lande. Diesel er relevant, fordi vognmanden skal køre pillerne hjem
+// fra Harrislee - det påvirker DIN leverede pris, ikke Pillemadsens hyldepris.
+// Filen findes bag et stabilt link, der altid peger på nyeste udgave.
+function findDieselPrisIArk(arbejdsbog, landNavn) {
+    for (const arkNavn of arbejdsbog.SheetNames) {
+        const raekker = XLSX.utils.sheet_to_json(arbejdsbog.Sheets[arkNavn], { header: 1, blankrows: false });
+
+        // Find diesel-kolonnen ud fra overskriften, ikke en fast position
+        let dieselKol = -1;
+        for (const raekke of raekker) {
+            for (let i = 0; i < raekke.length; i++) {
+                const celle = String(raekke[i] || "").toLowerCase();
+                if (/diesel|gas\s*oil\s*automo|gasoil\s*automo/.test(celle) && !/heating/.test(celle)) {
+                    dieselKol = i; break;
+                }
+            }
+            if (dieselKol >= 0) break;
+        }
+        if (dieselKol < 0) continue;
+
+        for (const raekke of raekker) {
+            const foerste = String(raekke[0] || "").trim().toLowerCase();
+            if (foerste === landNavn.toLowerCase() || foerste.startsWith(landNavn.toLowerCase())) {
+                const vaerdi = raekke[dieselKol];
+                if (typeof vaerdi === "number" && vaerdi > 0) return vaerdi;
+            }
+        }
+    }
+    return null;
+}
+
+async function hentDieselpris(browser) {
+    const page = await browser.newPage({ locale: "en-GB" });
+    let filUrl = null;
+    try {
+        await page.goto("https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en",
+            { waitUntil: "networkidle", timeout: 60000 });
+        filUrl = await page.evaluate(() => {
+            const links = Array.from(document.querySelectorAll('a[href*="/document/download/"]'));
+            const medTaxes = links.find(a => /with[%\s]*20?taxes/i.test(a.getAttribute("href") || ""));
+            return medTaxes ? medTaxes.href : null;
+        });
+    } finally {
+        await page.close();
+    }
+    if (!filUrl) throw new Error("Fandt ikke download-link til Oil Bulletin");
+
+    const res = await fetch(filUrl);
+    if (!res.ok) throw new Error("Oil Bulletin-fil svarede " + res.status);
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const arbejdsbog = XLSX.read(buffer, { type: "buffer" });
+
+    // Priser er typisk pr. 1000 liter i EUR
+    const dkPr1000L = findDieselPrisIArk(arbejdsbog, "Denmark");
+    const dePr1000L = findDieselPrisIArk(arbejdsbog, "Germany");
+    if (dkPr1000L === null && dePr1000L === null) {
+        throw new Error("Kunne ikke finde dieselpriser for Danmark eller Tyskland i filen");
+    }
+
+    const nytPunkt = {
+        dato: danskDato(),
+        dieselDKEurPrLiter: dkPr1000L !== null ? Math.round((dkPr1000L / 1000) * 1000) / 1000 : null,
+        dieselDEEurPrLiter: dePr1000L !== null ? Math.round((dePr1000L / 1000) * 1000) / 1000 : null,
+        kilde: filUrl
+    };
+
+    // Gem historik, så vi selv kan beregne udviklingen over tid
+    let data;
+    try {
+        data = JSON.parse(fs.readFileSync("diesel-historik.json", "utf8"));
+    } catch (e) {
+        data = { kilde: "EU-Kommissionen, Weekly Oil Bulletin (priser inkl. afgifter)", maalinger: [] };
+    }
+    if (!Array.isArray(data.maalinger)) data.maalinger = [];
+
+    const idx = data.maalinger.findIndex(m => m.dato === nytPunkt.dato);
+    if (idx >= 0) data.maalinger[idx] = nytPunkt;
+    else data.maalinger.push(nytPunkt);
+    data.maalinger.sort((a, b) => a.dato.localeCompare(b.dato));
+    if (data.maalinger.length > 400) data.maalinger = data.maalinger.slice(data.maalinger.length - 400);
+    fs.writeFileSync("diesel-historik.json", JSON.stringify(data, null, 2), "utf8");
+
+    // Beregn ændring over ca. 30 dage
+    let pctAendring = null, retning = "ukendt", sammenlignDato = null;
+    const maalDato = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+    const tidligere = data.maalinger.filter(m => m.dato <= maalDato && m.dieselDKEurPrLiter !== null).pop();
+    if (tidligere && nytPunkt.dieselDKEurPrLiter !== null && tidligere.dieselDKEurPrLiter > 0) {
+        pctAendring = Math.round(((nytPunkt.dieselDKEurPrLiter - tidligere.dieselDKEurPrLiter) / tidligere.dieselDKEurPrLiter) * 100);
+        sammenlignDato = tidligere.dato;
+        // Diesel svinger langsomt - først ved større udsving er det værd at reagere på
+        if (pctAendring > 5) retning = "stigende";
+        else if (pctAendring < -5) retning = "faldende";
+        else retning = "stabil";
+    }
+
+    console.log("Dieselpris hentet: DK " + nytPunkt.dieselDKEurPrLiter + " EUR/l, DE " + nytPunkt.dieselDEEurPrLiter + " EUR/l");
+    return { ...nytPunkt, pctAendring30dage: pctAendring, sammenlignDato, retning };
 }
 
 async function hentPriser() {
@@ -731,8 +1110,7 @@ async function hentPriser() {
             antalPaaLager: null,
             ...specs,
             kilde: url
-        });
-    }
+        });    }
 
     await browser.close();
 
@@ -752,6 +1130,7 @@ async function hentPriser() {
 
     const dagensOpsummering = beregnDagligOpsummering(produkter, danskDato(), resultat.hentetDanskTid);
     const historik = opdaterHistorik(dagensOpsummering);
+    const lagerHistorik = opdaterLagerHistorik(produkter, danskDato());
 
     console.log("\nFærdig. Antal produkter:", produkter.length, "| Tid:", resultat.hentetDanskTid);
     console.log("Historik har nu", historik.length, "dag(e) med data.");
@@ -760,14 +1139,15 @@ async function hentPriser() {
 
     const browser2 = await chromium.launch({ headless: true });
     await hentTyskMarkedsindeks(browser2);
-    await browser2.close();
+    await hentTyskProduktion(browser2);
 
     let drivere = null;
     try {
-        drivere = await hentDrivere(produkter, dagensOpsummering);
+        drivere = await hentDrivere(produkter, dagensOpsummering, lagerHistorik, browser2);
     } catch (err) {
         console.warn("Kunne ikke samle drivere (springer over):", err.message);
     }
+    await browser2.close();
 
     await hentAiAnalyse(produkter, dagensOpsummering, drivere);
 }
