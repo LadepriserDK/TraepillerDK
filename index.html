@@ -150,6 +150,8 @@
   .driver-dot.g{background:var(--green)} .driver-dot.a{background:var(--amber)} .driver-dot.r{background:var(--red)}
   .driver-v{font-family:var(--font-display);font-weight:600;font-size:14.5px;margin-top:5px}
   .driver-info{grid-column:1/-1}
+  .driver-gruppe{grid-column:1/-1;font-family:var(--font-mono);font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+  .driver-gruppe:first-child{margin-top:0}
 
   /* Varsler */
   .alarm-input-row{display:flex;gap:8px;align-items:center;margin-top:10px}
@@ -718,10 +720,13 @@ function svgDonut(paaLagerN, udsolgtN, size){
 }
 
 const DRIVER_FORKLARINGER = {
-  vejr: "Fyringsbehovet de kommende 14 dage, målt i graddage: for hver dag lægges forskellen mellem 17 °C og døgnets middeltemperatur sammen. Jo koldere, jo mere fyres der, og jo større efterspørgsel efter træpiller. Sammenlignes med samme kalenderperiode sidste år. Kilde: Open-Meteo (DMI/ECMWF-modeller), målt for Østjylland.",
-  elpris: "Dansk elspotpris i DK1 (Jylland og Fyn), gennemsnit af de seneste 7 dage sammenlignet med ugen før - uden afgifter og moms. Stiger energipriserne generelt, følger træpiller typisk med op. Under -10% = Faldende, over +10% = Stigende. Kilde: Energi Data Service.",
-  lager: "Andel af Pillemadsens varer, der er på lager lige nu. Under 20% = Lav, 20-50% = Middel, over 50% = Høj. Lav lagerdækning presser prisen op, så længe efterspørgslen holder. Kilde: pillemadsen.dk.",
-  depi: "Det tyske markedsindeks sammenlignet med samme måned sidste år. Under -5% = Faldende, over +5% = Stigende. Det er et landsdækkende tysk gennemsnit, ikke Pillemadsens egen pris. Kilde: Deutsches Pelletinstitut (DEPI)."
+  vejrDE: "Fyringsbehovet i Tyskland de kommende 14 dage, målt i graddage (summen af grader under 17 °C). Koldt vejr i Tyskland øger det samlede tyske varmebehov og presser hele markedets pris op - det er den underliggende prisretning. Sammenlignes med samme kalenderperiode sidste år. Kilde: Open-Meteo (DWD/ECMWF-modeller), målt for Midttyskland.",
+  vejrDK: "Fyringsbehovet i Danmark de kommende 14 dage. Da de fleste af Pillemadsens kunder er danske, øger dansk kulde især DERES efterspørgsel og tømmer deres lager hurtigere - også selvom det tyske marked ikke rører sig. Det er derfor et tidligt lokalt varsel. Kilde: Open-Meteo, målt for Østjylland.",
+  elprisDE: "Tysk day-ahead elpris, gennemsnit af de seneste 7 dage mod ugen før. Strøm er en væsentlig omkostning i pelletproduktion (tørring og presning), så stigende elpriser presser produktionsomkostningerne op. Under -10% = Faldende, over +10% = Stigende. Kilde: Fraunhofer ISE / Energy-Charts.",
+  lager: "Andel af Pillemadsens varer på lager, samt udviklingen i det samlede antal enheder de seneste 7 dage. Hurtigt faldende lager er potentielt et tidligt varsel om prisstigning. Kilde: pillemadsen.dk. Bemærk at tendensen først bliver pålidelig, når der er gemt data i nogle uger.",
+  produktion: "Hvor mange ton træpiller der faktisk blev produceret i Tyskland i det seneste offentliggjorte kvartal. Høj produktion betyder god forsyning og dæmper prisen; lav produktion strammer markedet. Bemærk at over 90% af råmaterialet er savværksrester - så byggeaktivitet og savværksdrift er i praksis afgørende for råvareudbuddet. Opdateres kvartalsvis. Kilde: Deutsches Pelletinstitut (DEPI).",
+  diesel: "Dieselpris i Danmark inkl. afgifter, fra EU-Kommissionens ugentlige Oil Bulletin. Den påvirker ikke Pillemadsens hyldepris, men derimod hvad din vognmand skal have for at hente pillerne hjem - altså din SAMLEDE pris. Diesel svinger langsomt, så der skal mere end 5% til over en måned, før det regnes som en bevægelse. Kilde: EU-Kommissionen, Weekly Oil Bulletin.",
+  depi: "Det tyske markedsindeks sammenlignet med samme måned sidste år. Det er et landsdækkende tysk gennemsnit for ENplus A1-piller inkl. levering og moms - ikke Pillemadsens egen pris, som er ab lager i Harrislee. Brug det som markedsindikator, ikke som forventet Pillemadsen-pris. Kilde: Deutsches Pelletinstitut (DEPI)."
 };
 
 function driverKort(key, titel, vaerdi, underTekst, prik){
@@ -734,42 +739,33 @@ function driverKort(key, titel, vaerdi, underTekst, prik){
     </div>`;
 }
 
+function vejrKort(key, titel, v){
+  if (!v) return "";
+  let label = "Ukendt", prik = "a";
+  if (v.retning === "koldere"){ label = "Koldere"; prik = "r"; }
+  else if (v.retning === "mildere"){ label = "Mildere"; prik = "g"; }
+  else if (v.retning === "normalt"){ label = "Normalt"; prik = "a"; }
+  const under = v.pctAendringGraddage !== null
+    ? `${v.snitTemp14dage} °C · ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% fyringsbehov vs. sidste år`
+    : `${v.snitTemp14dage} °C snit de næste 14 dage`;
+  return driverKort(key, titel, label, under, prik);
+}
+
 function renderDrivers(){
-  const kort = [];
+  const tyskeKort = [], lokaleKort = [];
 
-  // Vejr
-  if (DRIVERE && DRIVERE.vejr){
-    const v = DRIVERE.vejr;
-    let label = "Ukendt", prik = "a";
-    if (v.retning === "koldere"){ label = "Koldere"; prik = "r"; }
-    else if (v.retning === "mildere"){ label = "Mildere"; prik = "g"; }
-    else if (v.retning === "normalt"){ label = "Normalt"; prik = "a"; }
-    const under = v.pctAendringGraddage !== null
-      ? `${v.snitTemp14dage} °C snit · ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% vs. sidste år`
-      : `${v.snitTemp14dage} °C snit de næste 14 dage`;
-    kort.push(driverKort("vejr", "Vejr / fyringsbehov", label, under, prik));
-  }
+  // --- Det tyske marked ---
+  if (DRIVERE && DRIVERE.vejrDE) tyskeKort.push(vejrKort("vejrDE", "Vejr i Tyskland", DRIVERE.vejrDE));
 
-  // Elpris
-  if (DRIVERE && DRIVERE.elpris && DRIVERE.elpris.snitSeneste7DageKrKwh !== null){
-    const e = DRIVERE.elpris;
+  if (DRIVERE && DRIVERE.elprisDE && DRIVERE.elprisDE.snitSeneste7DageEurMwh !== null){
+    const e = DRIVERE.elprisDE;
     let label = "Stabil", prik = "a";
     if (e.retning === "stigende"){ label = "Stigende"; prik = "r"; }
     else if (e.retning === "faldende"){ label = "Faldende"; prik = "g"; }
-    const under = `${e.snitSeneste7DageKrKwh} kr/kWh · ${e.pctAendring >= 0 ? "+" : ""}${e.pctAendring}% vs. ugen før`;
-    kort.push(driverKort("elpris", "Energimarked (el)", label, under, prik));
+    tyskeKort.push(driverKort("elprisDE", "Tysk elpris", label,
+      `${e.snitSeneste7DageEurMwh} €/MWh · ${e.pctAendring >= 0 ? "+" : ""}${e.pctAendring}% vs. ugen før`, prik));
   }
 
-  // Lager - beregnes altid, også uden drivere.json
-  const paaLager = RAW.filter(p => p.paaLager === true);
-  const andel = RAW.length ? paaLager.length / RAW.length : 0;
-  let lagerLabel, lagerPrik;
-  if (andel > 0.5){ lagerLabel = "Høj"; lagerPrik = "g"; }
-  else if (andel > 0.2){ lagerLabel = "Middel"; lagerPrik = "a"; }
-  else { lagerLabel = "Lav"; lagerPrik = "r"; }
-  kort.push(driverKort("lager", "Lagerstatus", lagerLabel, `${paaLager.length} af ${RAW.length} varer (${Math.round(andel*100)}%)`, lagerPrik));
-
-  // DEPI-prisretning
   let depiLabel = "Ukendt", depiPrik = "a", depiUnder = "";
   const maaneder = DEPI.maaneder;
   if (maaneder.length){
@@ -784,9 +780,54 @@ function renderDrivers(){
       depiUnder = `${seneste.dkkPrKg} kr/kg · ${pct >= 0 ? "+" : ""}${pct}% år-til-år`;
     }
   }
-  kort.push(driverKort("depi", "Tysk prisretning", depiLabel, depiUnder, depiPrik));
+  if (DRIVERE && DRIVERE.produktion){
+    const p = DRIVERE.produktion;
+    let label = "Stabil", prik = "a";
+    // Høj produktion = god forsyning = dæmper prisen (grøn for køber)
+    if (p.retning === "høj"){ label = "Høj"; prik = "g"; }
+    else if (p.retning === "lav"){ label = "Lav"; prik = "r"; }
+    const pct = p.pctVsSammeKvartalSidsteAar !== null ? p.pctVsSammeKvartalSidsteAar : p.pctVsForrigeKvartal;
+    let under = `${(p.produktionTon/1000).toLocaleString("da-DK")}.000 t · ${p.kvartal}`;
+    if (pct !== null) under += ` · ${pct >= 0 ? "+" : ""}${pct}%`;
+    tyskeKort.push(driverKort("produktion", "Tysk produktion", label, under, prik));
+  }
 
-  document.getElementById("driverGrid").innerHTML = kort.join("");
+  tyskeKort.push(driverKort("depi", "Tysk markedsindeks", depiLabel, depiUnder, depiPrik));
+
+  // --- Pillemadsen / grænsehandel ---
+  if (DRIVERE && DRIVERE.vejrDK) lokaleKort.push(vejrKort("vejrDK", "Vejr i Danmark", DRIVERE.vejrDK));
+
+  const paaLager = RAW.filter(p => p.paaLager === true);
+  const andel = RAW.length ? paaLager.length / RAW.length : 0;
+  let lagerLabel, lagerPrik;
+  if (andel > 0.5){ lagerLabel = "Høj"; lagerPrik = "g"; }
+  else if (andel > 0.2){ lagerLabel = "Middel"; lagerPrik = "a"; }
+  else { lagerLabel = "Lav"; lagerPrik = "r"; }
+  let lagerUnder = `${paaLager.length} af ${RAW.length} varer (${Math.round(andel*100)}%)`;
+  const t7 = DRIVERE && DRIVERE.lager && DRIVERE.lager.tendens7dage;
+  if (t7){
+    lagerUnder += ` · ${t7.pctAendring >= 0 ? "+" : ""}${t7.pctAendring}% enheder på 7 dage`;
+    if (t7.pctAendring <= -20) lagerPrik = "r";
+  }
+  lokaleKort.push(driverKort("lager", "Lager hos Pillemadsen", lagerLabel, lagerUnder, lagerPrik));
+
+  // --- Transport: påvirker din leverede pris, ikke hyldeprisen ---
+  const transportKort = [];
+  if (DRIVERE && DRIVERE.diesel && DRIVERE.diesel.dieselDKEurPrLiter !== null){
+    const d = DRIVERE.diesel;
+    let label = "Stabil", prik = "a";
+    if (d.retning === "stigende"){ label = "Stigende"; prik = "r"; }
+    else if (d.retning === "faldende"){ label = "Faldende"; prik = "g"; }
+    else if (d.retning === "ukendt"){ label = "Ny måling"; prik = "a"; }
+    let under = `${d.dieselDKEurPrLiter} €/l i DK`;
+    if (d.pctAendring30dage !== null) under += ` · ${d.pctAendring30dage >= 0 ? "+" : ""}${d.pctAendring30dage}% på 30 dage`;
+    transportKort.push(driverKort("diesel", "Diesel / fragt", label, under, prik));
+  }
+
+  document.getElementById("driverGrid").innerHTML =
+    `<div class="driver-gruppe">Det tyske marked</div>` + tyskeKort.join("") +
+    `<div class="driver-gruppe">Pillemadsen · grænsehandel</div>` + lokaleKort.join("") +
+    (transportKort.length ? `<div class="driver-gruppe">Transport · din leverede pris</div>` + transportKort.join("") : "");
 
   document.querySelectorAll("[data-driver]").forEach(btn => {
     btn.addEventListener("click", () => {
