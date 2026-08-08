@@ -154,8 +154,23 @@
   .driver-gruppe:first-child{margin-top:0}
 
   /* Varsler */
+  /* Browserens spinner-pile er alt for små at ramme på en telefon.
+     De skjules, og der bruges store +/- knapper i stedet. */
+  .tal-felt::-webkit-outer-spin-button,
+  .tal-felt::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .tal-felt{-moz-appearance:textfield;appearance:textfield}
+
   .alarm-input-row{display:flex;gap:8px;align-items:center;margin-top:10px}
-  .alarm-input-row input{flex:1}
+  .stepper{display:flex;align-items:center;gap:8px;flex:1}
+  .stepper input{flex:1;text-align:center;font-family:var(--font-mono);font-size:18px;font-weight:600;padding:12px 6px}
+  .step-btn{
+    width:52px;height:52px;flex:none;border-radius:12px;border:1px solid var(--line-strong);
+    background:var(--card);color:var(--green);font-size:24px;font-weight:600;line-height:1;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  }
+  .step-btn:active{background:var(--green-soft)}
+  .alarm-input-row button#alarmSaveBtn{min-height:52px;padding:0 18px}
   .alarm-input-row button{background:var(--green);color:#fff;border:0;border-radius:9px;padding:9px 14px;font-family:var(--font-mono);font-size:12px;font-weight:600;cursor:pointer}
   .alarm-status{margin-top:12px;padding:11px 13px;border-radius:10px;font-size:12.5px;display:flex;align-items:center;gap:8px}
   .alarm-status.under{background:var(--green-soft);color:var(--green)}
@@ -326,9 +341,14 @@
       <div class="section-title">Prisalarm</div>
       <div style="font-size:12.5px;color:var(--muted)">Sæt en grænse for billigste pris pr. kg (6-8 mm, på lager hos Pillemadsen). Vises her i appen, når du har den åben.</div>
       <div class="alarm-input-row">
-        <input type="number" step="0.05" id="alarmInput" placeholder="fx 2,60">
+        <div class="stepper">
+          <button type="button" class="step-btn" id="alarmMinus" aria-label="Sænk grænsen">&minus;</button>
+          <input type="number" inputmode="decimal" step="0.05" class="tal-felt" id="alarmInput" placeholder="2,60">
+          <button type="button" class="step-btn" id="alarmPlus" aria-label="Hæv grænsen">+</button>
+        </div>
         <button id="alarmSaveBtn">Gem</button>
       </div>
+      <div style="font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);margin-top:6px">kr pr. kg &middot; tryk &minus; og + for at justere med 5 øre</div>
       <div class="alarm-status" id="alarmStatus"></div>
       <div class="alarm-disclaimer">Gemmes kun i denne browser (localStorage). Appen er en almindelig hjemmeside og kan ikke sende push-beskeder, når den ikke er åben - tjek siden selv med jævne mellemrum.</div>
     </div>
@@ -386,6 +406,15 @@ let DEPI = FALLBACK_DEPI;
 let AI_DATA = null;
 let state = { mm: "6", maerker: [], sort: "pris-op", kunPaaLager: true, minBraendvaerdi: null, maxAske: null, maxFugt: null };
 let historikAar = "alle";
+
+// "2026-08-08" -> "08-08" (dd-mm) og "2026-07" -> "07-26" (mm-åå)
+function datoKort(iso){
+  if (!iso) return "";
+  const d = String(iso).split("-");
+  if (d.length >= 3) return d[2] + "-" + d[1];
+  if (d.length === 2) return d[1] + "-" + d[0].slice(2);
+  return iso;
+}
 
 function taltekst(v, decimaler, enhed){
   if (v === null || v === undefined) return "–";
@@ -618,7 +647,7 @@ function renderGauge(){
 
 function svgTrendChart(punkter, height, key, farve){
   const width = 340;
-  const padding = { top: 24, right: 10, bottom: 26, left: 10 };
+  const padding = { top: 28, right: 34, bottom: 30, left: 10 };
   if (!punkter.length) return "";
   const vals = punkter.map(p => p[key]);
   const min = Math.min(...vals), max = Math.max(...vals);
@@ -631,13 +660,25 @@ function svgTrendChart(punkter, height, key, farve){
     return [x,y];
   });
   const path = pts.map((p,i) => (i===0?"M":"L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+  // Uden en synlig skala kan et udsving på 5 øre ligne et dramatisk udsving.
+  // Derfor tegnes øverste og nederste værdi som stiplede linjer med tal på.
+  const yTop = padding.top, yBund = padding.top + chartH;
+  const skala =
+    `<line x1="${padding.left}" y1="${yTop}" x2="${width-padding.right}" y2="${yTop}" stroke="#e8e1d0" stroke-width="1" stroke-dasharray="3 3"/>` +
+    `<line x1="${padding.left}" y1="${yBund}" x2="${width-padding.right}" y2="${yBund}" stroke="#e8e1d0" stroke-width="1" stroke-dasharray="3 3"/>` +
+    `<text x="${width-padding.right}" y="${yTop-4}" text-anchor="end" font-size="9" font-family="IBM Plex Mono, monospace" fill="#9a9f8f">${max.toFixed(2)}</text>` +
+    `<text x="${width-padding.right}" y="${yBund+11}" text-anchor="end" font-size="9" font-family="IBM Plex Mono, monospace" fill="#9a9f8f">${min.toFixed(2)}</text>`;
   const dots = pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="${farve}"/>`).join("");
   const vLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${(p[1]-8).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="600" font-family="IBM Plex Mono, monospace" fill="#1e2b22">${punkter[i][key].toFixed(2)}</text>`).join("");
-  const dLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${height-8}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace" fill="#6b7568">${(punkter[i].dato||"").slice(5)}</text>`).join("");
+  const dLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${height-8}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace" fill="#6b7568">${datoKort(punkter[i].dato)}</text>`).join("");
+  const spaend = (max - min).toFixed(2).replace(".", ",");
   return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">
+    ${skala}
     <path d="${path}" fill="none" stroke="${farve}" stroke-width="2"/>
     ${dots}${vLabels}${dLabels}
-  </svg>`;
+  </svg>
+  <div style="font-size:10.5px;color:var(--muted);font-family:var(--font-mono);text-align:right;margin-top:2px">Grafen er zoomet ind: hele udsvinget er ${spaend} kr</div>`;
 }
 
 function renderTrendInto(id){
@@ -1116,6 +1157,17 @@ document.getElementById("yearChips").addEventListener("click", e => {
   historikAar = btn.dataset.aar;
   renderHistorik();
 });
+
+function justerAlarm(retning){
+  const felt = document.getElementById("alarmInput");
+  const nuvaerende = Number(String(felt.value).replace(",", ".")) || 2.60;
+  const ny = Math.max(0, Math.round((nuvaerende + retning * 0.05) * 100) / 100);
+  felt.value = ny.toFixed(2).replace(".", ",");
+  localStorage.setItem("traepille_alarm_graense", String(ny));
+  opdaterAlarmStatus();
+}
+document.getElementById("alarmMinus").addEventListener("click", () => justerAlarm(-1));
+document.getElementById("alarmPlus").addEventListener("click", () => justerAlarm(1));
 
 document.getElementById("alarmSaveBtn").addEventListener("click", () => {
   const v = document.getElementById("alarmInput").value.replace(",", ".").trim();
