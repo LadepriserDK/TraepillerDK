@@ -342,11 +342,53 @@ async function hentAiAnalyse(produkter, dagensOpsummering) {
                     { role: "user", content: userPrompt }
                 ],
                 temperature: 0.4,
-                max_tokens: 500
+                max_tokens: 400,
+                // Begrænser hvor meget websøgning modellen laver. Uden dette kan den
+                // samlede forespørgsel blive så stor, at Groq svarer med status 413.
+                compound_custom: {
+                    tools: {
+                        enabled_tools: ["web_search"]
+                    }
+                },
+                search_settings: {
+                    max_results: 3
+                }
             })
         });
 
-        if (!res.ok) throw new Error("Groq API svarede med status " + res.status);
+        if (!res.ok) {
+            // Falder tilbage til en almindelig model uden websøgning. Den kan ikke
+            // finde nyheder, men laver stadig en analyse ud fra dagens tal - bedre
+            // end slet ingen markedsanalyse.
+            console.warn("Søgemodellen svarede " + res.status + " - forsøger uden websøgning.");
+            const reserveRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + apiKey
+                },
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: "TAL: " + kontekst + "\n\nSkriv 4-5 sætninger på dansk med en markedsanalyse ud fra disse tal. Afslut med en forsigtig antydning af retningen." }
+                    ],
+                    temperature: 0.4,
+                    max_tokens: 400
+                })
+            });
+            if (!reserveRes.ok) throw new Error("Groq API svarede med status " + res.status + " (og reserve: " + reserveRes.status + ")");
+            const reserveJson = await reserveRes.json();
+            const reserveTekst = reserveJson.choices && reserveJson.choices[0] && reserveJson.choices[0].message && reserveJson.choices[0].message.content;
+            if (!reserveTekst) throw new Error("Intet svar-indhold fra reservemodellen");
+            fs.writeFileSync("ai-analyse.json", JSON.stringify({
+                genereretUTC: new Date().toISOString(),
+                genereretDanskTid: danskTid(),
+                tekst: reserveTekst.trim()
+            }, null, 2), "utf8");
+            console.log("Markedsanalyse gemt (uden websøgning).");
+            return;
+        }
         const json = await res.json();
         const tekst = json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content;
         if (!tekst) throw new Error("Intet svar-indhold fra AI'en");
