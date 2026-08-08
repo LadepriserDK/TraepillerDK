@@ -136,23 +136,27 @@ async function findKategoriProdukter(browser) {
     return fundne; // Map<fuld produkt-url, tekst fra oversigtssiden>
 }
 
-// Besøger hver produktside for at læse specifikationer (aske/fugt/brændværdi) OG
-// det konkrete lagerantal - begge dele findes kun her, ikke på oversigten.
-// Prisen hentes derimod fra oversigten, fordi produktsiden kan vise 0,00 kr,
-// indtil man selv har valgt en mængde.
+// Besøger hver produktside for at læse specifikationer (aske/fugt/brændværdi)
+// OG lagerbeholdning. Prisen hentes derimod fra oversigten, fordi produktsiden
+// kan vise 0,00 kr, indtil man selv har valgt en mængde.
+//
+// Lagerbeholdningen står som fx "50+ PÅ LAGER" eller "3 PÅ LAGER". Plusset
+// betyder "mindst" - Pillemadsen afrunder store beholdninger til 50+ og 100+.
+// Pas på ikke at forveksle med "66 sække a 15 kg", som er sække pr. palle.
 async function laesSpecsForProdukt(browser, url) {
     const page = await browser.newPage({ locale: "da-DK" });
     try {
         await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
         const bodyTekst = (await page.locator("body").textContent().catch(() => "")) || "";
-        const specs = udtraekSpecs(bodyTekst);
 
-        // Fx "66 På lager" eller "66\nPå lager"
-        let antalPaaLager = null;
-        const lagerMatch = bodyTekst.match(/(\d+)\s*\n?\s*På\s*lager/i);
-        if (lagerMatch) antalPaaLager = Number(lagerMatch[1]);
+        let antalPaaLager = null, antalErMindst = false;
+        const lagerMatch = bodyTekst.match(/(\d+)\s*(\+)?\s*P[ÅA]\s*LAGER/i);
+        if (lagerMatch) {
+            antalPaaLager = Number(lagerMatch[1]);
+            antalErMindst = Boolean(lagerMatch[2]);
+        }
 
-        return { ...specs, antalPaaLager };
+        return { ...udtraekSpecs(bodyTekst), antalPaaLager, antalErMindst };
     } catch (err) {
         console.warn("Kunne ikke læse produktside " + url + ": " + err.message);
         return {};
@@ -350,8 +354,19 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere) {
         if (drivere && drivere.lager) {
             const lg = drivere.lager;
             let l = `Lager hos Pillemadsen: ${lg.antalPaaLager} af ${lg.antalTotal} varer på lager (${lg.andelProcent}%).`;
-            if (lg.samletAntalEnheder !== null) l += ` Samlet ${lg.samletAntalEnheder} enheder på tværs af ${lg.varerMedAntal} varer.`;
-            if (lg.tendens7dage) l += ` Lagerbeholdningen er ændret ${lg.tendens7dage.pctAendring >= 0 ? "+" : ""}${lg.tendens7dage.pctAendring}% de seneste 7 dage.`;
+            const t = lg.tendens7dage;
+            if (t) {
+                l += ` For 7 dage siden var det ${t.varerFoer} varer (${t.pctAendring >= 0 ? "+" : ""}${t.pctAendring}%).`;
+                if (t.beholdning) {
+                    l += ` Samlet lagerbeholdning er gået fra ${t.beholdning.sumFoer} til ${t.beholdning.sumNu} paller (${t.beholdning.pctAendring >= 0 ? "+" : ""}${t.beholdning.pctAendring}%).`;
+                }
+                if (t.stoersteFald && t.stoersteFald.length) {
+                    l += ` Størst fald: ` + t.stoersteFald.map(f => `${f.maerke} fra ${f.fra} til ${f.til}`).join(", ") + ".";
+                }
+                if (t.maerkerGaaetUdsolgt.length) {
+                    l += ` Gået helt udsolgt: ${t.maerkerGaaetUdsolgt.join(", ")}.`;
+                }
+            }
             if (udsolgteMaerker.length) l += ` Helt udsolgte mærker: ${udsolgteMaerker.join(", ")}.`;
             linjerLokal.push(l);
         }
@@ -788,13 +803,10 @@ async function hentDrivere(produkter, dagensOpsummering, lagerHistorik, browser)
 
     const paaLager = produkter.filter(p => p.paaLager === true);
     const andel = produkter.length ? paaLager.length / produkter.length : 0;
-    const medAntal = produkter.filter(p => typeof p.antalPaaLager === "number");
     drivere.lager = {
         antalPaaLager: paaLager.length,
         antalTotal: produkter.length,
         andelProcent: Math.round(andel * 100),
-        samletAntalEnheder: medAntal.length ? medAntal.reduce((s, p) => s + p.antalPaaLager, 0) : null,
-        varerMedAntal: medAntal.length,
         tendens7dage: lagerTendens(lagerHistorik, 7),
         tendens30dage: lagerTendens(lagerHistorik, 30),
         retning: andel > 0.5 ? "høj" : (andel > 0.2 ? "middel" : "lav"),
@@ -868,9 +880,10 @@ async function hentDrivere(produkter, dagensOpsummering, lagerHistorik, browser)
     return drivere;
 }
 
-// Gemmer et dagligt øjebliksbillede af lagerantal og pris pr. produkt.
-// Over tid gør det os i stand til at se, om hurtigt faldende lager kommer
-// FØR en prisstigning - potentielt appens stærkeste tidlige købssignal.
+// Gemmer et dagligt øjebliksbillede af lagerbeholdning og pris pr. produkt.
+// Pillemadsen afrunder store beholdninger til "50+" og "100+", så tallene er
+// grove i toppen - men et fald fra 100+ til fx 12 er et tydeligt signal, og
+// det er netop de fald, der kommer før en prisstigning.
 function opdaterLagerHistorik(produkter, dato) {
     let historik = [];
     try {
@@ -880,11 +893,18 @@ function opdaterLagerHistorik(produkter, dato) {
         historik = [];
     }
 
+    const paaLager = produkter.filter(p => p.paaLager === true);
     const dagensPost = {
         dato,
-        varer: produkter
-            .filter(p => p.antalPaaLager !== null && p.antalPaaLager !== undefined)
-            .map(p => ({ produkt: p.produkt, maerke: p.maerke, antal: p.antalPaaLager, prisPrKg: p.prisPrKg }))
+        antalPaaLager: paaLager.length,
+        antalTotal: produkter.length,
+        varer: paaLager.map(p => ({
+            produkt: p.produkt,
+            maerke: p.maerke,
+            prisPrKg: p.prisPrKg,
+            antal: typeof p.antalPaaLager === "number" ? p.antalPaaLager : null,
+            antalErMindst: Boolean(p.antalErMindst)
+        }))
     };
 
     const idx = historik.findIndex(h => h.dato === dato);
@@ -896,11 +916,14 @@ function opdaterLagerHistorik(produkter, dato) {
     if (historik.length > 400) historik = historik.slice(historik.length - 400);
 
     fs.writeFileSync("lager-historik.json", JSON.stringify(historik, null, 2), "utf8");
-    console.log("Lagerhistorik har nu " + historik.length + " dag(e) med data (" + dagensPost.varer.length + " varer med antal i dag).");
+    const medAntal = dagensPost.varer.filter(v => v.antal !== null).length;
+    console.log("Lagerhistorik har nu " + historik.length + " dag(e) med data (" +
+        dagensPost.antalPaaLager + " af " + dagensPost.antalTotal + " varer på lager, " +
+        medAntal + " med beholdningstal).");
     return historik;
 }
 
-// Beregner udviklingen i samlet lagerantal over de seneste dage.
+// Beregner udviklingen i ANTAL VARER på lager over de seneste dage.
 function lagerTendens(lagerHistorik, dage) {
     if (!Array.isArray(lagerHistorik) || lagerHistorik.length < 2) return null;
     const sidste = lagerHistorik[lagerHistorik.length - 1];
@@ -909,15 +932,55 @@ function lagerTendens(lagerHistorik, dage) {
     const tidligere = lagerHistorik.filter(h => h.dato <= maalDato).pop() || lagerHistorik[0];
     if (tidligere.dato === sidste.dato) return null;
 
-    const sum = post => post.varer.reduce((s, v) => s + (v.antal || 0), 0);
-    const nu = sum(sidste), foer = sum(tidligere);
+    const antalVarer = post => (typeof post.antalPaaLager === "number" ? post.antalPaaLager : post.varer.length);
+    const nu = antalVarer(sidste), foer = antalVarer(tidligere);
     if (foer === 0) return null;
+
+    // Hvilke mærker er røget af lager i perioden?
+    const foerMaerker = new Set(tidligere.varer.map(v => v.maerke));
+    const nuMaerker = new Set(sidste.varer.map(v => v.maerke));
+    const forsvundne = Array.from(foerMaerker).filter(m => !nuMaerker.has(m));
+
+    // Samlet beholdning, hvor vi har tal. Bemærk at "50+" tælles som 50, så
+    // summen er et minimum - den kan ikke bruges til at måle stigninger i
+    // toppen, men et fald er reelt.
+    const sumBeholdning = post => {
+        const med = post.varer.filter(v => typeof v.antal === "number");
+        return med.length ? { sum: med.reduce((s, v) => s + v.antal, 0), varer: med.length } : null;
+    };
+    const behNu = sumBeholdning(sidste), behFoer = sumBeholdning(tidligere);
+    let beholdning = null;
+    if (behNu && behFoer && behFoer.sum > 0) {
+        beholdning = {
+            sumNu: behNu.sum,
+            sumFoer: behFoer.sum,
+            pctAendring: Math.round(((behNu.sum - behFoer.sum) / behFoer.sum) * 100),
+            varerMedTal: behNu.varer
+        };
+    }
+
+    // Enkeltvarer med markant fald - det stærkeste tidlige signal
+    const stoersteFald = [];
+    for (const foerVare of tidligere.varer) {
+        if (typeof foerVare.antal !== "number" || foerVare.antal <= 0) continue;
+        const nuVare = sidste.varer.find(v => v.produkt === foerVare.produkt);
+        const nuAntal = nuVare && typeof nuVare.antal === "number" ? nuVare.antal : 0;
+        const pct = Math.round(((nuAntal - foerVare.antal) / foerVare.antal) * 100);
+        if (pct <= -25) {
+            stoersteFald.push({ produkt: foerVare.produkt, maerke: foerVare.maerke, fra: foerVare.antal, til: nuAntal, pctAendring: pct });
+        }
+    }
+    stoersteFald.sort((a, b) => a.pctAendring - b.pctAendring);
+
     return {
         fraDato: tidligere.dato,
         tilDato: sidste.dato,
-        antalNu: nu,
-        antalFoer: foer,
-        pctAendring: Math.round(((nu - foer) / foer) * 100)
+        varerNu: nu,
+        varerFoer: foer,
+        pctAendring: Math.round(((nu - foer) / foer) * 100),
+        maerkerGaaetUdsolgt: forsvundne,
+        beholdning,
+        stoersteFald: stoersteFald.slice(0, 3)
     };
 }
 
@@ -1106,7 +1169,9 @@ async function hentPriser() {
 
         const prisMatch = tekst.match(/(\d[\d.]*,\d{2})\s*DKK\s*pr\.?\s*kg/i);
         const prisPrKg = prisMatch ? tal(prisMatch[1].replace(/\./g, "")) : null;
-        const paaLager = /ikke\s*på\s*lager/i.test(tekst) ? false : (/på\s*lager/i.test(tekst) ? true : null);
+        const forlaengetLevering = /forlænget\s*lev/i.test(tekst);
+        const paaLager = /ikke\s*på\s*lager/i.test(tekst) ? false
+            : (forlaengetLevering ? false : (/på\s*lager/i.test(tekst) ? true : null));
 
         let specs = {};
         try {
@@ -1122,7 +1187,9 @@ async function hentPriser() {
             mm: mmFraNavn(navn),
             prisPrKg,
             paaLager,
+            forlaengetLevering,
             antalPaaLager: null,
+            antalErMindst: false,
             ...specs,
             kilde: url
         });    }
