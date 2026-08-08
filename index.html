@@ -303,8 +303,13 @@
     </div>
     <div class="minmax-row" id="minmaxRow"></div>
     <div class="card" style="margin-top:12px">
-      <div class="section-title">Sæsonmønster</div>
-      <div class="ai-text">Træpillepriser i Tyskland er erfaringsmæssigt lavest om sommeren (maj-august) og højest i fyringssæsonen (november-januar) - men det polske tilskudsprogram til pilleovne fra 2025 har presset niveauet op på tværs af hele sæsonen sammenlignet med tidligere år.</div>
+      <div class="section-title">
+        Sæsonmønster
+        <button class="info-btn" id="saesonInfoBtn">&#9432;</button>
+      </div>
+      <div class="ai-text" id="saesonTekst"></div>
+      <div id="saesonKurve" style="margin-top:10px"></div>
+      <div class="info-box" id="saesonInfoBox">Beregnet ud fra de DEPI-måneder, vi har data for. Månederne grupperes i sommer (maj-august), efterår (september-oktober), fyringssæson (november-januar) og forår (februar-april), og gennemsnitsprisen sammenlignes. Med under et års data er billedet stadig ufuldstændigt - teksten siger til, når grundlaget er tyndt.</div>
     </div>
     <div class="card" style="margin-top:12px">
       <div class="section-title">Pillemadsens priser dag for dag</div>
@@ -476,6 +481,7 @@ async function loadData(){
   } catch (err) { /* DRIVERE forbliver null */ }
 
   populateBrands();
+  renderSaeson();
   renderHero();
   renderStats();
   renderGauge();
@@ -797,6 +803,63 @@ function render(){
 }
 
 /* ---------- Historik ---------- */
+const SAESONER = [
+  { navn: "Sommer", maaneder: [5,6,7,8], kort: "maj-aug" },
+  { navn: "Efterår", maaneder: [9,10], kort: "sep-okt" },
+  { navn: "Fyringssæson", maaneder: [11,12,1], kort: "nov-jan" },
+  { navn: "Forår", maaneder: [2,3,4], kort: "feb-apr" }
+];
+
+function renderSaeson(){
+  const el = document.getElementById("saesonTekst");
+  const kurveEl = document.getElementById("saesonKurve");
+  const maaneder = DEPI.maaneder;
+
+  const grupper = SAESONER.map(s => {
+    const punkter = maaneder.filter(m => s.maaneder.includes(Number(m.dato.split("-")[1])));
+    return {
+      ...s,
+      antal: punkter.length,
+      snit: punkter.length ? punkter.reduce((sum,p) => sum + p.dkkPrKg, 0) / punkter.length : null
+    };
+  });
+
+  const medData = grupper.filter(g => g.snit !== null);
+  if (medData.length < 2){
+    el.textContent = "Der er endnu ikke data for nok måneder til at vise et sæsonmønster. Det tegner sig, efterhånden som robotten samler flere måneder af det tyske markedsindeks.";
+    kurveEl.innerHTML = "";
+    return;
+  }
+
+  const billigst = medData.slice().sort((a,b) => a.snit - b.snit)[0];
+  const dyrest = medData.slice().sort((a,b) => b.snit - a.snit)[0];
+  const forskelPct = Math.round(((dyrest.snit - billigst.snit) / billigst.snit) * 100);
+
+  // Hvor er vi lige nu?
+  const nuMaaned = new Date().getMonth() + 1;
+  const nuSaeson = SAESONER.find(s => s.maaneder.includes(nuMaaned));
+
+  let t = `Ud fra de ${maaneder.length} måneder, vi har data for, er ${billigst.navn.toLowerCase()} (${billigst.kort}) billigst med ${taltekst(billigst.snit,2," kr/kg")} i snit, og ${dyrest.navn.toLowerCase()} (${dyrest.kort}) dyrest med ${taltekst(dyrest.snit,2," kr/kg")} - en forskel på ${forskelPct}%. `;
+  if (nuSaeson){
+    const nuGruppe = grupper.find(g => g.navn === nuSaeson.navn);
+    if (nuGruppe && nuGruppe.snit !== null){
+      if (nuGruppe.navn === billigst.navn) t += `Vi er nu i ${nuSaeson.navn.toLowerCase()}, altså den billigste del af året i vores data.`;
+      else if (nuGruppe.navn === dyrest.navn) t += `Vi er nu i ${nuSaeson.navn.toLowerCase()}, altså den dyreste del af året i vores data.`;
+      else t += `Vi er nu i ${nuSaeson.navn.toLowerCase()}, som ligger midt imellem med ${taltekst(nuGruppe.snit,2," kr/kg")} i snit.`;
+    } else {
+      t += `Vi er nu i ${nuSaeson.navn.toLowerCase()}, som vi endnu ikke har data for.`;
+    }
+  }
+  if (maaneder.length < 12){
+    t += " Bemærk at der er under et års data endnu, så mønsteret kan ændre sig.";
+  }
+  el.textContent = t;
+
+  // Lille søjlegraf over sæsonerne
+  const barData = medData.map(g => ({ label: g.kort, value: g.snit }));
+  kurveEl.innerHTML = barData.length ? svgBarChart(barData, 150) : "";
+}
+
 function renderHistorik(){
   const alle = DEPI.maaneder;
   const filtreret = historikAar === "alle" ? alle : alle.filter(m => m.dato.startsWith(historikAar));
@@ -1106,6 +1169,9 @@ document.getElementById("gaugeInfoBtn").addEventListener("click", () => {
 });
 document.getElementById("ownTrendInfoBtn").addEventListener("click", () => {
   document.getElementById("ownTrendInfoBox").classList.toggle("open");
+});
+document.getElementById("saesonInfoBtn").addEventListener("click", () => {
+  document.getElementById("saesonInfoBox").classList.toggle("open");
 });
 document.getElementById("mmSeg").addEventListener("click", e => {
   const btn = e.target.closest("button");
