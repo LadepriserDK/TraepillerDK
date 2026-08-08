@@ -31,13 +31,25 @@ function tal(s) {
 const KENDTE_MAERKER = [
     "German Pellets", "Barlinek", "Heatlets", "Fågelfors", "Laxå", "Sylva",
     "Vida", "Fabich", "RW", "Olimp", "Lava", "Biomasa", "Samba", "Fireheat",
-    "Vildbjerg", "Egetræpiller", "Olczyk", "HP"
+    "Vildbjerg", "Egetræpiller", "Olczyk", "HP", "Mix Pellets", "Big Bags"
 ];
 function maerkeFraNavn(navn) {
     for (const m of KENDTE_MAERKER) {
         if (navn.toLowerCase().includes(m.toLowerCase())) return m;
     }
-    return navn.split(" ")[0];
+    if (/no\s*name/i.test(navn)) return "No name";
+    // Fjern indledende størrelsesangivelser som "6 mm " og "8mm ", så et
+    // produktnavn som "6 mm Mix Pellets" ikke ender med mærket "6"
+    const uden = navn.replace(/^\s*\d{1,2}\s*mm\s*/i, "").trim();
+    const foerste = (uden || navn).split(/\s+/)[0];
+    // Et rent tal er aldrig et mærke
+    return /^\d+$/.test(foerste) ? "Ukendt mærke" : foerste;
+}
+
+// "15/990 kg" eller "16/832" -> 990 / 832 kg pr. palle
+function kgPrPalleFraNavn(navn) {
+    const m = navn.match(/(\d{1,3})\s*\/\s*(\d{3,4})/);
+    return m ? Number(m[2]) : null;
 }
 
 function typeFraNavn(navn) {
@@ -322,8 +334,14 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere) {
 
         if (drivere && drivere.vejrDE) {
             const v = drivere.vejrDE;
-            let l = `Vejr i Tyskland: ${v.snitTemp14dage} °C i snit de kommende 14 dage (${v.graddage14dage} graddage).`;
-            if (v.pctAendringGraddage !== null) l += ` ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% fyringsbehov vs. samme periode sidste år - ${v.retning}.`;
+            let l = `Vejr i Tyskland: ${v.snitTemp14dage} °C i snit de kommende 14 dage.`;
+            if (!v.fyringssaeson) {
+                l += ` Det er uden for fyringssæsonen - varmebehovet er minimalt, og vejret påvirker derfor ikke efterspørgslen nævneværdigt lige nu.`;
+            } else if (v.pctAendringGraddage !== null) {
+                l += ` Fyringsbehovet (${v.graddage14dage} graddage) er ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% i forhold til samme periode sidste år - ${v.retning}.`;
+            } else if (v.gradForskelVsSidsteAar !== null) {
+                l += ` Det er ${Math.abs(v.gradForskelVsSidsteAar)} grader ${v.gradForskelVsSidsteAar >= 0 ? "varmere" : "koldere"} end samme periode sidste år.`;
+            }
             linjerDE.push(l);
         }
         if (drivere && drivere.elprisDE && drivere.elprisDE.snitSeneste7DageEurMwh !== null) {
@@ -347,8 +365,14 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere) {
 
         if (drivere && drivere.vejrDK) {
             const v = drivere.vejrDK;
-            let l = `Vejr i Danmark: ${v.snitTemp14dage} °C i snit de kommende 14 dage (${v.graddage14dage} graddage).`;
-            if (v.pctAendringGraddage !== null) l += ` ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% fyringsbehov vs. sidste år - ${v.retning}.`;
+            let l = `Vejr i Danmark: ${v.snitTemp14dage} °C i snit de kommende 14 dage.`;
+            if (!v.fyringssaeson) {
+                l += ` Uden for fyringssæsonen - dansk efterspørgsel er derfor ikke vejrdrevet lige nu.`;
+            } else if (v.pctAendringGraddage !== null) {
+                l += ` Fyringsbehovet (${v.graddage14dage} graddage) er ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% vs. sidste år - ${v.retning}.`;
+            } else if (v.gradForskelVsSidsteAar !== null) {
+                l += ` ${Math.abs(v.gradForskelVsSidsteAar)} grader ${v.gradForskelVsSidsteAar >= 0 ? "varmere" : "koldere"} end sidste år.`;
+            }
             linjerLokal.push(l);
         }
         if (drivere && drivere.lager) {
@@ -651,13 +675,31 @@ async function hentVejrdriver(bredde, laengde, stednavn) {
     const snit = Math.round((prognoseTemps.reduce((a, b) => a + b, 0) / prognoseTemps.length) * 10) / 10;
     const gd = Math.round(graddage(prognoseTemps));
 
-    let retning = "ukendt", pctAendring = null;
-    if (sidsteAarGraddage !== null && sidsteAarGraddage > 0) {
+    // Om sommeren er graddagene nær nul, og så bliver procentændringer
+    // meningsløse (1 graddag mod 0,3 giver +233%, uden at nogen fyrer).
+    // Derfor kræves et reelt fyringsbehov, før procenten bruges - ellers
+    // sammenlignes temperaturen direkte i stedet.
+    const MIN_GRADDAGE_FOR_PROCENT = 40; // ca. 3 grader under 17 i 14 dage
+    let retning = "ukendt", pctAendring = null, fyringssaeson = gd >= MIN_GRADDAGE_FOR_PROCENT;
+
+    if (fyringssaeson && sidsteAarGraddage !== null && sidsteAarGraddage >= MIN_GRADDAGE_FOR_PROCENT) {
         pctAendring = Math.round(((gd - sidsteAarGraddage) / sidsteAarGraddage) * 100);
         if (pctAendring > 15) retning = "koldere";
         else if (pctAendring < -15) retning = "mildere";
         else retning = "normalt";
+    } else if (sidsteAarSnit !== null) {
+        // Uden for fyringssæsonen sammenlignes temperaturen direkte
+        const gradForskel = Math.round((snit - sidsteAarSnit) * 10) / 10;
+        if (!fyringssaeson) retning = "uden for fyringssæson";
+        else if (gradForskel < -1.5) retning = "koldere";
+        else if (gradForskel > 1.5) retning = "mildere";
+        else retning = "normalt";
+    } else if (!fyringssaeson) {
+        retning = "uden for fyringssæson";
     }
+
+    const gradForskelVsSidsteAar = sidsteAarSnit !== null
+        ? Math.round((snit - sidsteAarSnit) * 10) / 10 : null;
 
     return {
         sted: stednavn,
@@ -666,6 +708,8 @@ async function hentVejrdriver(bredde, laengde, stednavn) {
         graddageSammeTidSidsteAar: sidsteAarGraddage,
         snitTempSidsteAar: sidsteAarSnit,
         pctAendringGraddage: pctAendring,
+        gradForskelVsSidsteAar,
+        fyringssaeson,
         retning,
         kilde: "Open-Meteo (DMI/ECMWF-modeller)"
     };
@@ -1169,6 +1213,11 @@ async function hentPriser() {
 
         const prisMatch = tekst.match(/(\d[\d.]*,\d{2})\s*DKK\s*pr\.?\s*kg/i);
         const prisPrKg = prisMatch ? tal(prisMatch[1].replace(/\./g, "")) : null;
+
+        // Pallepris: første DKK-beløb, når kilo-prisen er fjernet fra teksten
+        const udenKgPris = tekst.replace(/\d[\d.]*,\d{2}\s*DKK\s*pr\.?\s*kg/gi, " ");
+        const palleMatch = udenKgPris.match(/(\d[\d.]*,\d{2})\s*DKK/i);
+        const prisPrPalle = palleMatch ? tal(palleMatch[1].replace(/\./g, "")) : null;
         const forlaengetLevering = /forlænget\s*lev/i.test(tekst);
         const paaLager = /ikke\s*på\s*lager/i.test(tekst) ? false
             : (forlaengetLevering ? false : (/på\s*lager/i.test(tekst) ? true : null));
@@ -1186,6 +1235,8 @@ async function hentPriser() {
             type: typeFraNavn(navn),
             mm: mmFraNavn(navn),
             prisPrKg,
+            prisPrPalle,
+            kgPrPalle: kgPrPalleFraNavn(navn),
             paaLager,
             forlaengetLevering,
             antalPaaLager: null,
