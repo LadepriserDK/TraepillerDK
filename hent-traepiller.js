@@ -315,23 +315,18 @@ async function hentAiAnalyse(produkter, dagensOpsummering) {
         ].filter(Boolean).join(" ");
 
         const systemPrompt =
-            "Du er en kort, nøgtern markedsanalytiker for det dansk-tyske træpillemarked. Du har adgang til at søge " +
-            "på nettet efter aktuelle nyheder og forhold, der påvirker markedet. Du svarer altid på dansk, i " +
-            "almindelig løbende tekst - ingen markdown, ingen overskrifter, ingen punktopstilling, ingen emojis. " +
-            "Brug de tal, du får oplyst i beskeden, sammen med det du finder ved søgning - men opfind aldrig tal, " +
-            "citater eller kilder, du ikke faktisk har fundet. Tonen er rolig og faktuel - hverken sælgende eller " +
-            "alarmerende - og du giver ikke direkte købsråd eller finansiel rådgivning.";
+            "Du er en kort, nøgtern markedsanalytiker for det dansk-tyske træpillemarked med adgang til websøgning. " +
+            "Svar altid på dansk i almindelig løbende tekst - ingen markdown, overskrifter, punktopstilling eller emojis. " +
+            "Opfind aldrig tal, citater eller kilder. Rolig og faktuel tone, ingen købsråd eller finansiel rådgivning.";
 
         const userPrompt =
-            "Søg efter aktuelle nyheder og markedsforhold, der kan forklare situationen på det danske og tyske " +
-            "træpillemarked lige nu - fx forsyningsproblemer, det polske statstilskud til pilleovne (indført 2025, " +
-            "som har reduceret polsk eksport af træpiller), vejrudsigt/fyringssæson, energipriser i øvrigt, eller " +
-            "andre relevante begivenheder fra den seneste tid.\n\n" +
-            "KOMBINÉR det du finder med disse tal:\n" + kontekst + "\n\n" +
-            "OPGAVE: Skriv 4-6 sætninger på dansk med en samlet markedsanalyse - både hvad tallene viser, og hvad " +
-            "du har fundet af forklaringer i nyhederne. Nævn kort hvor en central oplysning kommer fra (fx 'ifølge " +
-            "nyheder fra...'), hvis du bruger noget fra søgningen. Du må gerne afslutte med en kort, forsigtig " +
-            "antydning af retningen (stigende, faldende eller stabil) - men undgå bombastiske konklusioner.";
+            "Søg efter aktuelle nyheder om det danske og tyske træpillemarked - fx forsyningsproblemer, " +
+            "det polske statstilskud til pilleovne fra 2025 (som har reduceret polsk eksport), fyringssæson " +
+            "eller energipriser.\n\n" +
+            "TAL: " + kontekst + "\n\n" +
+            "Skriv 4-6 sætninger på dansk med en samlet markedsanalyse ud fra tallene og det, du finder. " +
+            "Nævn kort hvor en central oplysning kommer fra. Afslut gerne med en forsigtig antydning af " +
+            "retningen (stigende, faldende eller stabil).";
 
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
