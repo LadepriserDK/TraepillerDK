@@ -1,0 +1,28 @@
+{
+  "hentetUTC": "2026-08-08T05:40:09.484Z",
+  "hentetDanskTid": "08.08.2026, 07.40.09",
+  "vejr": {
+    "snitTemp14dage": 16.5,
+    "graddage14dage": 15,
+    "graddageSammeTidSidsteAar": 8,
+    "snitTempSidsteAar": 17.1,
+    "pctAendringGraddage": 88,
+    "retning": "koldere",
+    "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
+  },
+  "elpris": null,
+  "lager": {
+    "antalPaaLager": 6,
+    "antalTotal": 27,
+    "andelProcent": 22,
+    "retning": "middel",
+    "kilde": "Pillemadsen.dk"
+  },
+  "depi": {
+    "dato": "2026-07",
+    "dkkPrKg": 2.9,
+    "pctAarTilAar": 28,
+    "retning": "stigende",
+    "kilde": "Deutsches Pelletinstitut (DEPI)"
+  }
+}
