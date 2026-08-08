@@ -279,9 +279,9 @@
       <div class="pop-group">
         <label>Specifikationsgrænser</label>
         <div class="spec-fields">
-          <div><label>Min. brændv.</label><input type="number" step="0.1" id="minBraendvaerdi" placeholder="kWh/kg"></div>
-          <div><label>Maks. aske</label><input type="number" step="0.1" id="maxAske" placeholder="%"></div>
-          <div><label>Maks. fugt</label><input type="number" step="0.5" id="maxFugt" placeholder="%"></div>
+          <div><label>Min. brændv.</label><input type="text" inputmode="decimal" class="tal-felt" id="minBraendvaerdi" placeholder="kWh/kg"></div>
+          <div><label>Maks. aske</label><input type="text" inputmode="decimal" class="tal-felt" id="maxAske" placeholder="%"></div>
+          <div><label>Maks. fugt</label><input type="text" inputmode="decimal" class="tal-felt" id="maxFugt" placeholder="%"></div>
         </div>
       </div>
       <button class="clear-btn" id="clearAdv">Ryd alle filtre</button>
@@ -345,7 +345,7 @@
       <div class="alarm-input-row">
         <div class="stepper">
           <button type="button" class="step-btn" id="alarmMinus" aria-label="Sænk grænsen">&minus;</button>
-          <input type="number" inputmode="decimal" step="0.05" class="tal-felt" id="alarmInput" placeholder="2,60">
+          <input type="text" inputmode="decimal" class="tal-felt" id="alarmInput" placeholder="2,60">
           <button type="button" class="step-btn" id="alarmPlus" aria-label="Hæv grænsen">+</button>
         </div>
         <button id="alarmSaveBtn">Gem</button>
@@ -1044,7 +1044,7 @@ function renderMarked(){
 /* ---------- Varsler ---------- */
 function renderVarsler(){
   const gemt = localStorage.getItem("traepille_alarm_graense");
-  if (gemt) document.getElementById("alarmInput").value = gemt;
+  if (gemt) document.getElementById("alarmInput").value = String(gemt).replace(".", ",");
   opdaterAlarmStatus();
 
   const paaLager = RAW.filter(p => p.paaLager === true);
