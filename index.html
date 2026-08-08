@@ -60,7 +60,7 @@
 
   .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
   .stat-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 10px}
-  .stat-card .k{font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono)}
+  .stat-card .k{font-size:10.5px;color:var(--text);font-family:var(--font-mono);font-weight:500}
   .stat-card .v{font-family:var(--font-display);font-weight:600;font-size:16px;margin-top:3px;display:flex;align-items:center;gap:3px}
   .stat-card .v.op{color:var(--red)} .stat-card .v.ned{color:var(--green)} .stat-card .v.na{color:var(--muted-2);font-size:13px}
   .stat-card .d{font-size:10.5px;color:var(--muted);margin-top:2px}
@@ -105,7 +105,7 @@
 
   .summary{display:flex;gap:8px;margin-bottom:12px}
   .sum-card{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
-  .sum-card .k{font-size:9.5px;color:var(--muted-2);font-family:var(--font-mono);text-transform:uppercase}
+  .sum-card .k{font-size:9.5px;color:var(--text);font-family:var(--font-mono);text-transform:uppercase;font-weight:500}
   .sum-card .v{font-family:var(--font-display);font-weight:600;font-size:15px}
 
   .grid{display:grid;grid-template-columns:1fr;gap:10px}
@@ -118,12 +118,12 @@
   .stock.ja{background:var(--green-soft);color:var(--green)}
   .stock.nej{background:var(--red-soft);color:var(--red)}
   .stock.ukendt{background:var(--line);color:var(--muted)}
-  .pcard-navn{font-size:11.5px;color:var(--muted)}
+  .pcard-navn{font-size:11.5px;color:var(--text)}
   .pcard-price{font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--text)}
   .pcard-price .u{font-size:11px;color:var(--muted);font-weight:400}
   .pcard-price.na{font-size:14px;color:var(--muted);font-weight:500}
   .pspecs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;border-top:1px solid var(--line);padding-top:8px}
-  .pspecs .k{font-size:9px;color:var(--muted-2);font-family:var(--font-mono);text-transform:uppercase}
+  .pspecs .k{font-size:9px;color:var(--text);font-family:var(--font-mono);text-transform:uppercase;font-weight:500}
   .pspecs .v{font-family:var(--font-mono);font-size:11.5px}
   .pcard-link{font-family:var(--font-mono);font-size:10.5px;color:var(--green);text-decoration:none}
 
@@ -138,16 +138,16 @@
   .minmax-card .k{font-size:11px;font-family:var(--font-mono);display:flex;align-items:center;gap:5px}
   .minmax-card.low .k{color:var(--green)} .minmax-card.high .k{color:var(--red)}
   .minmax-card .v{font-family:var(--font-display);font-weight:700;font-size:19px;margin-top:4px}
-  .minmax-card .d{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .minmax-card .d{font-size:10.5px;color:var(--text);margin-top:2px}
 
   /* Marked */
   .ai-text{font-size:13px;line-height:1.65;color:var(--text)}
   .driver-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .driver-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
   .driver-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
-  .driver-k{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:5px}
+  .driver-k{font-size:11.5px;color:var(--text);font-weight:500;display:flex;align-items:center;gap:5px}
   .driver-dot{width:7px;height:7px;border-radius:50%;flex:none}
-  .driver-dot.g{background:var(--green)} .driver-dot.a{background:var(--amber)} .driver-dot.r{background:var(--red)}
+  .driver-dot.g{background:var(--green)} .driver-dot.a{background:#9a9f8f} .driver-dot.r{background:var(--red)}
   .driver-v{font-family:var(--font-display);font-weight:600;font-size:14.5px;margin-top:5px}
   .driver-info{grid-column:1/-1}
   .driver-gruppe{grid-column:1/-1;font-family:var(--font-mono);font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
@@ -215,12 +215,17 @@
       <div class="gauge-track"><div class="gauge-marker" id="gaugeMarker" style="left:50%"></div></div>
       <div class="gauge-label" id="gaugeLabel">–</div>
       <div class="gauge-sub" id="gaugeSub">Beregner…</div>
-      <div class="info-box" id="gaugeInfoBox">Beregnes ud fra, hvor dagens DEPI-pris ligger i forhold til det laveste og højeste punkt i de data, vi kender (ca. de seneste 18 måneder, udvalgte måneder). Nederste tredjedel af spændet = "God købstid", midten = "Neutral", øverste tredjedel = "Afvent". Det er en simpel tommelfingerregel, ikke en finansiel anbefaling.</div>
+      <div class="info-box" id="gaugeInfoBox">Vejer flere forhold sammen frem for kun prisen: hvor dagens DEPI-pris ligger i det kendte spænd, hvor stor lagerdækningen er hos Pillemadsen, om lagerbeholdningen falder hurtigt, om markedet ligger over eller under sidste år, hvor vi er i fyringssæsonen, og om der ventes koldere vejr i Tyskland. En høj pris kan derfor godt give "God købstid", hvis lageret tømmes og alt peger opad - og omvendt. Teksten under viser de to forhold, der vejer tungest lige nu. Det er en tommelfingerregel, ikke en finansiel anbefaling.</div>
     </div>
 
     <div class="card" style="margin-top:12px">
-      <div class="section-title">Jeres egen prisudvikling</div>
+      <div class="section-title">
+        Pillemadsens priser dag for dag
+        <button class="info-btn" id="ownTrendInfoBtn">&#9432;</button>
+      </div>
+      <div style="font-size:11.5px;color:var(--muted);margin:-4px 0 8px">Gennemsnitspris for 6 mm piller på lager, målt hver morgen siden robotten startede.</div>
       <div class="mini-chart-wrap" id="ownTrendChart"></div>
+      <div class="info-box" id="ownTrendInfoBox">Hver morgen gemmes gennemsnitsprisen for de 6 mm træpiller, der faktisk er på lager hos Pillemadsen. Det er altså jeres egen målte prisudvikling hos den forhandler, I køber hos - i modsætning til det tyske markedsindeks, som er et landsgennemsnit. Grafen bliver først rigtig interessant efter nogle ugers data.</div>
     </div>
 
     <div class="list-head">
@@ -285,7 +290,8 @@
       <div class="ai-text">Træpillepriser i Tyskland er erfaringsmæssigt lavest om sommeren (maj-august) og højest i fyringssæsonen (november-januar) - men det polske tilskudsprogram til pilleovne fra 2025 har presset niveauet op på tværs af hele sæsonen sammenlignet med tidligere år.</div>
     </div>
     <div class="card" style="margin-top:12px">
-      <div class="section-title">Jeres egne data siden robotten startede</div>
+      <div class="section-title">Pillemadsens priser dag for dag</div>
+      <div style="font-size:11.5px;color:var(--muted);margin:-4px 0 8px">Gennemsnitspris for 6 mm piller på lager, målt hver morgen.</div>
       <div id="ownTrendChart2"></div>
     </div>
   </div>
@@ -367,6 +373,7 @@ const HISTORIK_URL = "./historik.json";
 const DEPI_URL = "./tysk-markedsindeks.json";
 const AI_URL = "./ai-analyse.json";
 const DRIVERE_URL = "./drivere.json";
+const EUR_TIL_DKK = 7.46;
 
 let DRIVERE = null;
 
@@ -520,24 +527,98 @@ function renderStats(){
     statHtml("Vs. sidste år", sidsteAar, sidsteAar ? seneste : null, sidsteAar ? (sidsteAar.dato + " → " + seneste.dato) : "Ingen data for samme måned");
 }
 
+// Købsvurderingen vejer flere forhold sammen. Prisniveauet alene er ikke nok:
+// en høj pris kan sagtens være værd at købe på, hvis lageret tømmes og
+// markedet er på vej op - og en lav pris kan være værd at vente på, hvis alt
+// peger nedad. Skalaen går fra -1 (køb nu) til +1 (afvent).
 function renderGauge(){
   const vals = DEPI.maaneder.map(m => m.dkkPrKg);
   if (!vals.length) return;
+
+  const bidrag = [];   // {vaegt, score, tekst} - score fra -1 (køb) til +1 (vent)
+
+  // 1) Hvor ligger prisen i det kendte spænd?
   const min = Math.min(...vals), max = Math.max(...vals);
   const seneste = DEPI.maaneder[DEPI.maaneder.length - 1];
-  const pos = max > min ? (seneste.dkkPrKg - min) / (max - min) : 0.5;
+  const prisPos = max > min ? (seneste.dkkPrKg - min) / (max - min) : 0.5;
+  bidrag.push({
+    vaegt: 1.0,
+    score: (prisPos - 0.5) * 2,
+    tekst: prisPos <= 0.33 ? "prisen er i den billige ende af det kendte spænd"
+         : prisPos >= 0.66 ? "prisen er i den dyre ende af det kendte spænd"
+         : "prisen ligger midt i det kendte spænd"
+  });
+
+  // 2) Lagerdækning - lavt lager taler for at købe nu
+  const paaLager = RAW.filter(p => p.paaLager === true);
+  const andel = RAW.length ? paaLager.length / RAW.length : 0;
+  if (RAW.length){
+    bidrag.push({
+      vaegt: 1.2,
+      score: andel < 0.2 ? -1 : (andel < 0.4 ? -0.5 : (andel > 0.6 ? 0.5 : 0)),
+      tekst: andel < 0.2 ? "meget få varer er på lager"
+           : andel < 0.4 ? "lagerdækningen er tynd"
+           : andel > 0.6 ? "der er god lagerdækning" : "lagerdækningen er middel"
+    });
+  }
+
+  // 3) Falder lageret hurtigt? Stærkeste tidlige signal
+  const t7 = DRIVERE && DRIVERE.lager && DRIVERE.lager.tendens7dage;
+  if (t7 && t7.beholdning){
+    const p = t7.beholdning.pctAendring;
+    if (p <= -25) bidrag.push({ vaegt: 1.3, score: -1, tekst: "lagerbeholdningen falder hurtigt" });
+    else if (p <= -10) bidrag.push({ vaegt: 0.8, score: -0.5, tekst: "lagerbeholdningen er faldende" });
+    else if (p >= 15) bidrag.push({ vaegt: 0.6, score: 0.5, tekst: "lagerbeholdningen bygges op igen" });
+  }
+
+  // 4) Markedets retning år-til-år
+  if (DRIVERE && DRIVERE.depi && DRIVERE.depi.pctAarTilAar !== null){
+    const p = DRIVERE.depi.pctAarTilAar;
+    if (p > 10) bidrag.push({ vaegt: 1.0, score: -0.7, tekst: "markedet ligger markant over sidste år og er trukket opad" });
+    else if (p < -10) bidrag.push({ vaegt: 1.0, score: 0.7, tekst: "markedet ligger markant under sidste år" });
+  }
+
+  // 5) Sæson - fyringssæsonen presser prisen op
+  const maaned = new Date().getMonth() + 1;
+  if (maaned >= 5 && maaned <= 8){
+    bidrag.push({ vaegt: 0.9, score: -0.6, tekst: "det er sommer, hvor priserne typisk er lavest på året" });
+  } else if (maaned >= 11 || maaned <= 1){
+    bidrag.push({ vaegt: 0.9, score: 0.4, tekst: "vi er midt i fyringssæsonen, hvor priserne typisk topper" });
+  }
+
+  // 6) Koldt vejr på vej i Tyskland strammer markedet
+  const vDE = DRIVERE && DRIVERE.vejrDE;
+  if (vDE && vDE.fyringssaeson && vDE.retning === "koldere"){
+    bidrag.push({ vaegt: 0.8, score: -0.7, tekst: "der ventes koldere vejr i Tyskland end sidste år" });
+  }
+
+  const samletVaegt = bidrag.reduce((s,b) => s + b.vaegt, 0);
+  const samletScore = bidrag.reduce((s,b) => s + b.vaegt * b.score, 0) / (samletVaegt || 1);
+  const pos = Math.min(1, Math.max(0, (samletScore + 1) / 2));
+
   document.getElementById("gaugeMarker").style.left = (pos*100).toFixed(1) + "%";
-  let label, sub;
-  if (pos <= 0.33){ label = "God købstid"; sub = "Prisen ligger i den billige ende af det spænd, vi kender."; }
-  else if (pos <= 0.66){ label = "Neutral"; sub = "Prisen ligger midt i det kendte spænd."; }
-  else { label = "Afvent"; sub = "Prisen ligger i den dyre ende af det spænd, vi kender."; }
+
+  let label;
+  if (samletScore <= -0.35) label = "God købstid";
+  else if (samletScore >= 0.35) label = "Afvent";
+  else label = "Neutral";
+
+  // Forklar med de to tungest vejende forhold, der peger samme vej som resultatet
+  const relevante = bidrag
+    .filter(b => (samletScore < 0 ? b.score < 0 : (samletScore > 0 ? b.score > 0 : b.score !== 0)))
+    .sort((a,b) => (Math.abs(b.vaegt*b.score)) - (Math.abs(a.vaegt*a.score)))
+    .slice(0, 2)
+    .map(b => b.tekst);
+
   document.getElementById("gaugeLabel").textContent = label;
-  document.getElementById("gaugeSub").textContent = sub;
+  document.getElementById("gaugeSub").textContent = relevante.length
+    ? "Fordi " + relevante.join(", og ") + "."
+    : "Signalerne peger i hver sin retning lige nu.";
 }
 
 function svgTrendChart(punkter, height, key, farve){
-  const width = 1000;
-  const padding = { top: 28, right: 16, bottom: 28, left: 16 };
+  const width = 340;
+  const padding = { top: 24, right: 10, bottom: 26, left: 10 };
   if (!punkter.length) return "";
   const vals = punkter.map(p => p[key]);
   const min = Math.min(...vals), max = Math.max(...vals);
@@ -550,9 +631,9 @@ function svgTrendChart(punkter, height, key, farve){
     return [x,y];
   });
   const path = pts.map((p,i) => (i===0?"M":"L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
-  const dots = pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="${farve}"/>`).join("");
-  const vLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${(p[1]-10).toFixed(1)}" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="${farve}">${punkter[i][key].toFixed(2)}</text>`).join("");
-  const dLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${height-10}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace" fill="#9a9f8f">${(punkter[i].dato||"").slice(5)}</text>`).join("");
+  const dots = pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="${farve}"/>`).join("");
+  const vLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${(p[1]-8).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="600" font-family="IBM Plex Mono, monospace" fill="#1e2b22">${punkter[i][key].toFixed(2)}</text>`).join("");
+  const dLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${height-8}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace" fill="#6b7568">${(punkter[i].dato||"").slice(5)}</text>`).join("");
   return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">
     <path d="${path}" fill="none" stroke="${farve}" stroke-width="2"/>
     ${dots}${vLabels}${dLabels}
@@ -641,9 +722,16 @@ function render(){
     const lagerTekst = p.paaLager === true
       ? (typeof p.antalPaaLager === "number" ? p.antalPaaLager + (p.antalErMindst ? "+" : "") + " på lager" : "På lager")
       : (p.forlaengetLevering ? "Forlænget lev.tid" : (p.paaLager === false ? "Udsolgt" : "Ukendt"));
-    const prisHtml = p.prisPrKg !== null
-      ? `<span class="pcard-price">${taltekst(p.prisPrKg,2,"")}<span class="u"> kr/kg</span></span>`
-      : `<span class="pcard-price na">Ring for pris</span>`;
+    let prisHtml;
+    if (p.prisPrKg !== null){
+      prisHtml = `<span class="pcard-price">${taltekst(p.prisPrKg,2,"")}<span class="u"> kr/kg</span></span>`;
+      if (typeof p.prisPrPalle === "number"){
+        prisHtml += `<div style="font-size:12px;color:var(--text);margin-top:-2px">${taltekst(p.prisPrPalle,2," kr")} pr. palle` +
+          (typeof p.kgPrPalle === "number" ? ` · ${p.kgPrPalle} kg` : "") + `</div>`;
+      }
+    } else {
+      prisHtml = `<span class="pcard-price na">Ring for pris</span>`;
+    }
     const harSpecs = p.braendvaerdiMinKwhKg !== null || p.fugtMaxProcent !== null || p.askeMaxProcent !== null;
     const specsHtml = harSpecs ? `
         <div class="pspecs">
@@ -687,11 +775,12 @@ function renderHistorik(){
 
 /* ---------- Marked ---------- */
 function svgBarChart(data, height){
-  const width = 1000;
-  const padding = { top: 22, right: 6, bottom: 34, left: 6 };
+  // Smal viewBox, så teksten ikke skrumper til ulæselighed på en telefon
+  const width = 340;
+  const padding = { top: 20, right: 4, bottom: 30, left: 4 };
   if (!data.length) return "";
   const maxVal = Math.max(...data.map(d => d.value), 0.1);
-  const gap = 10;
+  const gap = 6;
   const barW = (width - padding.left - padding.right - gap*(data.length-1)) / Math.max(data.length,1);
   const chartH = height - padding.top - padding.bottom;
   let out = "";
@@ -699,9 +788,9 @@ function svgBarChart(data, height){
     const x = padding.left + i*(barW+gap);
     const h = (d.value/maxVal) * chartH;
     const y = padding.top + (chartH - h);
-    out += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="5" fill="#2f6b45"></rect>`;
-    out += `<text x="${(x+barW/2).toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="#2f6b45">${d.value.toFixed(2)}</text>`;
-    out += `<text x="${(x+barW/2).toFixed(1)}" y="${height-16}" text-anchor="middle" font-size="9.5" font-family="IBM Plex Mono, monospace" fill="#6b7568">${d.label}</text>`;
+    out += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="#2f6b45"></rect>`;
+    out += `<text x="${(x+barW/2).toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="600" font-family="IBM Plex Mono, monospace" fill="#1e2b22">${d.value.toFixed(2)}</text>`;
+    out += `<text x="${(x+barW/2).toFixed(1)}" y="${height-14}" text-anchor="middle" font-size="10" font-family="IBM Plex Mono, monospace" fill="#1e2b22">${d.label}</text>`;
   });
   return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">${out}</svg>`;
 }
@@ -712,7 +801,7 @@ function svgDonut(paaLagerN, udsolgtN, size){
   const circ = 2*Math.PI*r;
   const len = circ * (paaLagerN/total);
   return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e8e1d0" stroke-width="16"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#b6482f" stroke-width="16"/>
     <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#2f6b45" stroke-width="16"
       stroke-dasharray="${len.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
     <text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="22" font-weight="700" font-family="Fraunces, serif" fill="#1e2b22">${Math.round(paaLagerN/total*100)}%</text>
@@ -723,6 +812,7 @@ function svgDonut(paaLagerN, udsolgtN, size){
 const DRIVER_FORKLARINGER = {
   vejrDE: "Fyringsbehovet i Tyskland de kommende 14 dage, målt i graddage (summen af grader under 17 °C). Koldt vejr i Tyskland øger det samlede tyske varmebehov og presser hele markedets pris op - det er den underliggende prisretning. Sammenlignes med samme kalenderperiode sidste år. Kilde: Open-Meteo (DWD/ECMWF-modeller), målt for Midttyskland.",
   vejrDK: "Fyringsbehovet i Danmark de kommende 14 dage. Da de fleste af Pillemadsens kunder er danske, øger dansk kulde især DERES efterspørgsel og tømmer deres lager hurtigere - også selvom det tyske marked ikke rører sig. Det er derfor et tidligt lokalt varsel. Kilde: Open-Meteo, målt for Østjylland.",
+  elprisDK: "Dansk day-ahead elpris i DK1 (Jylland og Fyn), gennemsnit af de seneste 7 dage mod ugen før - uden afgifter og moms. Den siger ikke direkte noget om træpiller, men er en god indikator for det generelle energimarked: stiger el og gas, følger alternative varmekilder som træpiller typisk med op. Kilde: Energi Data Service.",
   elprisDE: "Tysk day-ahead elpris, gennemsnit af de seneste 7 dage mod ugen før. Strøm er en væsentlig omkostning i pelletproduktion (tørring og presning), så stigende elpriser presser produktionsomkostningerne op. Under -10% = Faldende, over +10% = Stigende. Kilde: Fraunhofer ISE / Energy-Charts.",
   lager: "Hvor mange varer der er på lager, og hvordan den samlede beholdning har ændret sig de seneste 7 dage. Pillemadsen viser antal paller pr. vare, men afrunder store beholdninger til 50+ og 100+ - så tallene er grove i toppen, og summen skal læses som et minimum. Et fald er til gengæld reelt, og hurtigt faldende beholdning er et tidligt varsel om prisstigning, før den slår igennem på hyldeprisen. Kilde: pillemadsen.dk. Tendensen bliver først pålidelig efter nogle ugers data.",
   produktion: "Hvor mange ton træpiller der faktisk blev produceret i Tyskland i det seneste offentliggjorte kvartal. Høj produktion betyder god forsyning og dæmper prisen; lav produktion strammer markedet. Bemærk at over 90% af råmaterialet er savværksrester - så byggeaktivitet og savværksdrift er i praksis afgørende for råvareudbuddet. Opdateres kvartalsvis. Kilde: Deutsches Pelletinstitut (DEPI).",
@@ -746,9 +836,17 @@ function vejrKort(key, titel, v){
   if (v.retning === "koldere"){ label = "Koldere"; prik = "r"; }
   else if (v.retning === "mildere"){ label = "Mildere"; prik = "g"; }
   else if (v.retning === "normalt"){ label = "Normalt"; prik = "a"; }
-  const under = v.pctAendringGraddage !== null
-    ? `${v.snitTemp14dage} °C · ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% fyringsbehov vs. sidste år`
-    : `${v.snitTemp14dage} °C snit de næste 14 dage`;
+  else if (v.retning === "uden for fyringssæson"){ label = "Sommer"; prik = "a"; }
+
+  let under = `${v.snitTemp14dage} °C snit de næste 14 dage`;
+  if (v.fyringssaeson && v.pctAendringGraddage !== null){
+    under += ` · ${v.pctAendringGraddage >= 0 ? "+" : ""}${v.pctAendringGraddage}% fyringsbehov vs. sidste år`;
+  } else if (!v.fyringssaeson){
+    under += " · minimalt fyringsbehov";
+    if (v.gradForskelVsSidsteAar !== null){
+      under += `, ${Math.abs(v.gradForskelVsSidsteAar)}° ${v.gradForskelVsSidsteAar >= 0 ? "varmere" : "koldere"} end sidste år`;
+    }
+  }
   return driverKort(key, titel, label, under, prik);
 }
 
@@ -763,8 +861,9 @@ function renderDrivers(){
     let label = "Stabil", prik = "a";
     if (e.retning === "stigende"){ label = "Stigende"; prik = "r"; }
     else if (e.retning === "faldende"){ label = "Faldende"; prik = "g"; }
+    const dkkKwh = (e.snitSeneste7DageEurMwh * EUR_TIL_DKK / 1000).toFixed(2).replace(".", ",");
     tyskeKort.push(driverKort("elprisDE", "Tysk elpris", label,
-      `${e.snitSeneste7DageEurMwh} €/MWh · ${e.pctAendring >= 0 ? "+" : ""}${e.pctAendring}% vs. ugen før`, prik));
+      `${e.snitSeneste7DageEurMwh} €/MWh (${dkkKwh} kr/kWh) · ${e.pctAendring >= 0 ? "+" : ""}${e.pctAendring}% vs. ugen før`, prik));
   }
 
   let depiLabel = "Ukendt", depiPrik = "a", depiUnder = "";
@@ -828,6 +927,15 @@ function renderDrivers(){
   }
   lokaleKort.push(driverKort("lager", "Lager hos Pillemadsen", lagerLabel, lagerUnder, lagerPrik));
 
+  if (DRIVERE && DRIVERE.elprisDK && DRIVERE.elprisDK.snitSeneste7DageKrKwh !== null){
+    const e = DRIVERE.elprisDK;
+    let label = "Stabil", prik = "a";
+    if (e.retning === "stigende"){ label = "Stigende"; prik = "r"; }
+    else if (e.retning === "faldende"){ label = "Faldende"; prik = "g"; }
+    lokaleKort.push(driverKort("elprisDK", "Dansk elpris", label,
+      `${String(e.snitSeneste7DageKrKwh).replace(".", ",")} kr/kWh · ${e.pctAendring >= 0 ? "+" : ""}${e.pctAendring}% vs. ugen før`, prik));
+  }
+
   // --- Transport: påvirker din leverede pris, ikke hyldeprisen ---
   const transportKort = [];
   if (DRIVERE && DRIVERE.diesel && DRIVERE.diesel.dieselDKEurPrLiter !== null){
@@ -836,7 +944,11 @@ function renderDrivers(){
     if (d.retning === "stigende"){ label = "Stigende"; prik = "r"; }
     else if (d.retning === "faldende"){ label = "Faldende"; prik = "g"; }
     else if (d.retning === "ukendt"){ label = "Ny måling"; prik = "a"; }
-    let under = `${d.dieselDKEurPrLiter} €/l i DK`;
+    const dkkLiter = (d.dieselDKEurPrLiter * EUR_TIL_DKK).toFixed(2).replace(".", ",");
+    let under = `${dkkLiter} kr/l i DK (${String(d.dieselDKEurPrLiter).replace(".", ",")} €/l)`;
+    if (d.dieselDEEurPrLiter !== null){
+      under += ` · DE ${(d.dieselDEEurPrLiter * EUR_TIL_DKK).toFixed(2).replace(".", ",")} kr/l`;
+    }
     if (d.pctAendring30dage !== null) under += ` · ${d.pctAendring30dage >= 0 ? "+" : ""}${d.pctAendring30dage}% på 30 dage`;
     transportKort.push(driverKort("diesel", "Diesel / fragt", label, under, prik));
   }
@@ -876,7 +988,7 @@ function renderMarked(){
   const perMaerke = {};
   medPris.forEach(p => { if (!perMaerke[p.maerke]) perMaerke[p.maerke] = []; perMaerke[p.maerke].push(p.prisPrKg); });
   const barData = Object.keys(perMaerke).map(m => ({
-    label: m.length > 9 ? m.slice(0,8)+"…" : m,
+    label: m.length > 7 ? m.slice(0,6)+"." : m,
     value: perMaerke[m].reduce((s,v)=>s+v,0)/perMaerke[m].length
   })).sort((a,b) => a.value - b.value);
   document.getElementById("brandBarChart").innerHTML = barData.length
@@ -948,6 +1060,9 @@ document.getElementById("gearBtn").addEventListener("click", () => {
 });
 document.getElementById("gaugeInfoBtn").addEventListener("click", () => {
   document.getElementById("gaugeInfoBox").classList.toggle("open");
+});
+document.getElementById("ownTrendInfoBtn").addEventListener("click", () => {
+  document.getElementById("ownTrendInfoBox").classList.toggle("open");
 });
 document.getElementById("mmSeg").addEventListener("click", e => {
   const btn = e.target.closest("button");
