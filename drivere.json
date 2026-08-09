@@ -1,35 +1,41 @@
 {
-  "hentetUTC": "2026-08-08T12:35:35.287Z",
-  "hentetDanskTid": "08.08.2026, 14.35.35",
+  "hentetUTC": "2026-08-09T06:26:16.871Z",
+  "hentetDanskTid": "09.08.2026, 08.26.16",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 16.8,
-    "graddage14dage": 12,
-    "graddageSammeTidSidsteAar": 8,
-    "snitTempSidsteAar": 17.1,
+    "snitTemp14dage": 16.9,
+    "graddage14dage": 13,
+    "graddageSammeTidSidsteAar": 11,
+    "snitTempSidsteAar": 16.8,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": -0.3,
+    "gradForskelVsSidsteAar": 0.1,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 19.5,
-    "graddage14dage": 4,
-    "graddageSammeTidSidsteAar": 1,
-    "snitTempSidsteAar": 20.6,
+    "snitTemp14dage": 19.6,
+    "graddage14dage": 3,
+    "graddageSammeTidSidsteAar": 4,
+    "snitTempSidsteAar": 20.2,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": -1.1,
+    "gradForskelVsSidsteAar": -0.6,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
-  "elprisDK": null,
+  "elprisDK": {
+    "snitSeneste7DageKrKwh": 0.83,
+    "snitForrige7DageKrKwh": 1,
+    "pctAendring": -17,
+    "retning": "faldende",
+    "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
+  },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 116.9,
-    "snitForrige7DageEurMwh": 110.6,
-    "pctAendring": 6,
+    "snitSeneste7DageEurMwh": 111.7,
+    "snitForrige7DageEurMwh": 116.3,
+    "pctAendring": -4,
     "retning": "stabil",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
@@ -37,15 +43,43 @@
     "antalPaaLager": 6,
     "antalTotal": 27,
     "andelProcent": 22,
-    "tendens7dage": null,
-    "tendens30dage": null,
+    "tendens7dage": {
+      "fraDato": "2026-08-08",
+      "tilDato": "2026-08-09",
+      "varerNu": 6,
+      "varerFoer": 6,
+      "pctAendring": 0,
+      "maerkerGaaetUdsolgt": [],
+      "beholdning": {
+        "sumNu": 360,
+        "sumFoer": 360,
+        "pctAendring": 0,
+        "varerMedTal": 6
+      },
+      "stoersteFald": []
+    },
+    "tendens30dage": {
+      "fraDato": "2026-08-08",
+      "tilDato": "2026-08-09",
+      "varerNu": 6,
+      "varerFoer": 6,
+      "pctAendring": 0,
+      "maerkerGaaetUdsolgt": [],
+      "beholdning": {
+        "sumNu": 360,
+        "sumFoer": 360,
+        "pctAendring": 0,
+        "varerMedTal": 6
+      },
+      "stoersteFald": []
+    },
     "retning": "middel",
     "kilde": "Pillemadsen.dk"
   },
   "depi": {
-    "dato": "2026-07",
-    "dkkPrKg": 2.9,
-    "pctAarTilAar": 28,
+    "dato": "2026-06",
+    "dkkPrKg": 2.81,
+    "pctAarTilAar": 24,
     "retning": "stigende",
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
@@ -60,7 +94,7 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-08-08",
+    "dato": "2026-08-09",
     "dieselDKEurPrLiter": 2.264,
     "dieselDEEurPrLiter": 2.208,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202024-02-19.xlsx",
