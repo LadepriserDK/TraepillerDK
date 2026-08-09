@@ -1,6 +1,6 @@
 {
-  "hentetUTC": "2026-08-09T08:54:35.751Z",
-  "hentetDanskTid": "09.08.2026, 10.54.35",
+  "hentetUTC": "2026-08-09T09:19:44.300Z",
+  "hentetDanskTid": "09.08.2026, 11.19.44",
   "vejrDK": {
     "sted": "Østjylland",
     "snitTemp14dage": 16.7,
@@ -33,8 +33,8 @@
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 112.6,
-    "snitForrige7DageEurMwh": 115.3,
+    "snitSeneste7DageEurMwh": 112.9,
+    "snitForrige7DageEurMwh": 115,
     "pctAendring": -2,
     "retning": "stabil",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
