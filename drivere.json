@@ -1,26 +1,26 @@
 {
-  "hentetUTC": "2026-08-09T06:26:16.871Z",
-  "hentetDanskTid": "09.08.2026, 08.26.16",
+  "hentetUTC": "2026-08-09T08:02:36.544Z",
+  "hentetDanskTid": "09.08.2026, 10.02.36",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 16.9,
-    "graddage14dage": 13,
+    "snitTemp14dage": 16.7,
+    "graddage14dage": 15,
     "graddageSammeTidSidsteAar": 11,
     "snitTempSidsteAar": 16.8,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": 0.1,
+    "gradForskelVsSidsteAar": -0.1,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 19.6,
-    "graddage14dage": 3,
+    "snitTemp14dage": 19.7,
+    "graddage14dage": 2,
     "graddageSammeTidSidsteAar": 4,
     "snitTempSidsteAar": 20.2,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": -0.6,
+    "gradForskelVsSidsteAar": -0.5,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
@@ -28,14 +28,14 @@
   "elprisDK": {
     "snitSeneste7DageKrKwh": 0.83,
     "snitForrige7DageKrKwh": 1,
-    "pctAendring": -17,
+    "pctAendring": -18,
     "retning": "faldende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 111.7,
-    "snitForrige7DageEurMwh": 116.3,
-    "pctAendring": -4,
+    "snitSeneste7DageEurMwh": 112.2,
+    "snitForrige7DageEurMwh": 115.8,
+    "pctAendring": -3,
     "retning": "stabil",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
@@ -51,12 +51,20 @@
       "pctAendring": 0,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 360,
+        "sumNu": 330,
         "sumFoer": 360,
-        "pctAendring": 0,
+        "pctAendring": -8,
         "varerMedTal": 6
       },
-      "stoersteFald": []
+      "stoersteFald": [
+        {
+          "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
+          "maerke": "Barlinek",
+          "fra": 50,
+          "til": 20,
+          "pctAendring": -60
+        }
+      ]
     },
     "tendens30dage": {
       "fraDato": "2026-08-08",
@@ -66,12 +74,20 @@
       "pctAendring": 0,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 360,
+        "sumNu": 330,
         "sumFoer": 360,
-        "pctAendring": 0,
+        "pctAendring": -8,
         "varerMedTal": 6
       },
-      "stoersteFald": []
+      "stoersteFald": [
+        {
+          "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
+          "maerke": "Barlinek",
+          "fra": 50,
+          "til": 20,
+          "pctAendring": -60
+        }
+      ]
     },
     "retning": "middel",
     "kilde": "Pillemadsen.dk"
