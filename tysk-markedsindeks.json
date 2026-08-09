@@ -1,68 +1,98 @@
 {
   "kilde": "Deutsches Pelletinstitut (DEPI), https://www.depi.de/pelletpreis-wirtschaftlichkeit/",
-  "metode": "Landsdækkende gennemsnitspris i Tyskland for 1 t ENplus A1-træpiller ved 6 t afhentning, inkl. leveringsomkostninger og moms. Offentliggøres månedligt af DEPI (indtil 2020 af DEPV).",
-  "note": "Delvis dataserie - kun udvalgte måneder er bekræftet fra flere kilder. Robotten forsøger selv at supplere med nye måneder, men fejler stille hvis DEPI's side ændrer sig.",
   "eurPrDkk": 7.46,
   "maaneder": [
     {
       "dato": "2025-01",
       "eurPrTon": 306.35,
-      "dkkPrKg": 2.29,
-      "kilde": "https://www.tga-fachplaner.de/meldungen/energietraeger-januar-2026-holzpelletpreis-steigt-auf-40533-euro-t"
+      "dkkPrKg": 2.29
+    },
+    {
+      "dato": "2025-02",
+      "eurPrTon": 363.21,
+      "dkkPrKg": 2.71
     },
     {
       "dato": "2025-03",
       "eurPrTon": 380.2,
-      "dkkPrKg": 2.84,
-      "kilde": "https://www.raiffeisen-agil.de/portal/meldungen/depi-preisindex-mrz-2025-900000631-10008.html"
+      "dkkPrKg": 2.84
+    },
+    {
+      "dato": "2025-04",
+      "eurPrTon": 343.14,
+      "dkkPrKg": 2.56
+    },
+    {
+      "dato": "2025-05",
+      "eurPrTon": 315.89,
+      "dkkPrKg": 2.36
     },
     {
       "dato": "2025-06",
       "eurPrTon": 302.45,
-      "dkkPrKg": 2.26,
-      "kilde": "https://www.gabot.de/ansicht/depi-pelletpreis-bleibt-im-juli-stabil-436602.html"
+      "dkkPrKg": 2.26
     },
     {
       "dato": "2025-07",
       "eurPrTon": 302.69,
-      "dkkPrKg": 2.26,
-      "kilde": "https://www.gabot.de/ansicht/depi-pelletpreis-bleibt-im-juli-stabil-436602.html"
+      "dkkPrKg": 2.26
+    },
+    {
+      "dato": "2025-08",
+      "eurPrTon": 310.82,
+      "dkkPrKg": 2.32
+    },
+    {
+      "dato": "2025-09",
+      "eurPrTon": 335.04,
+      "dkkPrKg": 2.5
     },
     {
       "dato": "2025-10",
       "eurPrTon": 366.25,
-      "dkkPrKg": 2.73,
-      "kilde": "https://www.depi.de/mediathek/d/pelletpreis-steigt-im-oktober-mit-beginn-der-heizsaison/"
+      "dkkPrKg": 2.73
     },
     {
       "dato": "2025-11",
       "eurPrTon": 392.62,
-      "dkkPrKg": 2.93,
-      "kilde": "https://www.depi.de/mediathek/d/pelletpreis-zieht-im-november-an/"
+      "dkkPrKg": 2.93
+    },
+    {
+      "dato": "2025-12",
+      "eurPrTon": 397.46,
+      "dkkPrKg": 2.97
     },
     {
       "dato": "2026-01",
       "eurPrTon": 405.33,
-      "dkkPrKg": 3.02,
-      "kilde": "https://www.tga-fachplaner.de/meldungen/energietraeger-januar-2026-holzpelletpreis-steigt-auf-40533-euro-t"
+      "dkkPrKg": 3.02
+    },
+    {
+      "dato": "2026-02",
+      "eurPrTon": 422.73,
+      "dkkPrKg": 3.15
+    },
+    {
+      "dato": "2026-03",
+      "eurPrTon": 419.2,
+      "dkkPrKg": 3.13
     },
     {
       "dato": "2026-04",
       "eurPrTon": 405.11,
-      "dkkPrKg": 3.02,
-      "kilde": "https://www.depi.de/mediathek/d/pelletpreis-im-april-weiter-ruecklaeufig/"
+      "dkkPrKg": 3.02
+    },
+    {
+      "dato": "2026-05",
+      "eurPrTon": 388.09,
+      "dkkPrKg": 2.9
     },
     {
       "dato": "2026-06",
       "eurPrTon": 376.77,
-      "dkkPrKg": 2.81,
-      "kilde": "https://www.depi.de/mediathek/d/pelletpreis-auf-ueblichem-sommertief/"
-    },
-    {
-      "dato": "2026-07",
-      "eurPrTon": 388.09,
-      "dkkPrKg": 2.9,
-      "kilde": "https://www.depi.de/mediathek/d/pelletpreis-im-juli-bleibt-auf-sommerniveau/?"
+      "dkkPrKg": 2.81
     }
-  ]
+  ],
+  "metode": "Landsdækkende gennemsnitspris i Tyskland for 1 t ENplus A1-træpiller ved 6 t afhentning, inkl. leveringsomkostninger og moms. Offentliggøres månedligt af DEPI.",
+  "note": "Sammenhængende serie aflæst fra DEPI pristabel 2025-01 til 2026-06. Robotten supplerer selv med nye måneder og retter afvigelser."
 }

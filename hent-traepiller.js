@@ -218,18 +218,35 @@ const EUR_TIL_DKK = 7.46; // omtrentlig fastkurs, brugt kun til visning
 // Kendte historiske DEPI-tal (Deutsches Pelletinstitut). Bruges som selvhelbredende
 // bund-niveau, så det tyske markedsindeks aldrig står tomt - selv hvis filen på GitHub
 // skulle mangle eller blive nulstillet. Robotten lægger blot nye måneder oveni.
+// Hele den offentliggjorte serie, aflæst direkte fra DEPI's pristabel
+// (bundesweiter Pelletpreis, 6 t). Sammenhængende måneder gør det muligt at
+// regne sæsonmønster og 12-måneders gennemsnit ud - det kunne den tidligere,
+// hullede serie ikke.
 const SEED_TYSK_MARKEDSINDEKS = [
-    { dato: "2025-01", eurPrTon: 306.35, dkkPrKg: 2.29 },
-    { dato: "2025-03", eurPrTon: 380.20, dkkPrKg: 2.84 },
-    { dato: "2025-06", eurPrTon: 302.45, dkkPrKg: 2.26 },
-    { dato: "2025-07", eurPrTon: 302.69, dkkPrKg: 2.26 },
-    { dato: "2025-10", eurPrTon: 366.25, dkkPrKg: 2.73 },
-    { dato: "2025-11", eurPrTon: 392.62, dkkPrKg: 2.93 },
-    { dato: "2026-01", eurPrTon: 405.33, dkkPrKg: 3.02 },
-    { dato: "2026-04", eurPrTon: 405.11, dkkPrKg: 3.02 },
-    { dato: "2026-06", eurPrTon: 376.77, dkkPrKg: 2.81 },
-    { dato: "2026-07", eurPrTon: 388.09, dkkPrKg: 2.90 }
-];
+    { dato: "2025-01", eurPrTon: 306.35 },
+    { dato: "2025-02", eurPrTon: 363.21 },
+    { dato: "2025-03", eurPrTon: 380.20 },
+    { dato: "2025-04", eurPrTon: 343.14 },
+    { dato: "2025-05", eurPrTon: 315.89 },
+    { dato: "2025-06", eurPrTon: 302.45 },
+    { dato: "2025-07", eurPrTon: 302.69 },
+    { dato: "2025-08", eurPrTon: 310.82 },
+    { dato: "2025-09", eurPrTon: 335.04 },
+    { dato: "2025-10", eurPrTon: 366.25 },
+    { dato: "2025-11", eurPrTon: 392.62 },
+    { dato: "2025-12", eurPrTon: 397.46 },
+    { dato: "2026-01", eurPrTon: 405.33 },
+    { dato: "2026-02", eurPrTon: 422.73 },
+    { dato: "2026-03", eurPrTon: 419.20 },
+    { dato: "2026-04", eurPrTon: 405.11 },
+    { dato: "2026-05", eurPrTon: 388.09 },
+    { dato: "2026-06", eurPrTon: 376.77 }
+].map(m => ({ ...m, dkkPrKg: Math.round((m.eurPrTon / 1000 * 7.46) * 100) / 100 }));
+
+// Måneder der én gang er blevet skrevet forkert til filen, og som skal fjernes
+// igen ved næste kørsel. 2026-07 var i virkeligheden maj-prisen sat på juli, og
+// fik appen til at vise et stigende marked, mens det reelt faldt.
+const FEJLRAMTE_MAANEDER = ["2026-07"];
 const TYSKE_MAANEDSNAVNE = {
     "januar": 1, "februar": 2, "märz": 3, "april": 4, "mai": 5, "juni": 6,
     "juli": 7, "august": 8, "september": 9, "oktober": 10, "november": 11, "dezember": 12
@@ -254,14 +271,39 @@ async function hentTyskMarkedsindeks(browser) {
         await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
         const tekst = (await page.locator("body").textContent().catch(() => "")) || "";
 
-        const prisMatch = tekst.match(/durchschnittlich\s+([\d.,]+)\s*Euro/i);
-        if (!prisMatch) throw new Error("Kunne ikke læse pris ud af DEPI-artiklen: " + url);
-        const eurPrTon = Number(prisMatch[1].replace(/\./g, "").replace(",", "."));
+        // Måned og pris skal stå i SAMME sætning. Tidligere blev de to hentet
+        // hver for sig et vilkårligt sted i artiklen, og så kunne fx maj-prisen
+        // ende under overskriftens "Juli 2026". Vi deler derfor op i sætninger
+        // og kræver, at begge dele findes i den samme.
+        const MAANED_RE = /\b(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s+(20\d{2})\b/i;
+        const PRIS_RE = /durchschnittlich\s+([\d.,]+)\s*Euro/i;
 
-        const maanedMatch = tekst.match(/\b(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s+(20\d{2})\b/i);
-        if (!maanedMatch) throw new Error("Kunne ikke læse måned/år ud af DEPI-artiklen: " + url);
-        const maanedNr = TYSKE_MAANEDSNAVNE[maanedMatch[1].toLowerCase()];
-        const dato = maanedMatch[2] + "-" + String(maanedNr).padStart(2, "0");
+        let dato = null, eurPrTon = null;
+        for (const saetning of tekst.split(/(?<=[.!?])\s+/)) {
+            const p = saetning.match(PRIS_RE);
+            const m = saetning.match(MAANED_RE);
+            if (p && m) {
+                eurPrTon = Number(p[1].replace(/\./g, "").replace(",", "."));
+                dato = m[2] + "-" + String(TYSKE_MAANEDSNAVNE[m[1].toLowerCase()]).padStart(2, "0");
+                break;
+            }
+        }
+        if (dato === null || eurPrTon === null) {
+            throw new Error("Fandt ikke måned og pris i samme sætning i DEPI-artiklen: " + url);
+        }
+
+        // Rimelighedstjek. Uden dem kan en enkelt underlig artikel forgifte hele
+        // serien, og en forkert måned vender prisretningen på hovedet i appen.
+        if (!(eurPrTon > 150 && eurPrTon < 900)) {
+            throw new Error("DEPI-pris uden for rimeligt interval: " + eurPrTon + " €/t (" + url + ")");
+        }
+        const nu = new Date();
+        const senesteRimelige = nu.getFullYear() * 12 + nu.getMonth();      // indeværende måned
+        const [dAar, dMdr] = dato.split("-").map(Number);
+        const datoIndeks = dAar * 12 + (dMdr - 1);
+        if (datoIndeks > senesteRimelige) {
+            throw new Error("DEPI-artikel angiver en fremtidig måned (" + dato + ") - ignoreret");
+        }
 
         const nytPunkt = {
             dato,
@@ -278,9 +320,21 @@ async function hentTyskMarkedsindeks(browser) {
         }
         if (!Array.isArray(data.maaneder)) data.maaneder = [];
 
+        // Fjern måneder vi ved er skrevet forkert, medmindre de netop nu er
+        // bekræftet igen fra DEPI's egen artikel.
+        data.maaneder = data.maaneder.filter(m => !(FEJLRAMTE_MAANEDER.includes(m.dato) && m.dato !== dato));
+
+        // Seed'en er facit. Tidligere rettede vi kun huller, så en forkert værdi
+        // blev liggende for evigt - nu overskrives den også.
         for (const seedPunkt of SEED_TYSK_MARKEDSINDEKS) {
-            if (!data.maaneder.some(m => m.dato === seedPunkt.dato)) {
-                data.maaneder.push({ ...seedPunkt, kilde: "https://www.depi.de/pelletpreis-wirtschaftlichkeit/" });
+            const i = data.maaneder.findIndex(m => m.dato === seedPunkt.dato);
+            const punkt = { ...seedPunkt, kilde: "https://www.depi.de/pelletpreis-wirtschaftlichkeit/" };
+            if (i < 0) {
+                data.maaneder.push(punkt);
+            } else if (Math.abs((data.maaneder[i].eurPrTon || 0) - seedPunkt.eurPrTon) > 0.01) {
+                console.warn("Retter forkert DEPI-tal for", seedPunkt.dato,
+                    data.maaneder[i].eurPrTon, "->", seedPunkt.eurPrTon);
+                data.maaneder[i] = punkt;
             }
         }
 
@@ -298,10 +352,205 @@ async function hentTyskMarkedsindeks(browser) {
     }
 }
 
+// ---------------------------------------------------------------------------
+// SIGNALMOTOR
+//
+// Alt, der ligner en vurdering, regnes her - deterministisk, af robotten.
+// AI'en får resultatet som færdigt input og skal KUN formulere det på dansk.
+// Den må aldrig selv afgøre, om markedet er på vej op eller ned.
+//
+// Vurderingen bygger på tre lag, sorteret efter hvor meget vi faktisk ved:
+//   1. Sæson   - stærkest belæg, rygraden i vurderingen
+//   2. Niveau  - hvor ligger prisen i forhold til de seneste 12 måneder
+//   3. Lokalt  - Pillemadsens egne tal; må rykke vurderingen, ikke sætte den
+// ---------------------------------------------------------------------------
+
+// Sæsonfaser. Bevidst grove: med kun halvandet års DEPI-data kan trend og sæson
+// ikke skilles statistisk ad endnu, så det her er en branchekendt tommelfingerregel,
+// ikke et udregnet indeks. Når serien er lang nok, kan den afløses af rigtige tal.
+const SAESONFASER = {
+    1:  { navn: "højsæson",     score:  1.0, tekst: "vi er midt i fyringssæsonen, hvor priserne typisk topper" },
+    2:  { navn: "højsæson",     score:  1.0, tekst: "vi er midt i fyringssæsonen, hvor priserne typisk topper" },
+    3:  { navn: "nedtrapning",  score:  0.3, tekst: "sæsonen er ved at slutte, og priserne plejer at falde herfra" },
+    4:  { navn: "nedtrapning",  score:  0.3, tekst: "sæsonen er ved at slutte, og priserne plejer at falde herfra" },
+    5:  { navn: "nedtrapning",  score:  0.3, tekst: "priserne plejer stadig at falde et stykke ind i foråret" },
+    6:  { navn: "sommerbund",   score: -1.0, tekst: "vi er i sommerbunden, hvor priserne typisk er lavest på året" },
+    7:  { navn: "sommerbund",   score: -1.0, tekst: "vi er i sommerbunden, hvor priserne typisk er lavest på året" },
+    8:  { navn: "sommerbund",   score: -1.0, tekst: "vi er i sommerbunden, hvor priserne typisk er lavest på året" },
+    9:  { navn: "opbygning",    score: -0.3, tekst: "fyringssæsonen nærmer sig, og priserne plejer at stige herfra" },
+    10: { navn: "opbygning",    score: -0.3, tekst: "fyringssæsonen er begyndt, og priserne plejer at stige videre" },
+    11: { navn: "højsæson",     score:  1.0, tekst: "vi er inde i fyringssæsonen, hvor priserne typisk topper" },
+    12: { navn: "højsæson",     score:  1.0, tekst: "vi er inde i fyringssæsonen, hvor priserne typisk topper" }
+};
+
+function laesJson(sti, standard) {
+    try { return JSON.parse(fs.readFileSync(sti, "utf8")); } catch (e) { return standard; }
+}
+
+// Hvor gammelt er et månedstal som "2026-06"? DEPI halter typisk 4-7 uger,
+// og det skal appen sige højt i stedet for at lade tallet ligne dagens pris.
+function alderIDage(maanedsDato) {
+    const [aar, mdr] = maanedsDato.split("-").map(Number);
+    const slutPaaMaaned = new Date(Date.UTC(aar, mdr, 0));
+    return Math.max(0, Math.round((Date.now() - slutPaaMaaned.getTime()) / 86400000));
+}
+
+function beregnSignaler(dagensOpsummering, drivere) {
+    const depi = laesJson("tysk-markedsindeks.json", { maaneder: [] });
+    const historik = laesJson("historik.json", []);
+    const maaneder = (depi.maaneder || []).slice().sort((a, b) => a.dato.localeCompare(b.dato));
+
+    const signaler = [];
+    const forbehold = [];
+    const nu = new Date();
+    const maanedNr = nu.getMonth() + 1;
+
+    // ---- Lag 1: sæson -----------------------------------------------------
+    const fase = SAESONFASER[maanedNr];
+    signaler.push({
+        navn: "Sæson", status: fase.navn, effekt: fase.score < 0 ? "taler for køb" : (fase.score > 0 ? "taler for at vente" : "neutral"),
+        vaegt: 1.0, dato: null, aktiv: true,
+        note: "Tommelfingerregel ud fra fyringssæsonen, ikke et udregnet indeks."
+    });
+
+    // ---- Lag 2: niveau vs. de seneste 12 måneder --------------------------
+    // Bevidst IKKE min/max over hele serien: 2026 ligger strukturelt højere end
+    // 2025, så et min/max-mål ville dømme hver eneste måned i 2026 som "dyr".
+    let niveauScore = 0, niveauTekst = null, senesteDepi = null, pctVs12 = null;
+    if (maaneder.length >= 12) {
+        senesteDepi = maaneder[maaneder.length - 1];
+        const sidste12 = maaneder.slice(-12);
+        const snit12 = sidste12.reduce((s, m) => s + m.eurPrTon, 0) / 12;
+        pctVs12 = Math.round(((senesteDepi.eurPrTon - snit12) / snit12) * 1000) / 10;
+
+        if (pctVs12 <= -5)      { niveauScore = -1.0; niveauTekst = "markedet ligger klart under det seneste års gennemsnit"; }
+        else if (pctVs12 <= -2) { niveauScore = -0.5; niveauTekst = "markedet ligger lidt under det seneste års gennemsnit"; }
+        else if (pctVs12 <   2) { niveauScore =  0.0; niveauTekst = "markedet ligger på linje med det seneste års gennemsnit"; }
+        else if (pctVs12 <   5) { niveauScore =  0.5; niveauTekst = "markedet ligger lidt over det seneste års gennemsnit"; }
+        else                    { niveauScore =  1.0; niveauTekst = "markedet ligger klart over det seneste års gennemsnit"; }
+
+        signaler.push({
+            navn: "Prisniveau (DEPI)", status: (pctVs12 >= 0 ? "+" : "") + pctVs12 + "% vs. 12 mdr.",
+            effekt: niveauScore < 0 ? "taler for køb" : (niveauScore > 0 ? "taler for at vente" : "neutral"),
+            vaegt: 0.8, dato: senesteDepi.dato, aktiv: true,
+            note: "Målt mod de seneste 12 måneders gennemsnit, ikke mod hele seriens spænd."
+        });
+    } else {
+        forbehold.push("Der er endnu ikke 12 måneders DEPI-data, så prisniveauet indgår ikke i vurderingen.");
+    }
+
+    // ---- Lag 3: lokal afvigelse hos Pillemadsen ---------------------------
+    // Må højst rykke vurderingen ét hak. Datagrundlaget er tyndt, og lager-
+    // hypotesen har endnu ikke set en vinter.
+    let lokalScore = 0, lokalTekst = null, egenPct = null;
+    const medPris = historik.filter(h => h.gnsPris6mmPaaLager !== null && h.gnsPris6mmPaaLager !== undefined);
+    if (medPris.length >= 14) {
+        const nuPris = medPris[medPris.length - 1].gnsPris6mmPaaLager;
+        const foerPris = medPris[Math.max(0, medPris.length - 31)].gnsPris6mmPaaLager;
+        egenPct = Math.round(((nuPris - foerPris) / foerPris) * 1000) / 10;
+        if (egenPct >= 3)       { lokalScore = -0.4; lokalTekst = "Pillemadsen har selv sat priserne op"; }
+        else if (egenPct <= -3) { lokalScore =  0.4; lokalTekst = "Pillemadsen har selv sat priserne ned"; }
+        signaler.push({
+            navn: "Pillemadsens egen pris", status: (egenPct >= 0 ? "+" : "") + egenPct + "% på 30 dage",
+            effekt: lokalScore < 0 ? "taler for køb" : (lokalScore > 0 ? "taler for at vente" : "neutral"),
+            vaegt: 0.4, dato: medPris[medPris.length - 1].dato, aktiv: lokalScore !== 0, note: null
+        });
+    } else {
+        forbehold.push("Der er endnu ikke 30 dages prishistorik hos Pillemadsen, så deres egen prisudvikling indgår ikke.");
+    }
+
+    // Lagerudviklingen registreres og vises, men indgår BEVIDST ikke i
+    // vurderingen endnu: hypotesen "lager falder -> pris stiger" er ikke
+    // efterprøvet, og der er endnu ikke gået en vinter med data.
+    const t7 = drivere && drivere.lager && drivere.lager.tendens7dage;
+    if (t7 && t7.beholdning) {
+        signaler.push({
+            navn: "Lagerbevægelse", status: (t7.beholdning.pctAendring >= 0 ? "+" : "") + t7.beholdning.pctAendring + "% på 7 dage",
+            effekt: "under observation", vaegt: 0, dato: drivere.hentetDanskTid || null, aktiv: false,
+            note: "Vises, men tæller ikke med. Signalet skal ses gennem en fyringssæson, før vi stoler på det."
+        });
+    }
+
+    // ---- Samlet købsvurdering --------------------------------------------
+    const bidrag = [{ vaegt: 1.0, score: fase.score }];
+    if (niveauTekst) bidrag.push({ vaegt: 0.8, score: niveauScore });
+    const samletVaegt = bidrag.reduce((s, b) => s + b.vaegt, 0);
+    let score = bidrag.reduce((s, b) => s + b.vaegt * b.score, 0) / samletVaegt;
+    score = Math.max(-1, Math.min(1, score + lokalScore * 0.5));
+
+    let niveau, overskrift;
+    if (score <= -0.5)       { niveau = "godt";        overskrift = "Godt tidspunkt at købe"; }
+    else if (score <= -0.15) { niveau = "fornuftigt";  overskrift = "Fornuftigt tidspunkt"; }
+    else if (score <=  0.35) { niveau = "neutralt";    overskrift = "Neutralt"; }
+    else                     { niveau = "vent";        overskrift = "Vent hvis du kan"; }
+
+    const begrundelser = [fase.tekst];
+    if (niveauTekst) begrundelser.push(niveauTekst);
+    if (lokalTekst) begrundelser.push(lokalTekst);
+
+    // ---- Prognose: kort horisont, ingen kurve -----------------------------
+    // Vi udtaler os bevidst kun 2-4 uger frem. Længere sigt end sæsonmønsteret
+    // kan vi ikke belægge, og en prognosekurve ville foregive andet.
+    let prognoseRetning;
+    if ([8, 9, 10].includes(maanedNr))       prognoseRetning = "svagt stigende";
+    else if ([11, 12, 1].includes(maanedNr)) prognoseRetning = "stigende eller højt";
+    else if ([2, 3, 4, 5].includes(maanedNr)) prognoseRetning = "svagt faldende";
+    else                                      prognoseRetning = "stabil omkring bunden";
+
+    let momentumTekst = "";
+    if (maaneder.length >= 3) {
+        const a = maaneder[maaneder.length - 3].eurPrTon, b = maaneder[maaneder.length - 1].eurPrTon;
+        const pct = Math.round(((b - a) / a) * 1000) / 10;
+        momentumTekst = `DEPI er gået ${pct >= 0 ? "op" : "ned"} ${Math.abs(pct)}% over de seneste to målte måneder.`;
+    }
+
+    const senesteAlder = senesteDepi ? alderIDage(senesteDepi.dato) : null;
+    if (senesteAlder !== null && senesteAlder > 35) {
+        forbehold.push(`DEPI's nyeste offentliggjorte tal er fra ${senesteDepi.dato} og altså omkring ${senesteAlder} dage gammelt. Det beskriver retningen, ikke dagens pris.`);
+    }
+    forbehold.push("DEPI måler løst indblæste piller inkl. moms leveret inden for 50 km. Pillemadsen sælger sække på paller, du selv henter. De to tal kan sammenlignes i retning, aldrig i niveau.");
+
+    const resultat = {
+        beregnetUTC: new Date().toISOString(),
+        beregnetDanskTid: nu.toLocaleString("da-DK", { timeZone: "Europe/Copenhagen" }),
+        koebsvurdering: {
+            niveau, overskrift, score: Math.round(score * 100) / 100,
+            position: Math.round(((score + 1) / 2) * 1000) / 10,
+            begrundelse: begrundelser.join(", og ") + "."
+        },
+        marked: {
+            status: momentumTekst.includes("ned") ? "faldende" : (momentumTekst.includes("op") ? "stigende" : "ukendt"),
+            dataDato: senesteDepi ? senesteDepi.dato : null,
+            alderDage: senesteAlder,
+            pctVs12Maaneder: pctVs12,
+            tekst: momentumTekst
+        },
+        lokal: {
+            dataDato: dagensOpsummering ? dagensOpsummering.dato : null,
+            gnsPris6mm: dagensOpsummering ? dagensOpsummering.gnsPris6mmPaaLager : null,
+            pctEgenPris30dage: egenPct,
+            paaLager: drivere && drivere.lager ? drivere.lager.antalPaaLager : null,
+            antalTotal: drivere && drivere.lager ? drivere.lager.antalTotal : null
+        },
+        transport: {
+            dataDato: drivere && drivere.diesel ? drivere.diesel.dato : null,
+            dieselDKEurPrLiter: drivere && drivere.diesel ? drivere.diesel.dieselDKEurPrLiter : null,
+            note: "Påvirker din leverede pris, ikke pelletmarkedet."
+        },
+        prognose: { horisont: "2-4 uger", retning: prognoseRetning, tekst: momentumTekst },
+        signaler,
+        forbehold
+    };
+
+    fs.writeFileSync("signaler.json", JSON.stringify(resultat, null, 2), "utf8");
+    console.log("Signaler beregnet:", overskrift, "(score", resultat.koebsvurdering.score + ")");
+    return resultat;
+}
+
 // Beder en gratis AI (Groq) om en kort dansk forklaring på markedet ud fra dagens
 // tal. Nøglen læses UDELUKKENDE fra miljøvariablen GROQ_API_KEY (sat som en GitHub
 // Secret) - den står aldrig i denne fil. Fejler dette, springes det bare over.
-async function hentAiAnalyse(produkter, dagensOpsummering, drivere) {
+async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
         console.warn("Ingen GROQ_API_KEY sat - springer AI-analyse over.");
@@ -416,16 +665,37 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere) {
             kontekst += "\n\nTRANSPORT (påvirker brugerens leverede pris, ikke hyldeprisen):\n" + linjerTransport.join("\n");
         }
 
+        // Vurderingen er allerede regnet af signalmotoren. AI'en får den som en
+        // given konklusion og skal forklare den - ikke danne sin egen. Ellers
+        // kan teksten på Marked-skærmen komme til at modsige måleren på Overblik.
+        let vurderingBlok = "";
+        if (signaler) {
+            const k = signaler.koebsvurdering;
+            vurderingBlok =
+                "\n\nFÆRDIG VURDERING (beregnet af systemet - du skal forklare den, ikke ændre den):\n" +
+                `Købsvurdering: ${k.overskrift}. Begrundelse: ${k.begrundelse}\n` +
+                `Prognose ${signaler.prognose.horisont}: ${signaler.prognose.retning}. ${signaler.prognose.tekst}\n` +
+                (signaler.marked.alderDage !== null
+                    ? `Bemærk: DEPI-tallet er fra ${signaler.marked.dataDato} og ca. ${signaler.marked.alderDage} dage gammelt.\n`
+                    : "") +
+                "Signaler der bevidst IKKE tæller med endnu: " +
+                (signaler.signaler.filter(s => !s.aktiv).map(s => s.navn).join(", ") || "ingen") + ".";
+        }
+
         const systemPrompt =
             "Du er en kort, nøgtern markedsanalytiker for træpiller. Brugeren køber træpiller hos Pillemadsen " +
             "i Harrislee lige syd for den dansk-tyske grænse, med 7% tysk moms, og får dem hentet hjem af en " +
             "dansk vognmand. De fleste af Pillemadsens kunder er danske. " +
             "Svar altid på dansk i almindelig løbende tekst - ingen markdown, overskrifter, punktopstilling eller emojis. " +
             "Brug kun de tal, du får oplyst. Opfind aldrig nye tal eller kilder. " +
-            "Rolig og faktuel tone, ingen købsråd eller finansiel rådgivning.";
+            "VIGTIGT: Købsvurderingen og prognoseretningen er allerede afgjort af systemet. Din opgave er at " +
+            "forklare dem i almindeligt dansk ud fra måletallene. Du må ikke nå frem til en anden konklusion, " +
+            "og du må ikke selv vurdere, om prisen er på vej op eller ned, ud over det du har fået oplyst. " +
+            "Hvis et signal er markeret som ikke-tællende, må du ikke bruge det som begrundelse. " +
+            "Rolig og faktuel tone, ingen finansiel rådgivning.";
 
         const userPrompt =
-            "Dagens måletal:\n\n" + kontekst + "\n\n" +
+            "Dagens måletal:\n\n" + kontekst + vurderingBlok + "\n\n" +
             "Sådan hænger tingene typisk sammen: Koldt vejr i TYSKLAND øger det samlede tyske varmebehov og " +
             "presser hele markedets pris op. Koldt vejr i DANMARK øger derimod især efterspørgslen hos " +
             "Pillemadsen, fordi kunderne er danske - det tømmer deres lager hurtigere, uden at det tyske " +
@@ -436,9 +706,14 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere) {
             "Brugeren får pillerne hentet hjem af en dansk vognmand, så dieselprisen påvirker den samlede " +
             "leverede pris - også selvom Pillemadsens hyldepris ikke ændrer sig. Nævn kun diesel, hvis den " +
             "har flyttet sig mærkbart.\n\n" +
-            "Skriv 5-7 sætninger på dansk. Behandl først det tyske marked, derefter situationen specifikt hos " +
-            "Pillemadsen. Nævn kun de drivere, der faktisk peger i en retning, og spring de neutrale over. " +
-            "Afslut med en forsigtig vurdering af, hvor Pillemadsens priser er på vej hen de kommende uger.";
+            "Skriv tre korte adskilte afsnit på dansk, adskilt af en tom linje, i denne rækkefølge:\n" +
+            "1) Det tyske marked. Nævn her selv, at DEPI-tallet er nogle uger gammelt og beskriver retningen, " +
+            "ikke dagens pris.\n" +
+            "2) Pillemadsen og grænsehandlen - det marked brugeren faktisk køber i.\n" +
+            "3) Hvad det betyder for de kommende " + (signaler ? signaler.prognose.horisont : "2-4 uger") + ", " +
+            "sluttende med den købsvurdering du har fået oplyst, formuleret med brugerens egne ord.\n\n" +
+            "Højst tre sætninger pr. afsnit. Nævn kun drivere, der faktisk peger i en retning, og spring de " +
+            "neutrale over. Udtal dig ikke om mere end nogle få uger frem.";
 
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
@@ -1282,7 +1557,15 @@ async function hentPriser() {
     }
     await browser2.close();
 
-    await hentAiAnalyse(produkter, dagensOpsummering, drivere);
+    // Regn signalerne FØR AI'en kaldes - den skal forklare resultatet, ikke danne det.
+    let signaler = null;
+    try {
+        signaler = beregnSignaler(dagensOpsummering, drivere);
+    } catch (err) {
+        console.warn("Kunne ikke beregne signaler (springer over):", err.message);
+    }
+
+    await hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler);
 }
 
 hentPriser().catch(error => {
