@@ -527,6 +527,7 @@ function beregnSignaler(dagensOpsummering, drivere) {
         },
         lokal: {
             dataDato: dagensOpsummering ? dagensOpsummering.dato : null,
+            billigstePaaLager: dagensOpsummering ? dagensOpsummering.billigstePaaLager : null,
             gnsPris6mm: dagensOpsummering ? dagensOpsummering.gnsPris6mmPaaLager : null,
             pctEgenPris30dage: egenPct,
             paaLager: drivere && drivere.lager ? drivere.lager.antalPaaLager : null,
