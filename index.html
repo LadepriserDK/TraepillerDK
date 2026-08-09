@@ -798,13 +798,27 @@ function renderLagStatus(){
   html += raekke("Tysk marked", mkStatus, mk.dataDato || "–", gammelt,
     mk.tekst + (gammelt ? " Tallet er ca. " + mk.alderDage + " dage gammelt." : ""));
 
-  let loStatus = lo.gnsPris6mm !== null && lo.gnsPris6mm !== undefined
-    ? lo.gnsPris6mm.toFixed(2).replace(".", ",") + " kr/kg for 6 mm" : "Ingen pris";
+  // Vis den BILLIGSTE vare, ikke gennemsnittet. Overblik og prisalarmen bruger
+  // begge billigste pris, og det er den, du faktisk køber til - et gennemsnit
+  // med et dyrt mærke i toppen giver et tal, ingen kan købe for.
+  let loStatus;
+  if (lo.billigstePaaLager !== null && lo.billigstePaaLager !== undefined){
+    loStatus = "Billigst " + lo.billigstePaaLager.toFixed(2).replace(".", ",") + " kr/kg";
+  } else if (lo.gnsPris6mm !== null && lo.gnsPris6mm !== undefined){
+    loStatus = "Snit 6 mm " + lo.gnsPris6mm.toFixed(2).replace(".", ",") + " kr/kg";
+  } else {
+    loStatus = "Ingen pris";
+  }
   if (lo.pctEgenPris30dage !== null && lo.pctEgenPris30dage !== undefined){
     loStatus += " (" + (lo.pctEgenPris30dage >= 0 ? "+" : "") + lo.pctEgenPris30dage + "% på 30 dage)";
   }
+  const loNoteDele = [];
+  if (lo.paaLager !== null && lo.antalTotal) loNoteDele.push(lo.paaLager + " af " + lo.antalTotal + " varer på lager");
+  if (lo.gnsPris6mm !== null && lo.gnsPris6mm !== undefined){
+    loNoteDele.push("gennemsnit 6 mm " + lo.gnsPris6mm.toFixed(2).replace(".", ",") + " kr/kg");
+  }
   html += raekke("Pillemadsen · grænsehandel", loStatus, lo.dataDato || "i dag", false,
-    (lo.paaLager !== null && lo.antalTotal) ? lo.paaLager + " af " + lo.antalTotal + " varer på lager" : null);
+    loNoteDele.length ? loNoteDele.join(" · ") : null);
 
   if (tr.dieselDKEurPrLiter !== null && tr.dieselDKEurPrLiter !== undefined){
     html += raekke("Transport", tr.dieselDKEurPrLiter.toString().replace(".", ",") + " EUR/l diesel",
