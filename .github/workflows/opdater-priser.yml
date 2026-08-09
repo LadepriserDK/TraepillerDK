@@ -35,7 +35,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add traepriser.json historik.json tysk-markedsindeks.json ai-analyse.json drivere.json lager-historik.json tysk-produktion.json diesel-historik.json
+          for f in traepriser.json historik.json tysk-markedsindeks.json \
+                   ai-analyse.json drivere.json lager-historik.json \
+                   tysk-produktion.json diesel-historik.json signaler.json; do
+            [ -f "$f" ] && git add "$f"
+          done
           git diff --staged --quiet && echo "Ingen ændringer at gemme." && exit 0
           git commit -m "Opdater træpillepriser $(date -u +%Y-%m-%d)"
           # Hvis en anden kørsel har committet imens, hentes den ind først.
