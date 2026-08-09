@@ -165,8 +165,9 @@
   .driver-dot.g{background:#2e9e4f} .driver-dot.a{background:#e8a317} .driver-dot.r{background:var(--red)}
   .driver-v{font-family:var(--font-display);font-weight:600;font-size:14.5px;margin-top:5px}
   .driver-info{grid-column:1/-1}
-  .driver-gruppe{grid-column:1/-1;font-family:var(--font-mono);font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+  .driver-gruppe{grid-column:1/-1;font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text);margin:14px 0 2px}
   .driver-gruppe:first-child{margin-top:0}
+  .driver-gruppe small{display:block;font-family:var(--font-body);font-size:11.5px;font-weight:400;color:var(--muted);margin-top:1px}
 
   /* Varsler */
   /* Browserens spinner-pile er alt for små at ramme på en telefon.
@@ -356,9 +357,23 @@
     <div class="section-title" style="margin-top:16px">Drivere</div>
     <div class="driver-grid" id="driverGrid"></div>
     <div class="info-box" id="driverInfoBox" style="margin-top:8px"></div>
+    <div class="card" style="margin-top:12px;display:none" id="baggrundsKort">
+      <div class="section-title">
+        Baggrundstal
+        <button class="info-btn" id="baggrundInfoBtn">ⓘ</button>
+      </div>
+      <div class="info-box" id="baggrundInfoBox">Tal vi følger med på, men som ikke indgår i vurderingen. Vejen fra fx en tysk elpris til prisen på en sæk piller er lang og usikker, så de står her som baggrund frem for som forklaring.</div>
+      <div id="baggrundsTal"></div>
+    </div>
     <div class="card" style="margin-top:14px">
       <div class="section-title">Pris pr. mærke, på lager nu</div>
       <div id="brandBarChart"></div>
+    </div>
+    <div class="card" style="margin-top:12px" id="transportKort">
+      <div class="section-title">Transport · diesel</div>
+      <div id="dieselNu"></div>
+      <div id="dieselChart"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">Diesel påvirker hvad det koster at få pallerne hjem, ikke hvad Pillemadsen tager for dem.</div>
     </div>
     <div class="card" style="margin-top:12px">
       <div class="section-title">Lagerstatus</div>
@@ -386,7 +401,7 @@
       </div>
       <div style="font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);margin-top:6px">kr pr. kg &middot; tryk &minus; og + for at justere med 5 øre</div>
       <div class="alarm-status" id="alarmStatus"></div>
-      <div class="alarm-disclaimer">Gemmes kun i denne browser (localStorage). Appen er en almindelig hjemmeside og kan ikke sende push-beskeder, når den ikke er åben - tjek siden selv med jævne mellemrum.</div>
+      <div class="alarm-disclaimer" id="alarmDisclaimer">Grænsen gemmes kun i denne browser. Slå push-beskeder til nedenfor, hvis du vil have besked, når prisen falder til grænsen.</div>
     </div>
     <div class="card" style="margin-top:12px">
       <div class="section-title">Push-beskeder til denne enhed</div>
@@ -430,10 +445,12 @@ const DEPI_URL = "./tysk-markedsindeks.json";
 const AI_URL = "./ai-analyse.json";
 const DRIVERE_URL = "./drivere.json";
 const SIGNALER_URL = "./signaler.json";
+const DIESEL_URL = "./diesel-historik.json";
 const EUR_TIL_DKK = 7.46;
 
 let DRIVERE = null;
 let SIGNALER = null;
+let DIESEL = null;
 
 const FALLBACK = {"hentetUTC":"2026-08-03T12:20:00.000Z","hentetDanskTid":"03.08.2026, 14.20.00","hjemmeside":"https://www.pillemadsen.dk/shop/traepiller-33s1.html","antalProdukter":27,"priser":[{"produkt":"Barlinek 6 mm træpiller 15/990 kg.","maerke":"Barlinek","type":"pille","mm":6,"prisPrKg":3.03,"paaLager":true,"antalPaaLager":66,"braendvaerdiMinKwhKg":4.9,"braendvaerdiMaxKwhKg":5.3,"fugtMaxProcent":10,"askeMaxProcent":0.6,"svovlMaxProcent":0.04,"askeSmeltepunktGrader":1400,"kilde":"https://www.pillemadsen.dk/shop/barlinek-6-mm-227p.html"},{"produkt":"Heatlets 6 mm træpiller 10/900 kg","maerke":"Heatlets","type":"pille","mm":6,"prisPrKg":3.02,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/heatlets-6-mm-274p.html"},{"produkt":"Barlinek Træbriketter 10/960 kg","maerke":"Barlinek","type":"briket","mm":null,"prisPrKg":2.79,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/barlinek-traebriketter-215p.html"},{"produkt":"Heatlets 6 mm træpiller 15/900kg","maerke":"Heatlets","type":"pille","mm":6,"prisPrKg":2.96,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/heatlets-6-mm-231p.html"},{"produkt":"Vildbjerg Pellets 6 mm træpiller 16/896 kg","maerke":"Vildbjerg","type":"pille","mm":6,"prisPrKg":2.85,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/vildbjerg-pellets-6-733p.html"},{"produkt":"German Pellets 6 mm træpiller 15/990 kg","maerke":"German Pellets","type":"pille","mm":6,"prisPrKg":2.78,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":5.4,"braendvaerdiMaxKwhKg":5.4,"fugtMaxProcent":9,"askeMaxProcent":0.6,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/german-pellets-6-230p.html"},{"produkt":"Egetræpiller 8 mm 15 kg /990 kg","maerke":"Egetræpiller","type":"pille","mm":8,"prisPrKg":2.89,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/egetraepiller-8-mm-268p.html"},{"produkt":"6 mm Fågelfors 10/900kg","maerke":"Fågelfors","type":"pille","mm":6,"prisPrKg":2.88,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/6-mm-faagelfors-709p.html"},{"produkt":"6 mm Fågelfors 16/832 kg","maerke":"Fågelfors","type":"pille","mm":6,"prisPrKg":2.88,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/6-mm-faagelfors-684p.html"},{"produkt":"8 mm Fågelfors træpiller 16/832 kg","maerke":"Fågelfors","type":"pille","mm":8,"prisPrKg":2.88,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/8-mm-faagelfors-267p.html"},{"produkt":"Laxå Pellets 6 mm 16/832","maerke":"Laxå","type":"pille","mm":6,"prisPrKg":2.88,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/laxaa-pellets-6-720p.html"},{"produkt":"Laxå Pellets 8 mm 16/832","maerke":"Laxå","type":"pille","mm":8,"prisPrKg":2.88,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/laxaa-pellets-8-722p.html"},{"produkt":"6 mm Mix Pellets 16 kg 896 kg","maerke":"Mix Pellets","type":"pille","mm":6,"prisPrKg":2.63,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/6-mm-mix-714p.html"},{"produkt":"6 mm no name 16 kg 896 kg","maerke":"No name","type":"pille","mm":6,"prisPrKg":2.68,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/6-mm-no-402p.html"},{"produkt":"8 mm no name 16 kg 896 kg","maerke":"No name","type":"pille","mm":8,"prisPrKg":2.68,"paaLager":true,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/8-mm-no-395p.html"},{"produkt":"Big Bags 10mm 950 kg","maerke":"Big Bags","type":"pille","mm":10,"prisPrKg":2.29,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/big-bags-10mm-688p.html"},{"produkt":"Olczyk Træpiller 6 mm 15 kg / 1050 kg","maerke":"Olczyk","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/olczyk-traepiller-6-289p.html"},{"produkt":"Rw 8 mm træpiller 16/880 kg","maerke":"RW","type":"pille","mm":8,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/rw-8-mm-189p.html"},{"produkt":"Lava 6 mm træpiller 15/975 kg","maerke":"Lava","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/lava-6-mm-240p.html"},{"produkt":"Olimp 6 mm træpiller 15/975 kg","maerke":"Olimp","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/olimp-6-mm-247p.html"},{"produkt":"Rw 6 mm træpiller 16/880 kg","maerke":"RW","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/rw-6-mm-275p.html"},{"produkt":"Sylva Træpiller 6 mm 15/990 kg","maerke":"Sylva","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/sylva-traepiller-6-590p.html"},{"produkt":"FireHeat 8 mm træpiller 15/975 kg","maerke":"Fireheat","type":"pille","mm":8,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/fireheat-8-mm-175p.html"},{"produkt":"German Pellets 8 mm træpiller 15/990 kg","maerke":"German Pellets","type":"pille","mm":8,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/german-pellets-8-229p.html"},{"produkt":"Biomasa Premium 6 mm 15kg 975 kg","maerke":"Biomasa","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/biomasa-premium-6-265p.html"},{"produkt":"Fireheat 6 mm træpiller 15/975 kg","maerke":"Fireheat","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/fireheat-6-mm-264p.html"},{"produkt":"6 mm Samba træpiller 16/896 kg","maerke":"Samba","type":"pille","mm":6,"prisPrKg":null,"paaLager":false,"antalPaaLager":null,"braendvaerdiMinKwhKg":null,"braendvaerdiMaxKwhKg":null,"fugtMaxProcent":null,"askeMaxProcent":null,"svovlMaxProcent":null,"askeSmeltepunktGrader":null,"kilde":"https://www.pillemadsen.dk/shop/6-mm-samba-570p.html"}]};
 const FALLBACK_DEPI = {"kilde":"Deutsches Pelletinstitut (DEPI), https://www.depi.de/pelletpreis-wirtschaftlichkeit/","metode":"Landsdaekkende gennemsnitspris i Tyskland for 1 t ENplus A1-traepiller ved 6 t afhentning, inkl. leveringsomkostninger og moms. Offentliggoeres maanedligt af DEPI.","note":"Sammenhaengende serie aflaest fra DEPI's pristabel. Robotten supplerer selv med nye maaneder.","eurPrDkk":7.46,"maaneder":[{"dato":"2025-01","eurPrTon":306.35,"dkkPrKg":2.29,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2025-02","eurPrTon":363.21,"dkkPrKg":2.71,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2025-03","eurPrTon":380.2,"dkkPrKg":2.84,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2025-04","eurPrTon":343.14,"dkkPrKg":2.56,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2025-05","eurPrTon":315.89,"dkkPrKg":2.36,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2025-06","eurPrTon":302.45,"dkkPrKg":2.26,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2025-07","eurPrTon":302.69,"dkkPrKg":2.26,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2025-08","eurPrTon":310.82,"dkkPrKg":2.32,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2025-09","eurPrTon":335.04,"dkkPrKg":2.5,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2025-10","eurPrTon":366.25,"dkkPrKg":2.73,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2025-11","eurPrTon":392.62,"dkkPrKg":2.93,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2025-12","eurPrTon":397.46,"dkkPrKg":2.97,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2026-01","eurPrTon":405.33,"dkkPrKg":3.02,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2026-02","eurPrTon":422.73,"dkkPrKg":3.15,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2026-03","eurPrTon":419.2,"dkkPrKg":3.13,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2026-04","eurPrTon":405.11,"dkkPrKg":3.02,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2026-05","eurPrTon":388.09,"dkkPrKg":2.9,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"},{"dato":"2026-06","eurPrTon":376.77,"dkkPrKg":2.81,"kilde":"https://www.depi.de/pelletpreis-wirtschaftlichkeit/"}]};
@@ -516,6 +533,11 @@ async function loadData(){
     if (res6.ok) SIGNALER = await res6.json();
   } catch (err) { /* SIGNALER forbliver null - så falder måleren tilbage til lokal beregning */ }
 
+  try {
+    const res7 = await fetch(DIESEL_URL, { cache: "no-store" });
+    if (res7.ok) DIESEL = await res7.json();
+  } catch (err) { /* DIESEL forbliver null */ }
+
   populateBrands();
   renderSaeson();
   renderHero();
@@ -527,6 +549,7 @@ async function loadData(){
   renderHistorik();
   renderMarked();
   renderLagStatus();
+  renderTransport();
   renderSignalListe();
   renderVarsler();
 }
@@ -609,6 +632,93 @@ function renderStats(){
 // Bevidst design: vurderingen bygger på maks. to lag plus en lille lokal justering,
 // så den altid kan forklares i én sætning. Et sammenvejet tal af otte signaler kan
 // ikke forklares - og et tal med decimaler ville foregive en præcision, vi ikke har.
+// Alarm-teksten må ikke modsige push-status lige nedenunder. Den gamle version
+// sagde fast, at appen ikke kunne sende push - også når push var slået til.
+function opdaterAlarmDisclaimer(pushAktiv){
+  const el = document.getElementById("alarmDisclaimer");
+  if (!el) return;
+  el.textContent = pushAktiv
+    ? "Grænsen gemmes kun i denne browser. Push-beskeder er slået til, så du får besked på denne enhed, når prisen falder til grænsen - også når appen er lukket."
+    : "Grænsen gemmes kun i denne browser. Slå push-beskeder til nedenfor, hvis du vil have besked, når prisen falder til grænsen.";
+}
+
+
+// Transport vises som dagens pris + 12 måneders udvikling. Et tal alene siger
+// ikke noget; det interessante er, om fragten er blevet dyrere siden sidst du købte.
+function renderTransport(){
+  const kort = document.getElementById("transportKort");
+  const nuEl = document.getElementById("dieselNu");
+  const chartEl = document.getElementById("dieselChart");
+  if (!kort || !nuEl || !chartEl) return;
+
+  const maalinger = (DIESEL && Array.isArray(DIESEL.maalinger) ? DIESEL.maalinger : [])
+    .filter(m => m.dieselDKEurPrLiter !== null && m.dieselDKEurPrLiter !== undefined)
+    .sort((a,b) => a.dato.localeCompare(b.dato));
+
+  const d = DRIVERE && DRIVERE.diesel;
+  if (!d || d.dieselDKEurPrLiter === null || d.dieselDKEurPrLiter === undefined){
+    if (!maalinger.length){ kort.style.display = "none"; return; }
+  }
+  kort.style.display = "";
+
+  const nuEur = d && d.dieselDKEurPrLiter !== null && d.dieselDKEurPrLiter !== undefined
+    ? d.dieselDKEurPrLiter
+    : maalinger[maalinger.length-1].dieselDKEurPrLiter;
+  const nuKr = (nuEur * EUR_TIL_DKK).toFixed(2).replace(".", ",");
+
+  let deltaHtml = "";
+  const graense = new Date(Date.now() - 365*86400000).toISOString().slice(0,10);
+  const etAarSiden = maalinger.filter(m => m.dato <= graense).pop() || maalinger[0];
+  if (etAarSiden && etAarSiden.dieselDKEurPrLiter > 0 && maalinger.length > 1){
+    const pct = Math.round(((nuEur - etAarSiden.dieselDKEurPrLiter) / etAarSiden.dieselDKEurPrLiter) * 1000)/10;
+    const farve = pct > 0 ? "var(--red)" : (pct < 0 ? "var(--green)" : "var(--muted)");
+    deltaHtml = '<span style="font-size:12.5px;color:' + farve + '">' +
+      (pct >= 0 ? "+" : "") + String(pct).replace(".", ",") + "% siden " + etAarSiden.dato + '</span>';
+  }
+
+  nuEl.innerHTML =
+    '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:2px">' +
+    '<span style="font-family:var(--font-display);font-size:26px;font-weight:700">' + nuKr + ' kr/l</span>' +
+    deltaHtml + '</div>' +
+    '<div style="font-size:11.5px;color:var(--muted)">Dansk dieselpris inkl. afgifter' +
+    (d && d.dato ? ' · ' + d.dato : '') + '</div>';
+
+  // Én måling pr. måned, seneste 12 måneder
+  const perMaaned = {};
+  for (const m of maalinger) perMaaned[m.dato.slice(0,7)] = m.dieselDKEurPrLiter;
+  const punkter = Object.keys(perMaaned).sort().slice(-12)
+    .map(k => ({ dato: k, vaerdi: Math.round(perMaaned[k] * EUR_TIL_DKK * 100)/100 }));
+
+  if (punkter.length < 3){
+    chartEl.innerHTML = '<div style="font-size:11.5px;color:var(--muted);margin-top:8px">' +
+      'Grafen dukker op, når robotten har målt dieselprisen i mindst tre måneder. ' +
+      'Der er ' + punkter.length + ' måned' + (punkter.length === 1 ? '' : 'er') + ' indtil videre.</div>';
+    return;
+  }
+
+  const W = 340, H = 130, pad = { t: 14, r: 34, b: 20, l: 6 };
+  const vals = punkter.map(p => p.vaerdi);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const spaend = (max - min) || 1;
+  const x = i => pad.l + (i / (punkter.length - 1)) * (W - pad.l - pad.r);
+  const y = v => pad.t + (1 - (v - min) / spaend) * (H - pad.t - pad.b);
+  const linje = punkter.map((p,i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p.vaerdi).toFixed(1)).join(" ");
+  const areal = linje + " L" + x(punkter.length-1).toFixed(1) + " " + (H-pad.b) + " L" + x(0).toFixed(1) + " " + (H-pad.b) + " Z";
+  const sidste = punkter[punkter.length-1];
+  const maanedNavn = k => ["jan","feb","mar","apr","maj","jun","jul","aug","sep","okt","nov","dec"][Number(k.slice(5,7))-1];
+
+  chartEl.innerHTML =
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;margin-top:10px" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="' + areal + '" fill="var(--green)" opacity="0.10"/>' +
+    '<path d="' + linje + '" fill="none" stroke="var(--green)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '<circle cx="' + x(punkter.length-1).toFixed(1) + '" cy="' + y(sidste.vaerdi).toFixed(1) + '" r="3.5" fill="var(--green)"/>' +
+    '<text x="' + (x(punkter.length-1)+6).toFixed(1) + '" y="' + (y(sidste.vaerdi)+4).toFixed(1) + '" font-size="11" fill="var(--text)">' +
+      sidste.vaerdi.toFixed(2).replace(".", ",") + '</text>' +
+    '<text x="' + pad.l + '" y="' + (H-5) + '" font-size="10" fill="var(--muted-2)">' + maanedNavn(punkter[0].dato) + " " + punkter[0].dato.slice(2,4) + '</text>' +
+    '<text x="' + (W-pad.r) + '" y="' + (H-5) + '" font-size="10" fill="var(--muted-2)" text-anchor="end">' + maanedNavn(sidste.dato) + " " + sidste.dato.slice(2,4) + '</text>' +
+    '</svg>';
+}
+
 const SAESON_LOKAL = {
   1:{s: 1.0,t:"vi er midt i fyringssæsonen, hvor priserne typisk topper"},
   2:{s: 1.0,t:"vi er midt i fyringssæsonen, hvor priserne typisk topper"},
@@ -1037,112 +1147,112 @@ function vejrKort(key, titel, v){
 }
 
 function renderDrivers(){
-  const tyskeKort = [], lokaleKort = [];
+  const tyskeKort = [], lokaleKort = [], baggrundsKort = [];
+
+  // Rækkefølgen er ikke tilfældig: det vigtigste kort først i hver gruppe.
+  // Kort, der ikke siger noget lige nu (fx vejr uden for fyringssæsonen),
+  // skjules helt i stedet for at fylde plads med "ingen betydning".
 
   // --- Det tyske marked ---
-  if (DRIVERE && DRIVERE.vejrDE) tyskeKort.push(vejrKort("vejrDE", "Vejr i Tyskland", DRIVERE.vejrDE));
-
-  if (DRIVERE && DRIVERE.elprisDE && DRIVERE.elprisDE.snitSeneste7DageEurMwh !== null){
-    const e = DRIVERE.elprisDE;
-    let label = "Stabil", prik = "a";
-    if (e.retning === "stigende"){ label = "Stigende"; prik = "r"; }
-    else if (e.retning === "faldende"){ label = "Faldende"; prik = "g"; }
-    const dkkKwh = (e.snitSeneste7DageEurMwh * EUR_TIL_DKK / 1000).toFixed(2).replace(".", ",");
-    tyskeKort.push(driverKort("elprisDE", "Tysk elpris", label,
-      `${e.snitSeneste7DageEurMwh} €/MWh (${dkkKwh} kr/kWh) · ${e.pctAendring >= 0 ? "+" : ""}${e.pctAendring}% vs. ugen før`, prik));
-  }
-
   let depiLabel = "Ukendt", depiPrik = "a", depiUnder = "";
   const maaneder = DEPI.maaneder;
   if (maaneder.length){
     const seneste = maaneder[maaneder.length - 1];
     const [sy, sm] = seneste.dato.split("-");
     const sidsteAar = maaneder.find(m => m.dato === (Number(sy)-1) + "-" + sm);
+    depiUnder = String(seneste.dkkPrKg).replace(".", ",") + " kr/kg · " + seneste.dato;
     if (sidsteAar){
       const pct = Math.round(((seneste.dkkPrKg - sidsteAar.dkkPrKg) / sidsteAar.dkkPrKg) * 100);
-      if (pct > 5){ depiLabel = "Stigende"; depiPrik = "r"; }
-      else if (pct < -5){ depiLabel = "Faldende"; depiPrik = "g"; }
-      else { depiLabel = "Stabil"; depiPrik = "a"; }
-      depiUnder = `${seneste.dkkPrKg} kr/kg · ${pct >= 0 ? "+" : ""}${pct}% år-til-år`;
+      if (pct > 5){ depiLabel = "Over sidste år"; depiPrik = "r"; }
+      else if (pct < -5){ depiLabel = "Under sidste år"; depiPrik = "g"; }
+      else { depiLabel = "Som sidste år"; depiPrik = "a"; }
+      depiUnder += " · " + (pct >= 0 ? "+" : "") + pct + "% år-til-år";
     }
   }
+  tyskeKort.push(driverKort("depi", "Markedsindeks (DEPI)", depiLabel, depiUnder, depiPrik));
+
   if (DRIVERE && DRIVERE.produktion){
     const p = DRIVERE.produktion;
-    let label = "Stabil", prik = "a";
-    // Høj produktion = god forsyning = dæmper prisen (grøn for køber)
-    if (p.retning === "høj"){ label = "Høj"; prik = "g"; }
-    else if (p.retning === "lav"){ label = "Lav"; prik = "r"; }
+    let label = "Baggrund", prik = "a";
+    if (p.retning === "høj"){ label = "God forsyning"; prik = "g"; }
+    else if (p.retning === "lav"){ label = "Stram forsyning"; prik = "r"; }
     const pct = p.pctVsSammeKvartalSidsteAar !== null ? p.pctVsSammeKvartalSidsteAar : p.pctVsForrigeKvartal;
-    let under = `${(p.produktionTon/1000).toLocaleString("da-DK")}.000 t · ${p.kvartal}`;
-    if (pct !== null) under += ` · ${pct >= 0 ? "+" : ""}${pct}%`;
-    tyskeKort.push(driverKort("produktion", "Tysk produktion", label, under, prik));
+    let under = (p.produktionTon/1000).toLocaleString("da-DK") + ".000 t · " + p.kvartal;
+    if (pct !== null) under += " · " + (pct >= 0 ? "+" : "") + pct + "%";
+    tyskeKort.push(driverKort("produktion", "Produktion", label, under, prik));
   }
 
-  tyskeKort.push(driverKort("depi", "Tysk markedsindeks", depiLabel, depiUnder, depiPrik));
+  // Vejret betyder kun noget, når der faktisk fyres. Uden for sæsonen viste de
+  // gamle kort blot "uden for fyringssæson" - to kort der optog plads for at
+  // sige, at de ikke betød noget.
+  const vejrSkjult = [];
+  if (DRIVERE && DRIVERE.vejrDE){
+    if (DRIVERE.vejrDE.fyringssaeson) tyskeKort.push(vejrKort("vejrDE", "Vejr i Tyskland", DRIVERE.vejrDE));
+    else vejrSkjult.push("Tyskland " + DRIVERE.vejrDE.snitTemp14dage + " °C");
+  }
 
   // --- Pillemadsen / grænsehandel ---
-  if (DRIVERE && DRIVERE.vejrDK) lokaleKort.push(vejrKort("vejrDK", "Vejr i Danmark", DRIVERE.vejrDK));
-
   const paaLager = RAW.filter(p => p.paaLager === true);
   const andel = RAW.length ? paaLager.length / RAW.length : 0;
   let lagerLabel, lagerPrik;
-  if (andel > 0.5){ lagerLabel = "Høj"; lagerPrik = "g"; }
+  if (andel > 0.5){ lagerLabel = "God dækning"; lagerPrik = "g"; }
   else if (andel > 0.2){ lagerLabel = "Middel"; lagerPrik = "a"; }
-  else { lagerLabel = "Lav"; lagerPrik = "r"; }
-  let lagerUnder = `${paaLager.length} af ${RAW.length} varer (${Math.round(andel*100)}%)`;
+  else { lagerLabel = "Tynd dækning"; lagerPrik = "r"; }
+  let lagerUnder = paaLager.length + " af " + RAW.length + " varer";
   const medAntal = RAW.filter(p => typeof p.antalPaaLager === "number" && p.paaLager === true);
   if (medAntal.length){
     const sum = medAntal.reduce((s,p) => s + p.antalPaaLager, 0);
-    const harMindst = medAntal.some(p => p.antalErMindst);
-    lagerUnder += ` · ${harMindst ? "mindst " : ""}${sum} paller`;
+    lagerUnder += " · " + (medAntal.some(p => p.antalErMindst) ? "mindst " : "") + sum + " paller";
   }
   const t7 = DRIVERE && DRIVERE.lager && DRIVERE.lager.tendens7dage;
-  if (t7){
-    if (t7.beholdning){
-      lagerUnder += ` · ${t7.beholdning.pctAendring >= 0 ? "+" : ""}${t7.beholdning.pctAendring}% beholdning på 7 dage`;
-      if (t7.beholdning.pctAendring <= -25) lagerPrik = "r";
-    }
-    if (t7.stoersteFald && t7.stoersteFald.length){
-      const f = t7.stoersteFald[0];
-      lagerUnder += ` · størst fald: ${f.maerke} ${f.fra}→${f.til}`;
-    }
-    if (t7.maerkerGaaetUdsolgt && t7.maerkerGaaetUdsolgt.length){
-      lagerUnder += ` · udsolgt: ${t7.maerkerGaaetUdsolgt.join(", ")}`;
-    }
-    if (t7.pctAendring <= -20) lagerPrik = "r";
+  if (t7 && t7.beholdning){
+    lagerUnder += " · " + (t7.beholdning.pctAendring >= 0 ? "+" : "") + t7.beholdning.pctAendring + "% på 7 dage";
   }
   lokaleKort.push(driverKort("lager", "Lager hos Pillemadsen", lagerLabel, lagerUnder, lagerPrik));
 
+  if (DRIVERE && DRIVERE.vejrDK){
+    if (DRIVERE.vejrDK.fyringssaeson) lokaleKort.push(vejrKort("vejrDK", "Vejr i Danmark", DRIVERE.vejrDK));
+    else vejrSkjult.push("Danmark " + DRIVERE.vejrDK.snitTemp14dage + " °C");
+  }
+
+  // --- Baggrundstal ---
+  // Elpriserne blev tidligere vist som "drivere". Kæden fra en tysk day-ahead-pris
+  // til prisen på en sæk piller er meget lang, og elprisen kan svinge 6% på en uge
+  // uden at flytte noget. De hører til som baggrund, ikke som forklaring.
+  if (DRIVERE && DRIVERE.elprisDE && DRIVERE.elprisDE.snitSeneste7DageEurMwh !== null){
+    const e = DRIVERE.elprisDE;
+    baggrundsKort.push("Tysk elpris: " + e.snitSeneste7DageEurMwh + " €/MWh (" +
+      (e.pctAendring >= 0 ? "+" : "") + e.pctAendring + "% vs. ugen før)");
+  }
   if (DRIVERE && DRIVERE.elprisDK && DRIVERE.elprisDK.snitSeneste7DageKrKwh !== null){
     const e = DRIVERE.elprisDK;
-    let label = "Stabil", prik = "a";
-    if (e.retning === "stigende"){ label = "Stigende"; prik = "r"; }
-    else if (e.retning === "faldende"){ label = "Faldende"; prik = "g"; }
-    lokaleKort.push(driverKort("elprisDK", "Dansk elpris", label,
-      `${String(e.snitSeneste7DageKrKwh).replace(".", ",")} kr/kWh · ${e.pctAendring >= 0 ? "+" : ""}${e.pctAendring}% vs. ugen før`, prik));
+    baggrundsKort.push("Dansk elpris: " + String(e.snitSeneste7DageKrKwh).replace(".", ",") + " kr/kWh (" +
+      (e.pctAendring >= 0 ? "+" : "") + e.pctAendring + "% vs. ugen før)");
+  }
+  if (vejrSkjult.length){
+    baggrundsKort.push("Vejr uden for fyringssæson: " + vejrSkjult.join(", ") +
+      " i snit de kommende 14 dage. Vises som kort igen, når fyringssæsonen begynder.");
+  }
+  const bgEl = document.getElementById("baggrundsTal");
+  const bgKort = document.getElementById("baggrundsKort");
+  if (bgEl && bgKort){
+    if (baggrundsKort.length){
+      bgKort.style.display = "";
+      bgEl.innerHTML = baggrundsKort.map(t =>
+        '<div style="font-size:12.5px;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--line)">' + t + '</div>'
+      ).join("").replace(/border-bottom:1px solid var\(--line\)(?![\s\S]*border-bottom)/, "");
+    } else {
+      bgKort.style.display = "none";
+    }
   }
 
-  // --- Transport: påvirker din leverede pris, ikke hyldeprisen ---
+  // Transport vises nu i sit eget kort med graf (renderTransport), ikke som driver-kort.
   const transportKort = [];
-  if (DRIVERE && DRIVERE.diesel && DRIVERE.diesel.dieselDKEurPrLiter !== null){
-    const d = DRIVERE.diesel;
-    let label = "Stabil", prik = "a";
-    if (d.retning === "stigende"){ label = "Stigende"; prik = "r"; }
-    else if (d.retning === "faldende"){ label = "Faldende"; prik = "g"; }
-    else if (d.retning === "ukendt"){ label = "Ny måling"; prik = "a"; }
-    const dkkLiter = (d.dieselDKEurPrLiter * EUR_TIL_DKK).toFixed(2).replace(".", ",");
-    let under = `${dkkLiter} kr/l i DK (${String(d.dieselDKEurPrLiter).replace(".", ",")} €/l)`;
-    if (d.dieselDEEurPrLiter !== null){
-      under += ` · DE ${(d.dieselDEEurPrLiter * EUR_TIL_DKK).toFixed(2).replace(".", ",")} kr/l`;
-    }
-    if (d.pctAendring30dage !== null) under += ` · ${d.pctAendring30dage >= 0 ? "+" : ""}${d.pctAendring30dage}% på 30 dage`;
-    transportKort.push(driverKort("diesel", "Diesel / fragt", label, under, prik));
-  }
 
   document.getElementById("driverGrid").innerHTML =
-    `<div class="driver-gruppe">Det tyske marked</div>` + tyskeKort.join("") +
-    `<div class="driver-gruppe">Pillemadsen · grænsehandel</div>` + lokaleKort.join("") +
-    (transportKort.length ? `<div class="driver-gruppe">Transport · din leverede pris</div>` + transportKort.join("") : "");
+    `<div class="driver-gruppe">Det tyske marked<small>Den underliggende prisretning</small></div>` + tyskeKort.join("") +
+    `<div class="driver-gruppe">Pillemadsen<small>Det marked du faktisk køber i</small></div>` + lokaleKort.join("") +
+    (transportKort.length ? `<div class="driver-gruppe">Transport<small>Påvirker din leverede pris, ikke hyldeprisen</small></div>` + transportKort.join("") : "");
 
   document.querySelectorAll("[data-driver]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -1243,6 +1353,10 @@ document.getElementById("gearBtn").addEventListener("click", () => {
   const aabner = pop.hidden;
   pop.hidden = !aabner;
   document.getElementById("gearBtn").classList.toggle("active", aabner);
+});
+const bgBtn = document.getElementById("baggrundInfoBtn");
+if (bgBtn) bgBtn.addEventListener("click", () => {
+  document.getElementById("baggrundInfoBox").classList.toggle("open");
 });
 const sigBtn = document.getElementById("signalInfoBtn");
 if (sigBtn) sigBtn.addEventListener("click", () => {
@@ -1395,6 +1509,8 @@ async function opdaterPushKnap(){
   if (!("serviceWorker" in navigator) || !("PushManager" in window)){
     btn.disabled = true;
     status.style.color = "var(--red)"; status.textContent = "Denne browser understøtter ikke push-beskeder.";
+    const d = document.getElementById("alarmDisclaimer");
+    if (d) d.textContent = "Grænsen gemmes kun i denne browser. Denne browser understøtter ikke push-beskeder, så du skal selv kigge forbi appen.";
     return;
   }
   const reg = await navigator.serviceWorker.getRegistration();
@@ -1411,17 +1527,20 @@ async function opdaterPushKnap(){
       try {
         await gemAbonnementIFirestore(sub, graense);
         status.textContent = "Push-beskeder er aktive på denne enhed.";
+      opdaterAlarmDisclaimer(true);
       } catch (err) {
         status.textContent = "Push er slået til i browseren, men kunne ikke gemmes hos serveren: " + err.message;
       }
     } else {
       status.textContent = "Push-beskeder er aktive på denne enhed.";
+      opdaterAlarmDisclaimer(true);
     }
   } else {
     btn.textContent = "Aktivér push-beskeder";
     btn.dataset.tilmeldt = "nej";
     status.style.color = "var(--red)";
     status.textContent = "Push-beskeder er IKKE aktive på denne enhed.";
+    opdaterAlarmDisclaimer(false);
   }
 }
 
