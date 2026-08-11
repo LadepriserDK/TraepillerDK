@@ -1,14 +1,14 @@
 {
-  "hentetUTC": "2026-08-11T08:36:11.313Z",
-  "hentetDanskTid": "11.08.2026, 10.36.11",
+  "hentetUTC": "2026-08-11T12:45:14.237Z",
+  "hentetDanskTid": "11.08.2026, 14.45.14",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 16.9,
-    "graddage14dage": 14,
+    "snitTemp14dage": 16.7,
+    "graddage14dage": 15,
     "graddageSammeTidSidsteAar": 16,
     "snitTempSidsteAar": 16.5,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": 0.4,
+    "gradForskelVsSidsteAar": 0.2,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
@@ -33,10 +33,10 @@
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 110.4,
-    "snitForrige7DageEurMwh": null,
-    "pctAendring": null,
-    "retning": "ukendt",
+    "snitSeneste7DageEurMwh": 111.2,
+    "snitForrige7DageEurMwh": 124.6,
+    "pctAendring": -11,
+    "retning": "faldende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
@@ -51,19 +51,12 @@
       "pctAendring": 0,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 350,
+        "sumNu": 390,
         "sumFoer": 360,
-        "pctAendring": -3,
+        "pctAendring": 8,
         "varerMedTal": 6
       },
       "stoersteFald": [
-        {
-          "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
-          "maerke": "Barlinek",
-          "fra": 50,
-          "til": 10,
-          "pctAendring": -80
-        },
         {
           "produkt": "8 mm no name 16 kg 896 kg",
           "maerke": "No name",
@@ -81,19 +74,12 @@
       "pctAendring": 0,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 350,
+        "sumNu": 390,
         "sumFoer": 360,
-        "pctAendring": -3,
+        "pctAendring": 8,
         "varerMedTal": 6
       },
       "stoersteFald": [
-        {
-          "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
-          "maerke": "Barlinek",
-          "fra": 50,
-          "til": 10,
-          "pctAendring": -80
-        },
         {
           "produkt": "8 mm no name 16 kg 896 kg",
           "maerke": "No name",
@@ -110,7 +96,9 @@
     "dato": "2026-06",
     "dkkPrKg": 2.81,
     "pctAarTilAar": 24,
-    "retning": "stigende",
+    "niveauVsSidsteAar": "over sidste år",
+    "pctSeneste2Mdr": -7,
+    "retning": "faldende",
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "produktion": {
