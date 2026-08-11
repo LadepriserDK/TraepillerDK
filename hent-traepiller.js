@@ -580,7 +580,7 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
             }
         } catch (e) { /* ingen DEPI-data endnu, det er ok */ }
 
-        const linjerDE = [], linjerLokal = [];
+        const linjerDE = [], linjerLokal = [], linjerBaggrund = [];
 
         if (drivere && drivere.vejrDE) {
             const v = drivere.vejrDE;
@@ -596,20 +596,36 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
         }
         if (drivere && drivere.elprisDE && drivere.elprisDE.snitSeneste7DageEurMwh !== null) {
             const e = drivere.elprisDE;
-            linjerDE.push(`Tysk elpris (produktionsomkostning): ${e.snitSeneste7DageEurMwh} €/MWh seneste 7 dage mod ${e.snitForrige7DageEurMwh} ugen før - ${e.retning}.`);
+            // Ingen årsagsmærkat: pillefabrikker køber på lange kontrakter og
+            // bruger overvejende savværksrester, så day-ahead-spot siger meget lidt
+            // om produktionsomkostningen. Flyttet til BAGGRUND.
+            linjerBaggrund.push(`Tysk elpris (day-ahead, kun til orientering): ${e.snitSeneste7DageEurMwh} €/MWh seneste 7 dage mod ${e.snitForrige7DageEurMwh} ugen før.`);
         }
         if (drivere && drivere.depi) {
             const d = drivere.depi;
-            linjerDE.push(`Tysk markedsindeks (DEPI): ${d.dkkPrKg} kr/kg (${d.dato})` +
-                (d.pctAarTilAar !== null ? `, ${d.pctAarTilAar >= 0 ? "+" : ""}${d.pctAarTilAar}% år-til-år - ${d.retning}.` : "."));
+            let l = `Tysk markedsindeks (DEPI): ${d.dkkPrKg} kr/kg for ${d.dato}.`;
+            if (d.pctAarTilAar !== null) {
+                l += ` Niveau: ${d.pctAarTilAar >= 0 ? "+" : ""}${d.pctAarTilAar}% i forhold til samme måned sidste år (${d.niveauVsSidsteAar}).`;
+            }
+            if (d.pctSeneste2Mdr !== null && d.pctSeneste2Mdr !== undefined) {
+                l += ` Retning: ${d.pctSeneste2Mdr >= 0 ? "+" : ""}${d.pctSeneste2Mdr}% over de to senest offentliggjorte måneder - ${d.retning}.`;
+            }
+            l += ` Bemærk: niveau og retning er to forskellige ting. En pris kan ligge højt over sidste år og samtidig være på vej ned.`;
+            linjerDE.push(l);
         }
         if (drivere && drivere.produktion) {
             const p = drivere.produktion;
             let l = `Tysk pelletproduktion ${p.kvartal}: ${p.produktionTon.toLocaleString("da-DK")} ton`;
             if (p.pctVsSammeKvartalSidsteAar !== null) l += `, ${p.pctVsSammeKvartalSidsteAar >= 0 ? "+" : ""}${p.pctVsSammeKvartalSidsteAar}% vs. samme kvartal sidste år`;
             else if (p.pctVsForrigeKvartal !== null) l += `, ${p.pctVsForrigeKvartal >= 0 ? "+" : ""}${p.pctVsForrigeKvartal}% vs. forrige kvartal`;
-            l += ` - forsyning ${p.retning}.`;
-            if (p.saegerestholzProcent !== null) l += ` ${p.saegerestholzProcent}% af råmaterialet er savværksrester, så savværksaktiviteten er afgørende for råvareudbuddet.`;
+            l += p.retning === "ukendt"
+                ? ` Der er endnu ikke nok kvartaler til at sige, om forsyningen er høj eller lav.`
+                : ` - forsyning ${p.retning}.`;
+            // Fjernet: "...så savværksaktiviteten er afgørende for råvareudbuddet."
+            // Sætningen er sand nok som strukturel baggrund, men vi måler INTET om
+            // savværksaktivitet. Den inviterede AI'en til at spekulere i noget, den
+            // ikke har tal på - og til at fremstille gættet som en forklaring.
+            if (p.saegerestholzProcent !== null) l += ` ${p.saegerestholzProcent}% af råmaterialet er savværksrester.`;
             linjerDE.push(l);
         }
 
@@ -642,14 +658,26 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
                 }
             }
             if (udsolgteMaerker.length) l += ` Helt udsolgte mærker: ${udsolgteMaerker.join(", ")}.`;
+            l += ` VIGTIGT: lagerbevægelser indgår ikke i vurderingen. Vi har endnu ikke set en hel fyringssæson,`
+               + ` så vi ved ikke, om faldende lager varsler prisstigninger. Beskriv gerne hvad lageret gør,`
+               + ` men brug det ikke som begrundelse for en prisretning.`;
             linjerLokal.push(l);
         }
-        linjerLokal.push(`Priser hos Pillemadsen: 6 mm ${dagensOpsummering.gnsPris6mmPaaLager ?? "ukendt"} kr/kg, 8 mm ${dagensOpsummering.gnsPris8mmPaaLager ?? "ukendt"} kr/kg (gennemsnit af varer på lager).`);
+        // Billigste pris FØRST: det er den, brugeren faktisk køber til, og den,
+        // Overblik og prisalarmen viser. Sendes kun gennemsnittet, kommer AI'en
+        // til at nævne et tal, der ikke står nogen andre steder i appen.
+        linjerLokal.push(`Priser hos Pillemadsen: billigste vare på lager ${dagensOpsummering.billigstePaaLager ?? "ukendt"} kr/kg. ` +
+            `Gennemsnit af varer på lager: 6 mm ${dagensOpsummering.gnsPris6mmPaaLager ?? "ukendt"} kr/kg, 8 mm ${dagensOpsummering.gnsPris8mmPaaLager ?? "ukendt"} kr/kg. ` +
+            `Brug billigste pris, når du nævner hvad piller koster.`);
+        // Dansk elpris er FJERNET som driver. DK1-spot er reelt en aflæsning af,
+        // hvor meget det blæser i Jylland - og vejret måler vi allerede direkte.
+        // Desuden udgør afgifter og tariffer det meste af en husholdnings elregning,
+        // så en fordobling af spot flytter kun den leverede pris nogle få procent.
+        // Den står nu under BAGGRUND, hvor AI'en ikke må bruge den som forklaring.
         if (drivere && drivere.elprisDK && drivere.elprisDK.snitSeneste7DageKrKwh !== null) {
             const e = drivere.elprisDK;
-            linjerLokal.push(`Dansk elpris (DK1) som indikator for det generelle energimarked: ${e.snitSeneste7DageKrKwh} kr/kWh seneste 7 dage mod ${e.snitForrige7DageKrKwh} ugen før - ${e.retning}.`);
+            linjerBaggrund.push(`Dansk elpris DK1 (day-ahead, kun til orientering): ${e.snitSeneste7DageKrKwh} kr/kWh seneste 7 dage.`);
         }
-
         const linjerTransport = [];
         if (drivere && drivere.diesel && drivere.diesel.dieselDKEurPrLiter !== null) {
             const d = drivere.diesel;
@@ -664,6 +692,11 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
             "\n\nPILLEMADSEN / GRÆNSEHANDEL (det marked brugeren køber i):\n" + linjerLokal.join("\n");
         if (linjerTransport.length) {
             kontekst += "\n\nTRANSPORT (påvirker brugerens leverede pris, ikke hyldeprisen):\n" + linjerTransport.join("\n");
+        }
+        if (linjerBaggrund.length) {
+            kontekst += "\n\nBAGGRUND - MÅ IKKE BRUGES SOM FORKLARING PÅ PRISEN:\n" + linjerBaggrund.join("\n") +
+                "\nElpriser svinger med vind og sol og siger intet om udbud og efterspørgsel på træpiller. " +
+                "Nævn dem ikke i din tekst.";
         }
 
         // Vurderingen er allerede regnet af signalmotoren. AI'en får den som en
@@ -693,6 +726,8 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
             "forklare dem i almindeligt dansk ud fra måletallene. Du må ikke nå frem til en anden konklusion, " +
             "og du må ikke selv vurdere, om prisen er på vej op eller ned, ud over det du har fået oplyst. " +
             "Hvis et signal er markeret som ikke-tællende, må du ikke bruge det som begrundelse. " +
+            "Forklar ALDRIG træpillepriser med elpriser. Elprisen i DK1 følger vind og sol og siger intet om " +
+            "udbud og efterspørgsel på træpiller. " +
             "Rolig og faktuel tone, ingen finansiel rådgivning.";
 
         const userPrompt =
@@ -1140,17 +1175,32 @@ async function hentDrivere(produkter, dagensOpsummering, lagerHistorik, browser)
             const seneste = maaneder[maaneder.length - 1];
             const [aar, maaned] = seneste.dato.split("-");
             const sidsteAar = maaneder.find(m => m.dato === (Number(aar) - 1) + "-" + maaned);
-            let pct = null, retning = "ukendt";
+            // År-til-år siger noget om NIVEAU, ikke om retning. At ligge 28% over
+            // sidste år betyder ikke, at prisen stiger nu - i sommeren 2026 lå den
+            // højt over sidste år og faldt samtidig måned for måned. De to blev
+            // tidligere blandet sammen, så konteksten sagde "stigende" om et
+            // faldende marked.
+            let pct = null, niveauVsSidsteAar = "ukendt", retning = "ukendt", pctSeneste2Mdr = null;
             if (sidsteAar) {
                 pct = Math.round(((seneste.dkkPrKg - sidsteAar.dkkPrKg) / sidsteAar.dkkPrKg) * 100);
-                if (pct > 5) retning = "stigende";
-                else if (pct < -5) retning = "faldende";
+                if (pct > 5) niveauVsSidsteAar = "over sidste år";
+                else if (pct < -5) niveauVsSidsteAar = "under sidste år";
+                else niveauVsSidsteAar = "som sidste år";
+            }
+            // Den faktiske retning måles på de senest offentliggjorte måneder.
+            if (maaneder.length >= 3) {
+                const a = maaneder[maaneder.length - 3], b = maaneder[maaneder.length - 1];
+                pctSeneste2Mdr = Math.round(((b.dkkPrKg - a.dkkPrKg) / a.dkkPrKg) * 1000) / 10;
+                if (pctSeneste2Mdr > 1) retning = "stigende";
+                else if (pctSeneste2Mdr < -1) retning = "faldende";
                 else retning = "stabil";
             }
             drivere.depi = {
                 dato: seneste.dato,
                 dkkPrKg: seneste.dkkPrKg,
                 pctAarTilAar: pct,
+                niveauVsSidsteAar,
+                pctSeneste2Mdr,
                 retning,
                 kilde: "Deutsches Pelletinstitut (DEPI)"
             };
