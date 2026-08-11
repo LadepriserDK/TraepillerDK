@@ -183,6 +183,8 @@
 
   /* Stepperen fylder én række, Gem-knappen ligger under. På en telefon er der
      ikke plads til begge dele ved siden af hinanden. */
+  .alarm-push{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .push-status{font-size:12px;color:var(--muted);margin-top:8px}
   .alarm-input-row{display:flex;flex-direction:column;gap:10px;margin-top:10px}
   .stepper{display:flex;align-items:center;gap:10px;width:100%}
   .stepper input{flex:1;min-width:0;text-align:center;font-family:var(--font-mono);font-size:18px;font-weight:600;padding:12px 6px}
@@ -193,9 +195,12 @@
     -webkit-tap-highlight-color:transparent;touch-action:manipulation;
   }
   .step-btn:active{background:var(--green-soft)}
-  .alarm-input-row button#alarmSaveBtn{width:100%;min-height:48px;padding:0 18px}
+  .alarm-input-row button#alarmSaveBtn{width:100%;min-height:48px;padding:0 18px;transition:background .15s}
+  .alarm-input-row button#alarmSaveBtn.gemt{background:#2e9e4f}
   .alarm-input-row button{background:var(--green);color:#fff;border:0;border-radius:9px;padding:9px 14px;font-family:var(--font-mono);font-size:12px;font-weight:600;cursor:pointer}
   .alarm-status{margin-top:12px;padding:11px 13px;border-radius:10px;font-size:12.5px;display:flex;align-items:center;gap:8px}
+  /* Uden dette står der en tom, afrundet kasse, når ingen grænse er sat. */
+  .alarm-status:empty{display:none;margin:0;padding:0}
   .alarm-status.under{background:var(--green-soft);color:var(--green)}
   .alarm-status.over{background:var(--card);border:1px solid var(--line);color:var(--muted)}
   .alarm-disclaimer{font-size:11px;color:var(--muted-2);margin-top:10px;line-height:1.5}
@@ -406,7 +411,8 @@
   <div class="view" id="view-varsler">
     <div class="card">
       <div class="section-title">Prisalarm</div>
-      <div style="font-size:12.5px;color:var(--muted)">Sæt en grænse for billigste pris pr. kg (6-8 mm, på lager hos Pillemadsen). Vises her i appen, når du har den åben.</div>
+      <div style="font-size:12.5px;color:var(--muted)">Få besked, når billigste pris pr. kg (6-8 mm, på lager hos Pillemadsen) falder til eller under din grænse.</div>
+
       <div class="alarm-input-row">
         <div class="stepper">
           <button type="button" class="step-btn" id="alarmMinus" aria-label="Sænk grænsen">&minus;</button>
@@ -415,15 +421,14 @@
         </div>
         <button id="alarmSaveBtn">Gem</button>
       </div>
-      <div style="font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);margin-top:6px">kr pr. kg &middot; tryk &minus; og + for at justere med 5 øre</div>
+      <div style="font-size:11px;color:var(--muted-2);font-family:var(--font-mono);margin-top:6px">kr pr. kg &middot; tryk &minus; og + for at justere med 5 øre</div>
       <div class="alarm-status" id="alarmStatus"></div>
-      <div class="alarm-disclaimer" id="alarmDisclaimer">Grænsen gemmes kun i denne browser. Slå push-beskeder til nedenfor, hvis du vil have besked, når prisen falder til grænsen.</div>
-    </div>
-    <div class="card" style="margin-top:12px">
-      <div class="section-title">Push-beskeder til denne enhed</div>
-      <div style="font-size:12.5px;color:var(--muted)">Sæt din grænse ovenfor, og tryk nedenfor. Så får du en besked på denne enhed, når prisen falder til eller under grænsen - også når appen er lukket.</div>
-      <button class="clear-btn" id="pushSubBtn" style="border-style:solid;color:var(--green);margin-top:10px;width:100%">Aktivér push-beskeder</button>
-      <div id="pushStatus" style="font-size:13px;font-weight:600;margin-top:10px"></div>
+
+      <div class="alarm-push">
+        <button class="clear-btn" id="pushSubBtn" style="border-style:solid;color:var(--green);width:100%">Aktivér push-beskeder</button>
+        <div id="pushStatus" class="push-status"></div>
+        <div class="alarm-disclaimer" id="alarmDisclaimer"></div>
+      </div>
     </div>
     <div class="card" style="margin-top:12px">
       <div class="section-title">Udsolgte mærker lige nu</div>
@@ -654,9 +659,8 @@ function renderStats(){
 function opdaterAlarmDisclaimer(pushAktiv){
   const el = document.getElementById("alarmDisclaimer");
   if (!el) return;
-  el.textContent = pushAktiv
-    ? "Grænsen gemmes kun i denne browser. Push-beskeder er slået til, så du får besked på denne enhed, når prisen falder til grænsen - også når appen er lukket."
-    : "Grænsen gemmes kun i denne browser. Slå push-beskeder til nedenfor, hvis du vil have besked, når prisen falder til grænsen.";
+  // Kun det, knappen og statuslinjen ikke allerede siger.
+  el.textContent = "Grænsen gemmes kun i denne browser.";
 }
 
 
@@ -1381,8 +1385,10 @@ function opdaterAlarmStatus(){
   const billigste = medPris.slice().sort((a,b) => a.prisPrKg - b.prisPrKg)[0];
   const statusEl = document.getElementById("alarmStatus");
   if (!graense){
-    statusEl.className = "alarm-status over";
-    statusEl.textContent = "Sæt en grænse ovenfor for at aktivere alarmen.";
+    // Ingen klasse: uden grænse skal feltet ikke tegne baggrund eller ramme.
+    // ":empty" skjuler det, men "over"-klassen ville stadig sætte farverne.
+    statusEl.className = "alarm-status";
+    statusEl.textContent = "";
     return;
   }
   if (!billigste){
@@ -1409,7 +1415,13 @@ function skiftVisning(navn){
   // Rullepositionen deles mellem skærmene, så uden det her lander man midt nede
   // på den nye skærm, hvis man havde scrollet på den forrige. "instant" frem for
   // "smooth": et faneskift skal føles som at skifte side, ikke som en tur op.
-  window.scrollTo({ top: 0, behavior: "instant" });
+  //
+  // VIGTIGT: det er <main> der har overflow-y:auto, ikke vinduet. window.scrollTo
+  // ramte derfor ved siden af og gjorde ingenting. Begge sættes for en sikkerheds
+  // skyld, så det også virker, hvis layoutet en dag ændres.
+  const m = document.querySelector("main");
+  if (m) m.scrollTop = 0;
+  window.scrollTo(0, 0);
 }
 document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => skiftVisning(btn.dataset.view)));
 document.getElementById("bellBtn").addEventListener("click", () => skiftVisning("varsler"));
@@ -1502,11 +1514,38 @@ function justerAlarm(retning){
 document.getElementById("alarmMinus").addEventListener("click", () => justerAlarm(-1));
 document.getElementById("alarmPlus").addEventListener("click", () => justerAlarm(1));
 
+// Kvittering på knappen. Uden den er der ingen synlig forskel på "jeg trykkede"
+// og "jeg troede jeg trykkede", når grænsen ikke ændrer statuslinjen mærkbart.
+let gemtTimer = null;
 document.getElementById("alarmSaveBtn").addEventListener("click", () => {
+  const knap = document.getElementById("alarmSaveBtn");
   const v = document.getElementById("alarmInput").value.replace(",", ".").trim();
   if (v === "") { localStorage.removeItem("traepille_alarm_graense"); }
   else { localStorage.setItem("traepille_alarm_graense", v); }
   opdaterAlarmStatus();
+
+  // Hvis grænsen også ligger i Firestore, skal den opdaterede værdi med derop,
+  // ellers varsler robotten stadig på den gamle grænse.
+  (async () => {
+    try {
+      if (firestoreErOpsat() && "serviceWorker" in navigator){
+        const reg = await navigator.serviceWorker.getRegistration();
+        const sub = reg && await reg.pushManager.getSubscription();
+        if (sub){
+          const g = v === "" ? null : Number(v);
+          await gemAbonnementIFirestore(sub, Number.isFinite(g) ? g : null);
+        }
+      }
+    } catch (e) { console.warn("Kunne ikke opdatere grænsen i Firestore:", e); }
+  })();
+
+  knap.textContent = "Gemt";
+  knap.classList.add("gemt");
+  clearTimeout(gemtTimer);
+  gemtTimer = setTimeout(() => {
+    knap.textContent = "Gem";
+    knap.classList.remove("gemt");
+  }, 1600);
 });
 
 /* ---------- Rigtige push-beskeder (Web Push + Firestore) ---------- */
@@ -1623,7 +1662,7 @@ async function opdaterPushKnap(){
     if (firestoreErOpsat() && graense !== null && Number.isFinite(graense)){
       try {
         await gemAbonnementIFirestore(sub, graense);
-        status.textContent = "Push-beskeder er aktive på denne enhed.";
+        status.textContent = "Du får besked på denne enhed, også når appen er lukket.";
       localStorage.setItem("traepille_push_aktiv", "1");
       opdaterAlarmDisclaimer(true);
       opdaterVagtNote();
@@ -1631,7 +1670,7 @@ async function opdaterPushKnap(){
         status.textContent = "Push er slået til i browseren, men kunne ikke gemmes hos serveren: " + err.message;
       }
     } else {
-      status.textContent = "Push-beskeder er aktive på denne enhed.";
+      status.textContent = "Du får besked på denne enhed, også når appen er lukket.";
       localStorage.setItem("traepille_push_aktiv", "1");
       opdaterAlarmDisclaimer(true);
       opdaterVagtNote();
@@ -1640,7 +1679,7 @@ async function opdaterPushKnap(){
     btn.textContent = "Aktivér push-beskeder";
     btn.dataset.tilmeldt = "nej";
     status.style.color = "var(--red)";
-    status.textContent = "Push-beskeder er IKKE aktive på denne enhed.";
+    status.textContent = "Uden push kan alarmen kun vises, mens du har appen åben.";
     localStorage.setItem("traepille_push_aktiv", "0");
     opdaterAlarmDisclaimer(false);
     opdaterVagtNote();
@@ -1657,7 +1696,7 @@ document.getElementById("pushSubBtn").addEventListener("click", async () => {
       const sub = reg && await reg.pushManager.getSubscription();
       if (sub) await sub.unsubscribe();
       if (firestoreErOpsat()) await sletAbonnementIFirestore();
-      status.style.color = "var(--red)"; status.textContent = "Push-beskeder er slået fra på denne enhed.";
+      status.style.color = "var(--muted)"; status.textContent = "Uden push kan alarmen kun vises, mens du har appen åben.";
       opdaterPushKnap();
     } catch (err) { status.textContent = "Kunne ikke slå fra: " + err.message; }
     return;
