@@ -853,6 +853,9 @@ async function hentAbonnenterFraFirestore() {
             return {
                 docNavn: doc.name,
                 graense: tal(f.graense),
+                vagtMaerker: (f.vagtMaerker && f.vagtMaerker.arrayValue && f.vagtMaerker.arrayValue.values
+                    ? f.vagtMaerker.arrayValue.values.map(v => v.stringValue).filter(Boolean)
+                    : []),
                 subscription: {
                     endpoint: f.endpoint && f.endpoint.stringValue,
                     keys: {
@@ -861,8 +864,81 @@ async function hentAbonnenterFraFirestore() {
                     }
                 }
             };
-        }).filter(a => a.subscription.endpoint && typeof a.graense === "number")
+        }).filter(a => a.subscription.endpoint &&
+            (typeof a.graense === "number" || a.vagtMaerker.length))
     };
+}
+
+
+// Sender besked, når et mærke går fra udsolgt til på lager igen. Vi sender kun
+// på selve OVERGANGEN - ellers ville man få den samme besked hver dag, så længe
+// varen stod på lager. Afkrydsningen bliver stående, så vagten virker igen næste
+// gang mærket bliver udsolgt.
+function findGenkomneMaerker(produkter) {
+    let historik;
+    try { historik = JSON.parse(fs.readFileSync("lager-historik.json", "utf8")); }
+    catch (e) { return []; }
+    if (!Array.isArray(historik) || historik.length < 2) return [];
+
+    const iGaar = historik[historik.length - 2];
+    if (!iGaar || !Array.isArray(iGaar.varer)) return [];
+
+    // Et mærke tæller som udsolgt, når INGEN af mærkets varer var på lager.
+    const paaLagerIGaar = new Set(iGaar.varer.map(v => v.maerke).filter(Boolean));
+    const paaLagerIDag = new Set(produkter.filter(p => p.paaLager === true).map(p => p.maerke).filter(Boolean));
+    const genkomne = [];
+    for (const maerke of paaLagerIDag) {
+        // Var mærket kendt i går uden at være på lager? Så er det kommet tilbage.
+        if (!paaLagerIGaar.has(maerke)) genkomne.push(maerke);
+    }
+    return genkomne;
+}
+
+async function sendPushLagerVarsler(produkter) {
+    const privateKey = process.env.PUSH_VAPID_PRIVATE_KEY;
+    if (!privateKey) return;
+
+    const genkomne = findGenkomneMaerker(produkter);
+    if (!genkomne.length) { console.log("Ingen mærker er kommet på lager igen i dag."); return; }
+    console.log("Kommet på lager igen:", genkomne.join(", "));
+
+    let data;
+    try { data = await hentAbonnenterFraFirestore(); }
+    catch (err) { console.warn("Kunne ikke hente abonnenter (springer lagervarsler over):", err.message); return; }
+    if (!data || !data.abonnenter.length) return;
+
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, privateKey);
+    let sendt = 0;
+
+    for (const ab of data.abonnenter) {
+        const traef = genkomne.filter(m => ab.vagtMaerker.includes(m));
+        if (!traef.length) continue;
+
+        // Pris med, hvis vi har den - så kan man se, om det overhovedet er værd at handle på.
+        const priser = traef.map(m => {
+            const varer = produkter.filter(p => p.maerke === m && p.paaLager === true && p.prisPrKg !== null);
+            if (!varer.length) return m;
+            return m + " (" + Math.min(...varer.map(p => p.prisPrKg)).toFixed(2).replace(".", ",") + " kr/kg)";
+        });
+
+        const payload = JSON.stringify({
+            titel: traef.length === 1 ? traef[0] + " er på lager igen" : "Flere mærker er på lager igen",
+            tekst: priser.join(", ") + " er tilbage hos Pillemadsen.",
+            url: "./index.html"
+        });
+        try {
+            await webpush.sendNotification(ab.subscription, payload);
+            sendt++;
+        } catch (err) {
+            if (err.statusCode === 404 || err.statusCode === 410) {
+                try { await data.client.request({ url: `https://firestore.googleapis.com/v1/${ab.docNavn}`, method: "DELETE" }); }
+                catch (e) { /* ikke kritisk */ }
+            } else {
+                console.warn("Kunne ikke sende lagervarsel:", err.message);
+            }
+        }
+    }
+    console.log("Lagervarsler sendt til " + sendt + " enhed(er).");
 }
 
 // Sender en rigtig push-besked til hver tilmeldt enhed, hvis billigste pris på
@@ -899,7 +975,7 @@ async function sendPushAlarmer(produkter) {
 
     let sendt = 0, ryddet = 0;
     for (const ab of data.abonnenter) {
-        if (billigste.prisPrKg > ab.graense) continue;
+        if (typeof ab.graense !== "number" || billigste.prisPrKg > ab.graense) continue;
         const payload = JSON.stringify({
             titel: "Prisalarm: " + billigste.maerke,
             tekst: billigste.maerke + " er nede på " + billigste.prisPrKg.toFixed(2) +
@@ -1595,6 +1671,8 @@ async function hentPriser() {
     console.log("Historik har nu", historik.length, "dag(e) med data.");
 
     await sendPushAlarmer(produkter);
+    try { await sendPushLagerVarsler(produkter); }
+    catch (err) { console.warn("Lagervarsler fejlede (springer over):", err.message); }
 
     const browser2 = await chromium.launch({ headless: true });
     await hentTyskMarkedsindeks(browser2);
