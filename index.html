@@ -13,7 +13,7 @@
 <style>
   :root{
     --bg:#f6f1e6;--card:#ffffff;--header:#1f3a2c;--header-2:#284835;
-    --text:#1e2b22;--muted:#6b7568;--muted-2:#9a9f8f;
+    --text:#1e2b22;--muted:#525c4c;--muted-2:#6b7060;
     --line:#e8e1d0;--line-strong:#d9d0b8;
     --green:#2f6b45;--green-soft:#e4ede1;
     --amber:#c9862e;--amber-soft:#f7ecd8;
@@ -75,7 +75,7 @@
   .lag-row:last-of-type{border-bottom:none}
   .lag-navn{font-weight:600;font-size:13.5px}
   .lag-status{font-size:13px}
-  .lag-dato{font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);white-space:nowrap}
+  .lag-dato{font-size:11.5px;color:var(--muted-2);font-family:var(--font-mono);white-space:nowrap}
   .lag-gammel{color:var(--amber)}
   .lag-prognose{margin-top:12px;padding:10px 12px;background:var(--bg);border-radius:10px;font-size:13px;line-height:1.5}
   .sig-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px}
@@ -103,7 +103,7 @@
 
   .popover{background:var(--green-soft);border:1px solid var(--line);border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:11px;margin-bottom:12px}
   .popover[hidden]{display:none}
-  .pop-group label{font-size:10px;color:var(--muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:6px}
+  .pop-group label{font-size:11px;color:var(--muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:6px}
   .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;width:fit-content}
   .seg button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-mono);font-weight:600;font-size:12px;padding:6px 13px;border-radius:999px}
   .seg button.active{background:var(--green);color:#fff}
@@ -198,6 +198,11 @@
   .udsolgt-row{display:flex;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:12.5px}
   .udsolgt-row .n{font-weight:500}
   .udsolgt-row .m{color:var(--muted);font-family:var(--font-mono);font-size:11px}
+  .udsolgt-row{align-items:center;gap:10px}
+  .vagt-label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;white-space:nowrap}
+  .vagt-label input{width:17px;height:17px;accent-color:var(--green);cursor:pointer;margin:0}
+  .vagt-label span{font-size:11px;color:var(--muted)}
+  .vagt-label input:checked + span{color:var(--green);font-weight:600}
 
   nav.bottomnav{
     position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);
@@ -205,14 +210,14 @@
   }
   nav.bottomnav button{
     flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-    background:transparent;border:0;color:var(--muted-2);font-family:var(--font-mono);font-size:10px;
+    background:transparent;border:0;color:var(--muted-2);font-family:var(--font-mono);font-size:11px;
     padding:6px 2px;cursor:pointer;border-radius:10px;
   }
   nav.bottomnav button svg{width:20px;height:20px}
   nav.bottomnav button.active{color:var(--green)}
   nav.bottomnav button.active svg{color:var(--green)}
 
-  footer.credit{text-align:center;padding:14px;color:var(--muted-2);font-size:10.5px;font-family:var(--font-mono)}
+  footer.credit{text-align:center;padding:14px;color:var(--muted-2);font-size:11.5px;font-family:var(--font-mono)}
 </style>
 </head>
 <body>
@@ -343,7 +348,7 @@
     <div class="card" style="margin-top:12px">
       <div class="section-title">Markedsanalyse</div>
       <div class="ai-text" id="aiTekstMarked">Henter…</div>
-      <div style="font-size:10.5px;color:var(--muted-2);font-family:var(--font-mono);margin-top:8px" id="aiTidMarked"></div>
+      <div style="font-size:11.5px;color:var(--muted-2);font-family:var(--font-mono);margin-top:8px" id="aiTidMarked"></div>
     </div>
     <div class="card" style="margin-top:12px">
       <div class="section-title">
@@ -412,6 +417,7 @@
     <div class="card" style="margin-top:12px">
       <div class="section-title">Udsolgte mærker lige nu</div>
       <div class="udsolgt-list" id="udsolgtListe"></div>
+      <div id="vagtNote" style="font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5"></div>
     </div>
   </div>
 
@@ -787,7 +793,7 @@ function renderLagStatus(){
   const raekke = (navn, status, dato, gammel, note) =>
     '<div class="lag-row"><div><div class="lag-navn">' + navn + '</div>' +
     '<div class="lag-status">' + status + '</div>' +
-    (note ? '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + note + '</div>' : '') +
+    (note ? '<div style="font-size:11.5px;color:var(--muted);margin-top:2px">' + note + '</div>' : '') +
     '</div><div class="lag-dato' + (gammel ? ' lag-gammel' : '') + '">' + dato + '</div></div>';
 
   const mk = SIGNALER.marked || {}, lo = SIGNALER.lokal || {}, tr = SIGNALER.transport || {};
@@ -847,7 +853,7 @@ function renderSignalListe(){
   el.innerHTML = SIGNALER.signaler.map(s =>
     '<div class="sig-row' + (s.aktiv ? '' : ' sig-passiv') + '">' +
     '<div><span style="font-weight:600">' + s.navn + '</span> · ' + s.status +
-    (s.note ? '<div style="font-size:10.5px;color:var(--muted-2);margin-top:2px">' + s.note + '</div>' : '') +
+    (s.note ? '<div style="font-size:11px;color:var(--muted-2);margin-top:2px">' + s.note + '</div>' : '') +
     '</div><div class="sig-effekt">' + s.effekt + '</div></div>'
   ).join("");
 
@@ -1323,8 +1329,40 @@ function renderVarsler(){
   if (!maerkerUdsolgt.length){
     el.innerHTML = '<div class="empty-note">Ingen mærker er helt udsolgt lige nu.</div>';
   } else {
-    el.innerHTML = maerkerUdsolgt.map(m => `<div class="udsolgt-row"><span class="n">${m}</span><span class="m">Udsolgt</span></div>`).join("");
+    const vagt = hentVagtliste();
+    el.innerHTML = maerkerUdsolgt.map((m, i) => {
+      const id = "vagt" + i;
+      const valgt = vagt.includes(m) ? " checked" : "";
+      return `<div class="udsolgt-row">
+        <span class="n">${m}</span>
+        <label class="vagt-label" for="${id}">
+          <input type="checkbox" id="${id}" data-maerke="${m.replace(/"/g, "&quot;")}"${valgt}>
+          <span>Giv besked</span>
+        </label>
+      </div>`;
+    }).join("");
+
+    el.querySelectorAll("input[type=checkbox]").forEach(box => {
+      box.addEventListener("change", async () => {
+        await skiftVagt(box.dataset.maerke, box.checked);
+        opdaterVagtNote();
+      });
+    });
   }
+  opdaterVagtNote();
+}
+
+// Fortæl ærligt, om beskeden faktisk kan komme frem. Uden push slået til
+// kan appen kun opdage det, mens den er åben - og så er det ikke en besked.
+function opdaterVagtNote(){
+  const note = document.getElementById("vagtNote");
+  if (!note) return;
+  const antal = hentVagtliste().length;
+  if (!antal){ note.textContent = ""; return; }
+  const pushTil = localStorage.getItem("traepille_push_aktiv") === "1";
+  note.textContent = pushTil
+    ? `Du holder øje med ${antal} mærke${antal === 1 ? "" : "r"}. Du får besked på denne enhed, når de er på lager igen.`
+    : `Du holder øje med ${antal} mærke${antal === 1 ? "" : "r"}, men push-beskeder er ikke slået til. Slå dem til under Varsler, ellers kan appen ikke give besked, når den er lukket.`;
 }
 function opdaterAlarmStatus(){
   const graense = Number(localStorage.getItem("traepille_alarm_graense"));
@@ -1463,6 +1501,35 @@ const VAPID_PUBLIC_KEY = "BNsOC00BEuHqjo7vy39nm2qfjET9cOuXljmXp9J-Xi3yLPJPfVKFwz
 // design - sikkerheden ligger i Firestores regler, ikke i at skjule dem.
 const FIREBASE_PROJECT_ID = "traepillerdk";
 const FIREBASE_API_KEY = "AIzaSyCiwKYy4hXl6e-GK0i5e0TCZdvdyOlgy4o";
+// Mærker brugeren vil have besked om, når de kommer på lager igen.
+// Gemmes lokalt OG i Firestore, så robotten kan sende push, når appen er lukket.
+const VAGT_NOEGLE = "traepille_vagt_maerker";
+
+function hentVagtliste(){
+  try { const v = JSON.parse(localStorage.getItem(VAGT_NOEGLE) || "[]"); return Array.isArray(v) ? v : []; }
+  catch (e) { return []; }
+}
+function gemVagtliste(liste){
+  localStorage.setItem(VAGT_NOEGLE, JSON.stringify(liste));
+}
+async function skiftVagt(maerke, tilvalgt){
+  const liste = hentVagtliste().filter(m => m !== maerke);
+  if (tilvalgt) liste.push(maerke);
+  gemVagtliste(liste);
+  // Send med til Firestore, hvis push allerede er slået til på denne enhed
+  try {
+    if (firestoreErOpsat() && "serviceWorker" in navigator){
+      const reg = await navigator.serviceWorker.getRegistration();
+      const sub = reg && await reg.pushManager.getSubscription();
+      if (sub){
+        const raw = (localStorage.getItem("traepille_alarm_graense") || "").replace(",", ".");
+        const g = raw === "" ? null : Number(raw);
+        await gemAbonnementIFirestore(sub, Number.isFinite(g) ? g : null);
+      }
+    }
+  } catch (e) { console.warn("Kunne ikke gemme vagtliste i Firestore:", e); }
+}
+
 const FIRESTORE_SAMLING = "push-abonnementer";
 
 function firestoreErOpsat(){
@@ -1493,7 +1560,8 @@ async function gemAbonnementIFirestore(subscription, graense){
       endpoint: { stringValue: sub.endpoint },
       p256dh: { stringValue: sub.keys.p256dh },
       auth: { stringValue: sub.keys.auth },
-      graense: { doubleValue: graense },
+      graense: graense === null ? { nullValue: null } : { doubleValue: graense },
+      vagtMaerker: { arrayValue: { values: hentVagtliste().map(m => ({ stringValue: m })) } },
       opdateret: { stringValue: new Date().toISOString() }
     }
   };
@@ -1541,20 +1609,26 @@ async function opdaterPushKnap(){
       try {
         await gemAbonnementIFirestore(sub, graense);
         status.textContent = "Push-beskeder er aktive på denne enhed.";
+      localStorage.setItem("traepille_push_aktiv", "1");
       opdaterAlarmDisclaimer(true);
+      opdaterVagtNote();
       } catch (err) {
         status.textContent = "Push er slået til i browseren, men kunne ikke gemmes hos serveren: " + err.message;
       }
     } else {
       status.textContent = "Push-beskeder er aktive på denne enhed.";
+      localStorage.setItem("traepille_push_aktiv", "1");
       opdaterAlarmDisclaimer(true);
+      opdaterVagtNote();
     }
   } else {
     btn.textContent = "Aktivér push-beskeder";
     btn.dataset.tilmeldt = "nej";
     status.style.color = "var(--red)";
     status.textContent = "Push-beskeder er IKKE aktive på denne enhed.";
+    localStorage.setItem("traepille_push_aktiv", "0");
     opdaterAlarmDisclaimer(false);
+    opdaterVagtNote();
   }
 }
 
