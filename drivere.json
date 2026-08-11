@@ -1,14 +1,14 @@
 {
-  "hentetUTC": "2026-08-11T12:45:14.237Z",
-  "hentetDanskTid": "11.08.2026, 14.45.14",
+  "hentetUTC": "2026-08-11T15:41:40.954Z",
+  "hentetDanskTid": "11.08.2026, 17.41.40",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 16.7,
+    "snitTemp14dage": 16.8,
     "graddage14dage": 15,
     "graddageSammeTidSidsteAar": 16,
     "snitTempSidsteAar": 16.5,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": 0.2,
+    "gradForskelVsSidsteAar": 0.3,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
@@ -27,14 +27,14 @@
   },
   "elprisDK": {
     "snitSeneste7DageKrKwh": 0.79,
-    "snitForrige7DageKrKwh": 0.93,
-    "pctAendring": -15,
+    "snitForrige7DageKrKwh": 0.92,
+    "pctAendring": -14,
     "retning": "faldende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 111.2,
-    "snitForrige7DageEurMwh": 124.6,
+    "snitSeneste7DageEurMwh": 111,
+    "snitForrige7DageEurMwh": 124.7,
     "pctAendring": -11,
     "retning": "faldende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
