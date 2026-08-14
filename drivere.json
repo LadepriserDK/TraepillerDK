@@ -1,59 +1,59 @@
 {
-  "hentetUTC": "2026-08-13T09:41:18.890Z",
-  "hentetDanskTid": "13.08.2026, 11.41.18",
+  "hentetUTC": "2026-08-14T08:54:32.956Z",
+  "hentetDanskTid": "14.08.2026, 10.54.32",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 16.4,
+    "snitTemp14dage": 16.1,
     "graddage14dage": 19,
     "graddageSammeTidSidsteAar": 19,
-    "snitTempSidsteAar": 16.3,
+    "snitTempSidsteAar": 16.2,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": 0.1,
+    "gradForskelVsSidsteAar": -0.1,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 19.9,
-    "graddage14dage": 1,
+    "snitTemp14dage": 18.4,
+    "graddage14dage": 5,
     "graddageSammeTidSidsteAar": 15,
-    "snitTempSidsteAar": 18.4,
+    "snitTempSidsteAar": 18.2,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": 1.5,
+    "gradForskelVsSidsteAar": 0.2,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 0.78,
-    "snitForrige7DageKrKwh": 0.93,
-    "pctAendring": -16,
-    "retning": "faldende",
+    "snitSeneste7DageKrKwh": 0.86,
+    "snitForrige7DageKrKwh": 0.88,
+    "pctAendring": -2,
+    "retning": "stabil",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 115.7,
-    "snitForrige7DageEurMwh": 126,
-    "pctAendring": -8,
+    "snitSeneste7DageEurMwh": 120.3,
+    "snitForrige7DageEurMwh": 123.9,
+    "pctAendring": -3,
     "retning": "stabil",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
     "antalPaaLager": 7,
-    "antalTotal": 28,
-    "andelProcent": 25,
+    "antalTotal": 29,
+    "andelProcent": 24,
     "tendens7dage": {
       "fraDato": "2026-08-08",
-      "tilDato": "2026-08-13",
+      "tilDato": "2026-08-14",
       "varerNu": 7,
       "varerFoer": 6,
       "pctAendring": 17,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 392,
+        "sumNu": 350,
         "sumFoer": 360,
-        "pctAendring": 9,
+        "pctAendring": -3,
         "varerMedTal": 7
       },
       "stoersteFald": [
@@ -61,8 +61,8 @@
           "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
           "maerke": "Barlinek",
           "fra": 50,
-          "til": 2,
-          "pctAendring": -96
+          "til": 0,
+          "pctAendring": -100
         },
         {
           "produkt": "8 mm no name 16 kg 896 kg",
@@ -75,15 +75,15 @@
     },
     "tendens30dage": {
       "fraDato": "2026-08-08",
-      "tilDato": "2026-08-13",
+      "tilDato": "2026-08-14",
       "varerNu": 7,
       "varerFoer": 6,
       "pctAendring": 17,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 392,
+        "sumNu": 350,
         "sumFoer": 360,
-        "pctAendring": 9,
+        "pctAendring": -3,
         "varerMedTal": 7
       },
       "stoersteFald": [
@@ -91,8 +91,8 @@
           "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
           "maerke": "Barlinek",
           "fra": 50,
-          "til": 2,
-          "pctAendring": -96
+          "til": 0,
+          "pctAendring": -100
         },
         {
           "produkt": "8 mm no name 16 kg 896 kg",
@@ -126,7 +126,7 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-08-13",
+    "dato": "2026-08-14",
     "dieselDKEurPrLiter": 2.143,
     "dieselDEEurPrLiter": 2.149,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202024-02-19.xlsx",
