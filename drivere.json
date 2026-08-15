@@ -1,14 +1,14 @@
 {
-  "hentetUTC": "2026-08-14T08:54:32.956Z",
-  "hentetDanskTid": "14.08.2026, 10.54.32",
+  "hentetUTC": "2026-08-15T06:02:23.875Z",
+  "hentetDanskTid": "15.08.2026, 08.02.23",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 16.1,
-    "graddage14dage": 19,
+    "snitTemp14dage": 15.5,
+    "graddage14dage": 24,
     "graddageSammeTidSidsteAar": 19,
-    "snitTempSidsteAar": 16.2,
+    "snitTempSidsteAar": 16,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": -0.1,
+    "gradForskelVsSidsteAar": -0.5,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
@@ -18,24 +18,24 @@
     "snitTemp14dage": 18.4,
     "graddage14dage": 5,
     "graddageSammeTidSidsteAar": 15,
-    "snitTempSidsteAar": 18.2,
+    "snitTempSidsteAar": 17.6,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": 0.2,
+    "gradForskelVsSidsteAar": 0.8,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 0.86,
-    "snitForrige7DageKrKwh": 0.88,
-    "pctAendring": -2,
+    "snitSeneste7DageKrKwh": 0.88,
+    "snitForrige7DageKrKwh": 0.84,
+    "pctAendring": 5,
     "retning": "stabil",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 120.3,
-    "snitForrige7DageEurMwh": 123.9,
-    "pctAendring": -3,
+    "snitSeneste7DageEurMwh": 119.8,
+    "snitForrige7DageEurMwh": 120.6,
+    "pctAendring": -1,
     "retning": "stabil",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
@@ -45,15 +45,15 @@
     "andelProcent": 24,
     "tendens7dage": {
       "fraDato": "2026-08-08",
-      "tilDato": "2026-08-14",
+      "tilDato": "2026-08-15",
       "varerNu": 7,
       "varerFoer": 6,
       "pctAendring": 17,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 350,
+        "sumNu": 365,
         "sumFoer": 360,
-        "pctAendring": -3,
+        "pctAendring": 1,
         "varerMedTal": 7
       },
       "stoersteFald": [
@@ -75,15 +75,15 @@
     },
     "tendens30dage": {
       "fraDato": "2026-08-08",
-      "tilDato": "2026-08-14",
+      "tilDato": "2026-08-15",
       "varerNu": 7,
       "varerFoer": 6,
       "pctAendring": 17,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 350,
+        "sumNu": 365,
         "sumFoer": 360,
-        "pctAendring": -3,
+        "pctAendring": 1,
         "varerMedTal": 7
       },
       "stoersteFald": [
@@ -126,7 +126,7 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-08-14",
+    "dato": "2026-08-15",
     "dieselDKEurPrLiter": 2.143,
     "dieselDEEurPrLiter": 2.149,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202024-02-19.xlsx",

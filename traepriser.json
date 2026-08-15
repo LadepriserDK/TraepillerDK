@@ -1,6 +1,6 @@
 {
-  "hentetUTC": "2026-08-14T08:54:22.284Z",
-  "hentetDanskTid": "14.08.2026, 10.54.22",
+  "hentetUTC": "2026-08-15T06:02:03.867Z",
+  "hentetDanskTid": "15.08.2026, 08.02.03",
   "hjemmeside": "https://www.pillemadsen.dk/shop/traepiller-33s1.html",
   "antalProdukter": 29,
   "priser": [
@@ -14,7 +14,7 @@
       "kgPrPalle": 1260,
       "paaLager": true,
       "forlaengetLevering": false,
-      "antalPaaLager": 5,
+      "antalPaaLager": 20,
       "antalErMindst": true,
       "braendvaerdiMinKwhKg": 4.79,
       "braendvaerdiMaxKwhKg": 4.79,
@@ -43,6 +43,26 @@
       "svovlMaxProcent": 0.04,
       "askeSmeltepunktGrader": 1400,
       "kilde": "https://www.pillemadsen.dk/shop/barlinek-6-mm-227p.html"
+    },
+    {
+      "produkt": "6 mm Mix Pellets 16 kg 896 kg",
+      "maerke": "Mix Pellets",
+      "type": "pille",
+      "mm": 6,
+      "prisPrKg": 2.63,
+      "prisPrPalle": 2355,
+      "kgPrPalle": null,
+      "paaLager": true,
+      "forlaengetLevering": false,
+      "antalPaaLager": 100,
+      "antalErMindst": true,
+      "braendvaerdiMinKwhKg": 4.9,
+      "braendvaerdiMaxKwhKg": 4.9,
+      "fugtMaxProcent": 6,
+      "askeMaxProcent": 0.5,
+      "svovlMaxProcent": null,
+      "askeSmeltepunktGrader": null,
+      "kilde": "https://www.pillemadsen.dk/shop/6-mm-mix-714p.html"
     },
     {
       "produkt": "Heatlets 6 mm træpiller 10/900 kg",
@@ -263,26 +283,6 @@
       "svovlMaxProcent": null,
       "askeSmeltepunktGrader": null,
       "kilde": "https://www.pillemadsen.dk/shop/laxaa-pellets-8-722p.html"
-    },
-    {
-      "produkt": "6 mm Mix Pellets 16 kg 896 kg",
-      "maerke": "Mix Pellets",
-      "type": "pille",
-      "mm": 6,
-      "prisPrKg": 2.63,
-      "prisPrPalle": 2355,
-      "kgPrPalle": null,
-      "paaLager": true,
-      "forlaengetLevering": false,
-      "antalPaaLager": 100,
-      "antalErMindst": true,
-      "braendvaerdiMinKwhKg": 4.9,
-      "braendvaerdiMaxKwhKg": 4.9,
-      "fugtMaxProcent": 6,
-      "askeMaxProcent": 0.5,
-      "svovlMaxProcent": null,
-      "askeSmeltepunktGrader": null,
-      "kilde": "https://www.pillemadsen.dk/shop/6-mm-mix-714p.html"
     },
     {
       "produkt": "6 mm no name 16 kg 896 kg",
