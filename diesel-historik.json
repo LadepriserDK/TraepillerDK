@@ -90,6 +90,12 @@
       "dieselDKEurPrLiter": 2.25,
       "dieselDEEurPrLiter": 2.266,
       "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202024-02-19.xlsx"
+    },
+    {
+      "dato": "2026-08-23",
+      "dieselDKEurPrLiter": 2.25,
+      "dieselDEEurPrLiter": 2.266,
+      "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202024-02-19.xlsx"
     }
   ]
 }
