@@ -1,30 +1,30 @@
 {
-  "beregnetUTC": "2026-08-24T08:08:23.549Z",
-  "beregnetDanskTid": "24.8.2026, 10.08.23",
+  "beregnetUTC": "2026-08-25T07:35:24.564Z",
+  "beregnetDanskTid": "25.8.2026, 09.35.24",
   "koebsvurdering": {
-    "niveau": "godt",
-    "overskrift": "Godt tidspunkt at købe",
-    "score": -0.56,
-    "position": 22.2,
-    "begrundelse": "vi er i sommerbunden, hvor priserne typisk er lavest på året, og markedet ligger på linje med det seneste års gennemsnit."
+    "niveau": "fornuftigt",
+    "overskrift": "Fornuftigt tidspunkt",
+    "score": -0.36,
+    "position": 32.2,
+    "begrundelse": "vi er i sommerbunden, hvor priserne typisk er lavest på året, og markedet ligger på linje med det seneste års gennemsnit, og Pillemadsen har selv sat priserne ned."
   },
   "marked": {
     "status": "faldende",
     "dataDato": "2026-06",
-    "alderDage": 55,
+    "alderDage": 56,
     "pctVs12Maaneder": 0,
     "tekst": "DEPI er gået ned 7% over de seneste to målte måneder."
   },
   "lokal": {
-    "dataDato": "2026-08-24",
+    "dataDato": "2026-08-25",
     "billigstePaaLager": 2.67,
-    "gnsPris6mm": 2.78,
-    "pctEgenPris30dage": -2.5,
-    "paaLager": 3,
+    "gnsPris6mm": 2.76,
+    "pctEgenPris30dage": -3.2,
+    "paaLager": 5,
     "antalTotal": 29
   },
   "transport": {
-    "dataDato": "2026-08-24",
+    "dataDato": "2026-08-25",
     "dieselDKEurPrLiter": 2.25,
     "note": "Påvirker din leverede pris, ikke pelletmarkedet."
   },
@@ -54,25 +54,25 @@
     },
     {
       "navn": "Pillemadsens egen pris",
-      "status": "-2.5% på 30 dage",
-      "effekt": "neutral",
+      "status": "-3.2% på 30 dage",
+      "effekt": "taler for at vente",
       "vaegt": 0.4,
-      "dato": "2026-08-24",
-      "aktiv": false,
+      "dato": "2026-08-25",
+      "aktiv": true,
       "note": null
     },
     {
       "navn": "Lagerbevægelse",
-      "status": "-59% på 7 dage",
+      "status": "-46% på 7 dage",
       "effekt": "under observation",
       "vaegt": 0,
-      "dato": "24.08.2026, 10.08.18",
+      "dato": "25.08.2026, 09.35.17",
       "aktiv": false,
       "note": "Vises, men tæller ikke med. Signalet skal ses gennem en fyringssæson, før vi stoler på det."
     }
   ],
   "forbehold": [
-    "DEPI's nyeste offentliggjorte tal er fra 2026-06 og altså omkring 55 dage gammelt. Det beskriver retningen, ikke dagens pris.",
+    "DEPI's nyeste offentliggjorte tal er fra 2026-06 og altså omkring 56 dage gammelt. Det beskriver retningen, ikke dagens pris.",
     "DEPI måler løst indblæste piller inkl. moms leveret inden for 50 km. Pillemadsen sælger sække på paller, du selv henter. De to tal kan sammenlignes i retning, aldrig i niveau."
   ]
 }
