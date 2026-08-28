@@ -1,74 +1,76 @@
 {
-  "hentetUTC": "2026-08-27T16:31:46.263Z",
-  "hentetDanskTid": "27.08.2026, 18.31.46",
+  "hentetUTC": "2026-08-28T17:28:03.933Z",
+  "hentetDanskTid": "28.08.2026, 19.28.03",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 15.8,
-    "graddage14dage": 22,
+    "snitTemp14dage": 15.5,
+    "graddage14dage": 24,
     "graddageSammeTidSidsteAar": 5,
     "snitTempSidsteAar": 17.1,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": -1.3,
+    "gradForskelVsSidsteAar": -1.6,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 18,
-    "graddage14dage": 9,
-    "graddageSammeTidSidsteAar": 9,
-    "snitTempSidsteAar": 16.9,
+    "snitTemp14dage": 17.9,
+    "graddage14dage": 3,
+    "graddageSammeTidSidsteAar": 11,
+    "snitTempSidsteAar": 16.5,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": 1.1,
+    "gradForskelVsSidsteAar": 1.4,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 1,
+    "snitSeneste7DageKrKwh": 0.94,
     "snitForrige7DageKrKwh": 1.21,
-    "pctAendring": -17,
+    "pctAendring": -22,
     "retning": "faldende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 133.2,
-    "snitForrige7DageEurMwh": 149,
-    "pctAendring": -11,
+    "snitSeneste7DageEurMwh": 129.5,
+    "snitForrige7DageEurMwh": 151.9,
+    "pctAendring": -15,
     "retning": "faldende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
-    "antalPaaLager": 7,
+    "antalPaaLager": 5,
     "antalTotal": 29,
-    "andelProcent": 24,
+    "andelProcent": 17,
     "tendens7dage": {
-      "fraDato": "2026-08-20",
-      "tilDato": "2026-08-27",
-      "varerNu": 7,
-      "varerFoer": 6,
-      "pctAendring": 17,
+      "fraDato": "2026-08-21",
+      "tilDato": "2026-08-28",
+      "varerNu": 5,
+      "varerFoer": 5,
+      "pctAendring": 0,
       "maerkerGaaetUdsolgt": [
+        "Mix Pellets",
+        "Barlinek",
         "Vildbjerg"
       ],
       "beholdning": {
-        "sumNu": 250,
-        "sumFoer": 265,
-        "pctAendring": -6,
-        "varerMedTal": 7
+        "sumNu": 208,
+        "sumFoer": 315,
+        "pctAendring": -34,
+        "varerMedTal": 5
       },
       "stoersteFald": [
         {
-          "produkt": "Barlinek Træbriketter 10/960 kg",
-          "maerke": "Barlinek",
-          "fra": 20,
+          "produkt": "6 mm Mix Pellets 16 kg 896 kg",
+          "maerke": "Mix Pellets",
+          "fra": 100,
           "til": 0,
           "pctAendring": -100
         },
         {
-          "produkt": "Vildbjerg Pellets 6 mm træpiller 16/896 kg",
-          "maerke": "Vildbjerg",
+          "produkt": "Barlinek Træbriketter 10/960 kg",
+          "maerke": "Barlinek",
           "fra": 5,
           "til": 0,
           "pctAendring": -100
@@ -76,7 +78,7 @@
         {
           "produkt": "Vildbjerg Pellets 8 mm træpiller 16/896 kg",
           "maerke": "Vildbjerg",
-          "fra": 20,
+          "fra": 10,
           "til": 0,
           "pctAendring": -100
         }
@@ -84,18 +86,28 @@
     },
     "tendens30dage": {
       "fraDato": "2026-08-08",
-      "tilDato": "2026-08-27",
-      "varerNu": 7,
+      "tilDato": "2026-08-28",
+      "varerNu": 5,
       "varerFoer": 6,
-      "pctAendring": 17,
-      "maerkerGaaetUdsolgt": [],
+      "pctAendring": -17,
+      "maerkerGaaetUdsolgt": [
+        "Barlinek",
+        "Mix Pellets"
+      ],
       "beholdning": {
-        "sumNu": 250,
+        "sumNu": 208,
         "sumFoer": 360,
-        "pctAendring": -31,
-        "varerMedTal": 7
+        "pctAendring": -42,
+        "varerMedTal": 5
       },
       "stoersteFald": [
+        {
+          "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
+          "maerke": "Barlinek",
+          "fra": 50,
+          "til": 0,
+          "pctAendring": -100
+        },
         {
           "produkt": "Barlinek Træbriketter 10/960 kg",
           "maerke": "Barlinek",
@@ -104,22 +116,15 @@
           "pctAendring": -100
         },
         {
-          "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
-          "maerke": "Barlinek",
-          "fra": 50,
-          "til": 10,
-          "pctAendring": -80
-        },
-        {
           "produkt": "6 mm Mix Pellets 16 kg 896 kg",
           "maerke": "Mix Pellets",
           "fra": 50,
-          "til": 10,
-          "pctAendring": -80
+          "til": 0,
+          "pctAendring": -100
         }
       ]
     },
-    "retning": "middel",
+    "retning": "lav",
     "kilde": "Pillemadsen.dk"
   },
   "depi": {
@@ -142,7 +147,7 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-08-27",
+    "dato": "2026-08-28",
     "dieselDKEurPrLiter": 2.277,
     "dieselDEEurPrLiter": 2.286,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202024-02-19.xlsx",
