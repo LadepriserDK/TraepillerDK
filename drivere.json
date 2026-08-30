@@ -1,64 +1,64 @@
 {
-  "hentetUTC": "2026-08-29T11:41:30.849Z",
-  "hentetDanskTid": "29.08.2026, 13.41.30",
+  "hentetUTC": "2026-08-30T10:30:50.370Z",
+  "hentetDanskTid": "30.08.2026, 12.30.50",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 15.4,
-    "graddage14dage": 24,
-    "graddageSammeTidSidsteAar": 6,
-    "snitTempSidsteAar": 17,
+    "snitTemp14dage": 15.5,
+    "graddage14dage": 22,
+    "graddageSammeTidSidsteAar": 8,
+    "snitTempSidsteAar": 16.8,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": -1.6,
+    "gradForskelVsSidsteAar": -1.3,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 17.9,
-    "graddage14dage": 4,
-    "graddageSammeTidSidsteAar": 14,
-    "snitTempSidsteAar": 16.2,
+    "snitTemp14dage": 17.8,
+    "graddage14dage": 5,
+    "graddageSammeTidSidsteAar": 17,
+    "snitTempSidsteAar": 16,
     "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": 1.7,
+    "gradForskelVsSidsteAar": 1.8,
     "fyringssaeson": false,
     "retning": "uden for fyringssæson",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 0.92,
-    "snitForrige7DageKrKwh": 1.18,
-    "pctAendring": -22,
-    "retning": "faldende",
+    "snitSeneste7DageKrKwh": 0.93,
+    "snitForrige7DageKrKwh": 1.02,
+    "pctAendring": -9,
+    "retning": "stabil",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 123.5,
-    "snitForrige7DageEurMwh": 151.3,
-    "pctAendring": -18,
+    "snitSeneste7DageEurMwh": 122.3,
+    "snitForrige7DageEurMwh": 146.8,
+    "pctAendring": -17,
     "retning": "faldende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
-    "antalPaaLager": 4,
+    "antalPaaLager": 3,
     "antalTotal": 29,
-    "andelProcent": 14,
+    "andelProcent": 10,
     "tendens7dage": {
-      "fraDato": "2026-08-22",
-      "tilDato": "2026-08-29",
-      "varerNu": 4,
+      "fraDato": "2026-08-23",
+      "tilDato": "2026-08-30",
+      "varerNu": 3,
       "varerFoer": 5,
-      "pctAendring": -20,
+      "pctAendring": -40,
       "maerkerGaaetUdsolgt": [
         "Mix Pellets",
-        "Barlinek",
+        "German Pellets",
         "Vildbjerg"
       ],
       "beholdning": {
-        "sumNu": 203,
-        "sumFoer": 313,
+        "sumNu": 200,
+        "sumFoer": 308,
         "pctAendring": -35,
-        "varerMedTal": 4
+        "varerMedTal": 3
       },
       "stoersteFald": [
         {
@@ -69,8 +69,8 @@
           "pctAendring": -100
         },
         {
-          "produkt": "Barlinek Træbriketter 10/960 kg",
-          "maerke": "Barlinek",
+          "produkt": "German Pellets 6 mm træpiller 15/990 kg",
+          "maerke": "German Pellets",
           "fra": 3,
           "til": 0,
           "pctAendring": -100
@@ -78,7 +78,7 @@
         {
           "produkt": "Vildbjerg Pellets 8 mm træpiller 16/896 kg",
           "maerke": "Vildbjerg",
-          "fra": 10,
+          "fra": 5,
           "til": 0,
           "pctAendring": -100
         }
@@ -86,19 +86,20 @@
     },
     "tendens30dage": {
       "fraDato": "2026-08-08",
-      "tilDato": "2026-08-29",
-      "varerNu": 4,
+      "tilDato": "2026-08-30",
+      "varerNu": 3,
       "varerFoer": 6,
-      "pctAendring": -33,
+      "pctAendring": -50,
       "maerkerGaaetUdsolgt": [
         "Barlinek",
-        "Mix Pellets"
+        "Mix Pellets",
+        "No name"
       ],
       "beholdning": {
-        "sumNu": 203,
+        "sumNu": 200,
         "sumFoer": 360,
         "pctAendring": -44,
-        "varerMedTal": 4
+        "varerMedTal": 3
       },
       "stoersteFald": [
         {
@@ -147,7 +148,7 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-08-29",
+    "dato": "2026-08-30",
     "dieselDKEurPrLiter": 2.277,
     "dieselDEEurPrLiter": 2.286,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202024-02-19.xlsx",
