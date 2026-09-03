@@ -1223,5 +1223,33 @@
         "antalErMindst": true
       }
     ]
+  },
+  {
+    "dato": "2026-09-03",
+    "antalPaaLager": 3,
+    "antalTotal": 27,
+    "varer": [
+      {
+        "produkt": "6 mm Mix Pellets 16 kg 896 kg",
+        "maerke": "Mix Pellets",
+        "prisPrKg": 2.73,
+        "antal": 4,
+        "antalErMindst": false
+      },
+      {
+        "produkt": "Laxå Pellets 8 mm 16/832",
+        "maerke": "Laxå",
+        "prisPrKg": 2.88,
+        "antal": 10,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Vida 8 mm Træpiller 16/896 kg",
+        "maerke": "Vida",
+        "prisPrKg": 2.97,
+        "antal": 100,
+        "antalErMindst": true
+      }
+    ]
   }
 ]

@@ -1,31 +1,20 @@
 {
-  "hentetUTC": "2026-09-02T09:37:24.639Z",
-  "hentetDanskTid": "02.09.2026, 11.37.24",
+  "hentetUTC": "2026-09-03T09:47:46.913Z",
+  "hentetDanskTid": "03.09.2026, 11.47.46",
   "vejrDK": null,
-  "vejrDE": {
-    "sted": "Midttyskland",
-    "snitTemp14dage": 15.7,
-    "graddage14dage": 27,
-    "graddageSammeTidSidsteAar": 23,
-    "snitTempSidsteAar": 15.6,
-    "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": 0.1,
-    "fyringssaeson": false,
-    "retning": "uden for fyringssæson",
-    "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
-  },
+  "vejrDE": null,
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 0.87,
-    "snitForrige7DageKrKwh": 0.93,
-    "pctAendring": -7,
-    "retning": "stabil",
+    "snitSeneste7DageKrKwh": 0.88,
+    "snitForrige7DageKrKwh": 1.06,
+    "pctAendring": -17,
+    "retning": "faldende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 123.1,
-    "snitForrige7DageEurMwh": 138.2,
-    "pctAendring": -11,
-    "retning": "faldende",
+    "snitSeneste7DageEurMwh": 122.1,
+    "snitForrige7DageEurMwh": 134.8,
+    "pctAendring": -9,
+    "retning": "stabil",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
@@ -33,40 +22,40 @@
     "antalTotal": 27,
     "andelProcent": 11,
     "tendens7dage": {
-      "fraDato": "2026-08-26",
-      "tilDato": "2026-09-02",
+      "fraDato": "2026-08-27",
+      "tilDato": "2026-09-03",
       "varerNu": 3,
-      "varerFoer": 6,
-      "pctAendring": -50,
+      "varerFoer": 7,
+      "pctAendring": -57,
       "maerkerGaaetUdsolgt": [
         "Barlinek",
         "No name"
       ],
       "beholdning": {
-        "sumNu": 140,
-        "sumFoer": 230,
-        "pctAendring": -39,
+        "sumNu": 114,
+        "sumFoer": 250,
+        "pctAendring": -54,
         "varerMedTal": 3
       },
       "stoersteFald": [
         {
           "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
           "maerke": "Barlinek",
-          "fra": 50,
+          "fra": 10,
           "til": 0,
           "pctAendring": -100
         },
         {
           "produkt": "Laxå Pellets 6 mm 16/832",
           "maerke": "Laxå",
-          "fra": 100,
+          "fra": 50,
           "til": 0,
           "pctAendring": -100
         },
         {
           "produkt": "6 mm no name 16 kg 896 kg",
           "maerke": "No name",
-          "fra": 5,
+          "fra": 10,
           "til": 0,
           "pctAendring": -100
         }
@@ -74,7 +63,7 @@
     },
     "tendens30dage": {
       "fraDato": "2026-08-08",
-      "tilDato": "2026-09-02",
+      "tilDato": "2026-09-03",
       "varerNu": 3,
       "varerFoer": 6,
       "pctAendring": -50,
@@ -83,9 +72,9 @@
         "No name"
       ],
       "beholdning": {
-        "sumNu": 140,
+        "sumNu": 114,
         "sumFoer": 360,
-        "pctAendring": -61,
+        "pctAendring": -68,
         "varerMedTal": 3
       },
       "stoersteFald": [
@@ -135,7 +124,7 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-09-02",
+    "dato": "2026-09-03",
     "dieselDKEurPrLiter": 2.274,
     "dieselDEEurPrLiter": 2.232,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202024-02-19.xlsx",
