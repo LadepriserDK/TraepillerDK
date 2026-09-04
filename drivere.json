@@ -1,50 +1,65 @@
 {
-  "hentetUTC": "2026-09-03T09:47:46.913Z",
-  "hentetDanskTid": "03.09.2026, 11.47.46",
-  "vejrDK": null,
-  "vejrDE": null,
+  "hentetUTC": "2026-09-04T09:43:12.234Z",
+  "hentetDanskTid": "04.09.2026, 11.43.12",
+  "vejrDK": {
+    "sted": "Østjylland",
+    "snitTemp14dage": 14.3,
+    "graddage14dage": 38,
+    "graddageSammeTidSidsteAar": 21,
+    "snitTempSidsteAar": 15.7,
+    "pctAendringGraddage": null,
+    "gradForskelVsSidsteAar": -1.4,
+    "fyringssaeson": false,
+    "retning": "uden for fyringssæson",
+    "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
+  },
+  "vejrDE": {
+    "sted": "Midttyskland",
+    "snitTemp14dage": 14.8,
+    "graddage14dage": 35,
+    "graddageSammeTidSidsteAar": 29,
+    "snitTempSidsteAar": 15.2,
+    "pctAendringGraddage": null,
+    "gradForskelVsSidsteAar": -0.4,
+    "fyringssaeson": false,
+    "retning": "uden for fyringssæson",
+    "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
+  },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 0.88,
-    "snitForrige7DageKrKwh": 1.06,
-    "pctAendring": -17,
+    "snitSeneste7DageKrKwh": 0.91,
+    "snitForrige7DageKrKwh": 1.02,
+    "pctAendring": -11,
     "retning": "faldende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 122.1,
-    "snitForrige7DageEurMwh": 134.8,
-    "pctAendring": -9,
-    "retning": "stabil",
+    "snitSeneste7DageEurMwh": 116.5,
+    "snitForrige7DageEurMwh": 132.6,
+    "pctAendring": -12,
+    "retning": "faldende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
-    "antalPaaLager": 3,
+    "antalPaaLager": 2,
     "antalTotal": 27,
-    "andelProcent": 11,
+    "andelProcent": 7,
     "tendens7dage": {
-      "fraDato": "2026-08-27",
-      "tilDato": "2026-09-03",
-      "varerNu": 3,
-      "varerFoer": 7,
-      "pctAendring": -57,
+      "fraDato": "2026-08-28",
+      "tilDato": "2026-09-04",
+      "varerNu": 2,
+      "varerFoer": 5,
+      "pctAendring": -60,
       "maerkerGaaetUdsolgt": [
-        "Barlinek",
+        "Laxå",
         "No name"
       ],
       "beholdning": {
-        "sumNu": 114,
-        "sumFoer": 250,
-        "pctAendring": -54,
-        "varerMedTal": 3
+        "sumNu": 120,
+        "sumFoer": 208,
+        "pctAendring": -42,
+        "varerMedTal": 2
       },
       "stoersteFald": [
-        {
-          "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
-          "maerke": "Barlinek",
-          "fra": 10,
-          "til": 0,
-          "pctAendring": -100
-        },
         {
           "produkt": "Laxå Pellets 6 mm 16/832",
           "maerke": "Laxå",
@@ -53,9 +68,16 @@
           "pctAendring": -100
         },
         {
+          "produkt": "Laxå Pellets 8 mm 16/832",
+          "maerke": "Laxå",
+          "fra": 50,
+          "til": 0,
+          "pctAendring": -100
+        },
+        {
           "produkt": "6 mm no name 16 kg 896 kg",
           "maerke": "No name",
-          "fra": 10,
+          "fra": 3,
           "til": 0,
           "pctAendring": -100
         }
@@ -63,19 +85,20 @@
     },
     "tendens30dage": {
       "fraDato": "2026-08-08",
-      "tilDato": "2026-09-03",
-      "varerNu": 3,
+      "tilDato": "2026-09-04",
+      "varerNu": 2,
       "varerFoer": 6,
-      "pctAendring": -50,
+      "pctAendring": -67,
       "maerkerGaaetUdsolgt": [
         "Barlinek",
+        "Laxå",
         "No name"
       ],
       "beholdning": {
-        "sumNu": 114,
+        "sumNu": 120,
         "sumFoer": 360,
-        "pctAendring": -68,
-        "varerMedTal": 3
+        "pctAendring": -67,
+        "varerMedTal": 2
       },
       "stoersteFald": [
         {
@@ -124,7 +147,7 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-09-03",
+    "dato": "2026-09-04",
     "dieselDKEurPrLiter": 2.274,
     "dieselDEEurPrLiter": 2.232,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202024-02-19.xlsx",

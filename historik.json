@@ -286,5 +286,14 @@
     "gnsPris6mmPaaLager": 2.73,
     "gnsPris8mmPaaLager": 2.93,
     "billigstePaaLager": 2.73
+  },
+  {
+    "dato": "2026-09-04",
+    "hentetDanskTid": "04.09.2026, 11.43.02",
+    "antalTotal": 27,
+    "antalPaaLager": 2,
+    "gnsPris6mmPaaLager": 2.73,
+    "gnsPris8mmPaaLager": 2.97,
+    "billigstePaaLager": 2.73
   }
 ]
