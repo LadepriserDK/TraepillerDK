@@ -1272,5 +1272,19 @@
         "antalErMindst": true
       }
     ]
+  },
+  {
+    "dato": "2026-09-05",
+    "antalPaaLager": 1,
+    "antalTotal": 27,
+    "varer": [
+      {
+        "produkt": "Vida 8 mm Træpiller 16/896 kg",
+        "maerke": "Vida",
+        "prisPrKg": 2.97,
+        "antal": 100,
+        "antalErMindst": true
+      }
+    ]
   }
 ]
