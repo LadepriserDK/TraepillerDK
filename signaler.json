@@ -1,6 +1,6 @@
 {
-  "beregnetUTC": "2026-09-07T10:16:25.024Z",
-  "beregnetDanskTid": "7.9.2026, 12.16.25",
+  "beregnetUTC": "2026-09-08T09:41:15.037Z",
+  "beregnetDanskTid": "8.9.2026, 11.41.15",
   "koebsvurdering": {
     "niveau": "fornuftigt",
     "overskrift": "Fornuftigt tidspunkt",
@@ -11,20 +11,20 @@
   "marked": {
     "status": "faldende",
     "dataDato": "2026-06",
-    "alderDage": 69,
+    "alderDage": 70,
     "pctVs12Maaneder": 0,
     "tekst": "DEPI er gået ned 7% over de seneste to målte måneder."
   },
   "lokal": {
-    "dataDato": "2026-09-07",
+    "dataDato": "2026-09-08",
     "billigstePaaLager": 2.73,
-    "gnsPris6mm": 2.82,
-    "pctEgenPris30dage": -2.8,
-    "paaLager": 3,
-    "antalTotal": 26
+    "gnsPris6mm": 2.96,
+    "pctEgenPris30dage": 2.4,
+    "paaLager": 4,
+    "antalTotal": 27
   },
   "transport": {
-    "dataDato": "2026-09-07",
+    "dataDato": "2026-09-08",
     "dieselDKEurPrLiter": 2.274,
     "note": "Påvirker din leverede pris, ikke pelletmarkedet."
   },
@@ -54,25 +54,25 @@
     },
     {
       "navn": "Pillemadsens egen pris",
-      "status": "-2.8% på 30 dage",
+      "status": "+2.4% på 30 dage",
       "effekt": "neutral",
       "vaegt": 0.4,
-      "dato": "2026-09-07",
+      "dato": "2026-09-08",
       "aktiv": false,
       "note": null
     },
     {
       "navn": "Lagerbevægelse",
-      "status": "-50% på 7 dage",
+      "status": "-8% på 7 dage",
       "effekt": "under observation",
       "vaegt": 0,
-      "dato": "07.09.2026, 12.16.19",
+      "dato": "08.09.2026, 11.41.04",
       "aktiv": false,
       "note": "Vises, men tæller ikke med. Signalet skal ses gennem en fyringssæson, før vi stoler på det."
     }
   ],
   "forbehold": [
-    "DEPI's nyeste offentliggjorte tal er fra 2026-06 og altså omkring 69 dage gammelt. Det beskriver retningen, ikke dagens pris.",
+    "DEPI's nyeste offentliggjorte tal er fra 2026-06 og altså omkring 70 dage gammelt. Det beskriver retningen, ikke dagens pris.",
     "DEPI måler løst indblæste piller inkl. moms leveret inden for 50 km. Pillemadsen sælger sække på paller, du selv henter. De to tal kan sammenlignes i retning, aldrig i niveau."
   ]
 }
