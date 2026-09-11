@@ -1426,5 +1426,54 @@
         "antalErMindst": true
       }
     ]
+  },
+  {
+    "dato": "2026-09-11",
+    "antalPaaLager": 6,
+    "antalTotal": 28,
+    "varer": [
+      {
+        "produkt": "6 mm Mix Pellets 16 kg 896 kg",
+        "maerke": "Mix Pellets",
+        "prisPrKg": 2.73,
+        "antal": 50,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Vildbjerg Pellets 6 mm træpiller 16/896 kg",
+        "maerke": "Vildbjerg",
+        "prisPrKg": 2.98,
+        "antal": 10,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Egetræpiller 8 mm 15 kg /990 kg",
+        "maerke": "Egetræpiller",
+        "prisPrKg": 3.13,
+        "antal": 20,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Polar Power 6 mm 10/900 kg",
+        "maerke": "Polar",
+        "prisPrKg": 2.99,
+        "antal": 10,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "6 mm i 1000 kg Big Bag",
+        "maerke": "i",
+        "prisPrKg": 2.9,
+        "antal": 10,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Vida 8 mm Træpiller 16/896 kg",
+        "maerke": "Vida",
+        "prisPrKg": 2.97,
+        "antal": 10,
+        "antalErMindst": true
+      }
+    ]
   }
 ]
