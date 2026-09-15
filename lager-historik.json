@@ -1587,5 +1587,33 @@
         "antalErMindst": true
       }
     ]
+  },
+  {
+    "dato": "2026-09-15",
+    "antalPaaLager": 3,
+    "antalTotal": 28,
+    "varer": [
+      {
+        "produkt": "6 mm Mix Pellets 16 kg 896 kg",
+        "maerke": "Mix Pellets",
+        "prisPrKg": 2.73,
+        "antal": 50,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Laxå Pellets 8 mm 16/832",
+        "maerke": "Laxå",
+        "prisPrKg": 2.88,
+        "antal": 10,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "6 mm i 1000 kg Big Bag",
+        "maerke": "i",
+        "prisPrKg": 2.9,
+        "antal": 5,
+        "antalErMindst": true
+      }
+    ]
   }
 ]
