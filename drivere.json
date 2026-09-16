@@ -1,77 +1,69 @@
 {
-  "hentetUTC": "2026-09-15T10:05:31.720Z",
-  "hentetDanskTid": "15.09.2026, 12.05.31",
+  "hentetUTC": "2026-09-16T09:57:14.298Z",
+  "hentetDanskTid": "16.09.2026, 11.57.14",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 13.9,
-    "graddage14dage": 44,
-    "graddageSammeTidSidsteAar": 46,
-    "snitTempSidsteAar": 13.8,
-    "pctAendringGraddage": -4,
-    "gradForskelVsSidsteAar": 0.1,
+    "snitTemp14dage": 13.1,
+    "graddage14dage": 54,
+    "graddageSammeTidSidsteAar": 48,
+    "snitTempSidsteAar": 13.7,
+    "pctAendringGraddage": 13,
+    "gradForskelVsSidsteAar": -0.6,
     "fyringssaeson": true,
     "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 14.8,
-    "graddage14dage": 31,
-    "graddageSammeTidSidsteAar": 50,
-    "snitTempSidsteAar": 13.8,
-    "pctAendringGraddage": null,
-    "gradForskelVsSidsteAar": 1,
-    "fyringssaeson": false,
-    "retning": "uden for fyringssæson",
+    "snitTemp14dage": 13.4,
+    "graddage14dage": 51,
+    "graddageSammeTidSidsteAar": 56,
+    "snitTempSidsteAar": 13.4,
+    "pctAendringGraddage": -9,
+    "gradForskelVsSidsteAar": 0,
+    "fyringssaeson": true,
+    "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 1.32,
-    "snitForrige7DageKrKwh": 0.77,
-    "pctAendring": 70,
+    "snitSeneste7DageKrKwh": 1.35,
+    "snitForrige7DageKrKwh": 0.93,
+    "pctAendring": 45,
     "retning": "stigende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 178.5,
-    "snitForrige7DageEurMwh": 122,
-    "pctAendring": 46,
+    "snitSeneste7DageEurMwh": 183.7,
+    "snitForrige7DageEurMwh": 121.9,
+    "pctAendring": 51,
     "retning": "stigende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
-    "antalPaaLager": 3,
+    "antalPaaLager": 5,
     "antalTotal": 28,
-    "andelProcent": 11,
+    "andelProcent": 18,
     "tendens7dage": {
-      "fraDato": "2026-09-08",
-      "tilDato": "2026-09-15",
-      "varerNu": 3,
-      "varerFoer": 4,
-      "pctAendring": -25,
+      "fraDato": "2026-09-09",
+      "tilDato": "2026-09-16",
+      "varerNu": 5,
+      "varerFoer": 2,
+      "pctAendring": 150,
       "maerkerGaaetUdsolgt": [
         "Barlinek",
-        "Egetræpiller",
         "Vida"
       ],
       "beholdning": {
-        "sumNu": 65,
-        "sumFoer": 171,
-        "pctAendring": -62,
-        "varerMedTal": 3
+        "sumNu": 74,
+        "sumFoer": 55,
+        "pctAendring": 35,
+        "varerMedTal": 5
       },
       "stoersteFald": [
         {
           "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
           "maerke": "Barlinek",
-          "fra": 100,
-          "til": 0,
-          "pctAendring": -100
-        },
-        {
-          "produkt": "Egetræpiller 8 mm 15 kg /990 kg",
-          "maerke": "Egetræpiller",
-          "fra": 1,
+          "fra": 5,
           "til": 0,
           "pctAendring": -100
         },
@@ -85,22 +77,22 @@
       ]
     },
     "tendens30dage": {
-      "fraDato": "2026-08-16",
-      "tilDato": "2026-09-15",
-      "varerNu": 3,
-      "varerFoer": 7,
-      "pctAendring": -57,
+      "fraDato": "2026-08-17",
+      "tilDato": "2026-09-16",
+      "varerNu": 5,
+      "varerFoer": 9,
+      "pctAendring": -44,
       "maerkerGaaetUdsolgt": [
         "Pellets",
         "Barlinek",
-        "No name",
-        "Vildbjerg"
+        "Fågelfors",
+        "No name"
       ],
       "beholdning": {
-        "sumNu": 65,
-        "sumFoer": 355,
-        "pctAendring": -82,
-        "varerMedTal": 3
+        "sumNu": 74,
+        "sumFoer": 380,
+        "pctAendring": -81,
+        "varerMedTal": 5
       },
       "stoersteFald": [
         {
@@ -118,9 +110,9 @@
           "pctAendring": -100
         },
         {
-          "produkt": "Laxå Pellets 6 mm 16/832",
-          "maerke": "Laxå",
-          "fra": 100,
+          "produkt": "6 mm Fågelfors 10/900kg",
+          "maerke": "Fågelfors",
+          "fra": 5,
           "til": 0,
           "pctAendring": -100
         }
@@ -149,12 +141,12 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-09-15",
+    "dato": "2026-09-16",
     "dieselDKEurPrLiter": 2.435,
     "dieselDEEurPrLiter": 2.328,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202024-02-19.xlsx",
     "pctAendring30dage": 14,
-    "sammenlignDato": "2026-08-16",
+    "sammenlignDato": "2026-08-17",
     "retning": "stigende"
   }
 }
