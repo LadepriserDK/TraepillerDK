@@ -1657,5 +1657,47 @@
         "antalErMindst": true
       }
     ]
+  },
+  {
+    "dato": "2026-09-17",
+    "antalPaaLager": 5,
+    "antalTotal": 28,
+    "varer": [
+      {
+        "produkt": "6 mm Mix Pellets 16 kg 896 kg",
+        "maerke": "Mix Pellets",
+        "prisPrKg": 2.73,
+        "antal": 20,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "6 mm Samba træpiller 16/896 kg",
+        "maerke": "Samba",
+        "prisPrKg": 2.94,
+        "antal": 10,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "6 mm Fågelfors 16/832 kg",
+        "maerke": "Fågelfors",
+        "prisPrKg": 3.07,
+        "antal": 20,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "8 mm Fågelfors træpiller 16/832 kg",
+        "maerke": "Fågelfors",
+        "prisPrKg": 3.07,
+        "antal": 20,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Laxå Pellets 6 mm 16/832",
+        "maerke": "Laxå",
+        "prisPrKg": 2.88,
+        "antal": 10,
+        "antalErMindst": true
+      }
+    ]
   }
 ]
