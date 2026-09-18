@@ -1699,5 +1699,19 @@
         "antalErMindst": true
       }
     ]
+  },
+  {
+    "dato": "2026-09-18",
+    "antalPaaLager": 1,
+    "antalTotal": 28,
+    "varer": [
+      {
+        "produkt": "6 mm Mix Pellets 16 kg 896 kg",
+        "maerke": "Mix Pellets",
+        "prisPrKg": 2.73,
+        "antal": 20,
+        "antalErMindst": true
+      }
+    ]
   }
 ]
