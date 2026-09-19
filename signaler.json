@@ -1,6 +1,6 @@
 {
-  "beregnetUTC": "2026-09-18T09:46:01.904Z",
-  "beregnetDanskTid": "18.9.2026, 11.46.01",
+  "beregnetUTC": "2026-09-19T09:30:47.046Z",
+  "beregnetDanskTid": "19.9.2026, 11.30.47",
   "koebsvurdering": {
     "niveau": "fornuftigt",
     "overskrift": "Fornuftigt tidspunkt",
@@ -11,20 +11,20 @@
   "marked": {
     "status": "faldende",
     "dataDato": "2026-06",
-    "alderDage": 80,
+    "alderDage": 81,
     "pctVs12Maaneder": 0,
     "tekst": "DEPI er gået ned 7% over de seneste to målte måneder."
   },
   "lokal": {
-    "dataDato": "2026-09-18",
+    "dataDato": "2026-09-19",
     "billigstePaaLager": 2.73,
     "gnsPris6mm": 2.73,
-    "pctEgenPris30dage": -1.8,
+    "pctEgenPris30dage": -0.4,
     "paaLager": 1,
     "antalTotal": 28
   },
   "transport": {
-    "dataDato": "2026-09-18",
+    "dataDato": "2026-09-19",
     "dieselDKEurPrLiter": 2.502,
     "note": "Påvirker din leverede pris, ikke pelletmarkedet."
   },
@@ -54,25 +54,25 @@
     },
     {
       "navn": "Pillemadsens egen pris",
-      "status": "-1.8% på 30 dage",
+      "status": "-0.4% på 30 dage",
       "effekt": "neutral",
       "vaegt": 0.4,
-      "dato": "2026-09-18",
+      "dato": "2026-09-19",
       "aktiv": false,
       "note": null
     },
     {
       "navn": "Lagerbevægelse",
-      "status": "-82% på 7 dage",
+      "status": "-98% på 7 dage",
       "effekt": "under observation",
       "vaegt": 0,
-      "dato": "18.09.2026, 11.45.45",
+      "dato": "19.09.2026, 11.30.39",
       "aktiv": false,
       "note": "Vises, men tæller ikke med. Signalet skal ses gennem en fyringssæson, før vi stoler på det."
     }
   ],
   "forbehold": [
-    "DEPI's nyeste offentliggjorte tal er fra 2026-06 og altså omkring 80 dage gammelt. Det beskriver retningen, ikke dagens pris.",
+    "DEPI's nyeste offentliggjorte tal er fra 2026-06 og altså omkring 81 dage gammelt. Det beskriver retningen, ikke dagens pris.",
     "DEPI måler løst indblæste piller inkl. moms leveret inden for 50 km. Pillemadsen sælger sække på paller, du selv henter. De to tal kan sammenlignes i retning, aldrig i niveau."
   ]
 }
