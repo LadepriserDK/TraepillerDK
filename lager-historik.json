@@ -1727,5 +1727,11 @@
         "antalErMindst": false
       }
     ]
+  },
+  {
+    "dato": "2026-09-20",
+    "antalPaaLager": 0,
+    "antalTotal": 28,
+    "varer": []
   }
 ]
