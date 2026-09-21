@@ -1733,5 +1733,26 @@
     "antalPaaLager": 0,
     "antalTotal": 28,
     "varer": []
+  },
+  {
+    "dato": "2026-09-21",
+    "antalPaaLager": 2,
+    "antalTotal": 28,
+    "varer": [
+      {
+        "produkt": "Barlinek Træbriketter 10/960 kg",
+        "maerke": "Barlinek",
+        "prisPrKg": 3.12,
+        "antal": 10,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Vildbjerg Pellets 6 mm træpiller 16/896 kg",
+        "maerke": "Vildbjerg",
+        "prisPrKg": 2.98,
+        "antal": 50,
+        "antalErMindst": true
+      }
+    ]
   }
 ]
