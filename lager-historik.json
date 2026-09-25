@@ -1838,5 +1838,40 @@
         "antalErMindst": true
       }
     ]
+  },
+  {
+    "dato": "2026-09-25",
+    "antalPaaLager": 4,
+    "antalTotal": 28,
+    "varer": [
+      {
+        "produkt": "6 mm Mix Pellets 16 kg 896 kg",
+        "maerke": "Mix Pellets",
+        "prisPrKg": 2.73,
+        "antal": 50,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Barlinek Træbriketter 10/960 kg",
+        "maerke": "Barlinek",
+        "prisPrKg": 3.12,
+        "antal": 10,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Vildbjerg Pellets 6 mm træpiller 16/896 kg",
+        "maerke": "Vildbjerg",
+        "prisPrKg": 2.98,
+        "antal": 10,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "8 mm Fågelfors træpiller 16/832 kg",
+        "maerke": "Fågelfors",
+        "prisPrKg": 3.07,
+        "antal": 5,
+        "antalErMindst": true
+      }
+    ]
   }
 ]
