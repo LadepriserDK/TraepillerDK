@@ -1950,5 +1950,33 @@
         "antalErMindst": true
       }
     ]
+  },
+  {
+    "dato": "2026-09-29",
+    "antalPaaLager": 3,
+    "antalTotal": 28,
+    "varer": [
+      {
+        "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
+        "maerke": "Barlinek",
+        "prisPrKg": 3.33,
+        "antal": 20,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Vildbjerg Pellets 6 mm træpiller 16/896 kg",
+        "maerke": "Vildbjerg",
+        "prisPrKg": 2.98,
+        "antal": 1,
+        "antalErMindst": false
+      },
+      {
+        "produkt": "Vida 8 mm Træpiller 16/896 kg",
+        "maerke": "Vida",
+        "prisPrKg": 2.97,
+        "antal": 50,
+        "antalErMindst": true
+      }
+    ]
   }
 ]
