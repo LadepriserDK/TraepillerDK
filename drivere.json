@@ -1,116 +1,110 @@
 {
-  "hentetUTC": "2026-10-02T11:07:37.596Z",
-  "hentetDanskTid": "02.10.2026, 13.07.37",
+  "hentetUTC": "2026-10-03T10:25:34.377Z",
+  "hentetDanskTid": "03.10.2026, 12.25.34",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 12.3,
-    "graddage14dage": 66,
+    "snitTemp14dage": 11.9,
+    "graddage14dage": 71,
     "graddageSammeTidSidsteAar": 71,
-    "snitTempSidsteAar": 11.9,
-    "pctAendringGraddage": -7,
-    "gradForskelVsSidsteAar": 0.4,
+    "snitTempSidsteAar": 12,
+    "pctAendringGraddage": 0,
+    "gradForskelVsSidsteAar": -0.1,
     "fyringssaeson": true,
     "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 12.7,
-    "graddage14dage": 60,
-    "graddageSammeTidSidsteAar": 86,
-    "snitTempSidsteAar": 10.9,
-    "pctAendringGraddage": -30,
-    "gradForskelVsSidsteAar": 1.8,
+    "snitTemp14dage": 12.3,
+    "graddage14dage": 66,
+    "graddageSammeTidSidsteAar": 81,
+    "snitTempSidsteAar": 11.2,
+    "pctAendringGraddage": -19,
+    "gradForskelVsSidsteAar": 1.1,
     "fyringssaeson": true,
     "retning": "mildere",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 1.16,
-    "snitForrige7DageKrKwh": 1.37,
-    "pctAendring": -15,
+    "snitSeneste7DageKrKwh": 1.2,
+    "snitForrige7DageKrKwh": 1.38,
+    "pctAendring": -13,
     "retning": "faldende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 166.3,
-    "snitForrige7DageEurMwh": 122.3,
-    "pctAendring": 36,
+    "snitSeneste7DageEurMwh": 166.8,
+    "snitForrige7DageEurMwh": 128.1,
+    "pctAendring": 30,
     "retning": "stigende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
-    "antalPaaLager": 9,
+    "antalPaaLager": 7,
     "antalTotal": 28,
-    "andelProcent": 32,
+    "andelProcent": 25,
     "tendens7dage": {
-      "fraDato": "2026-09-25",
-      "tilDato": "2026-10-02",
-      "varerNu": 9,
-      "varerFoer": 4,
-      "pctAendring": 125,
+      "fraDato": "2026-09-26",
+      "tilDato": "2026-10-03",
+      "varerNu": 7,
+      "varerFoer": 3,
+      "pctAendring": 133,
       "maerkerGaaetUdsolgt": [
-        "Mix Pellets"
+        "Mix Pellets",
+        "Vildbjerg"
       ],
       "beholdning": {
-        "sumNu": 209,
-        "sumFoer": 75,
-        "pctAendring": 179,
-        "varerMedTal": 9
+        "sumNu": 293,
+        "sumFoer": 27,
+        "pctAendring": 985,
+        "varerMedTal": 7
       },
       "stoersteFald": [
         {
           "produkt": "6 mm Mix Pellets 16 kg 896 kg",
           "maerke": "Mix Pellets",
-          "fra": 50,
+          "fra": 20,
           "til": 0,
           "pctAendring": -100
         },
         {
           "produkt": "Barlinek Træbriketter 10/960 kg",
           "maerke": "Barlinek",
-          "fra": 10,
+          "fra": 5,
           "til": 0,
           "pctAendring": -100
         },
         {
           "produkt": "Vildbjerg Pellets 6 mm træpiller 16/896 kg",
           "maerke": "Vildbjerg",
-          "fra": 10,
-          "til": 5,
-          "pctAendring": -50
+          "fra": 2,
+          "til": 0,
+          "pctAendring": -100
         }
       ]
     },
     "tendens30dage": {
-      "fraDato": "2026-09-02",
-      "tilDato": "2026-10-02",
-      "varerNu": 9,
+      "fraDato": "2026-09-03",
+      "tilDato": "2026-10-03",
+      "varerNu": 7,
       "varerFoer": 3,
-      "pctAendring": 200,
+      "pctAendring": 133,
       "maerkerGaaetUdsolgt": [
         "Mix Pellets"
       ],
       "beholdning": {
-        "sumNu": 209,
-        "sumFoer": 140,
-        "pctAendring": 49,
-        "varerMedTal": 9
+        "sumNu": 293,
+        "sumFoer": 114,
+        "pctAendring": 157,
+        "varerMedTal": 7
       },
       "stoersteFald": [
         {
           "produkt": "6 mm Mix Pellets 16 kg 896 kg",
           "maerke": "Mix Pellets",
-          "fra": 20,
+          "fra": 4,
           "til": 0,
           "pctAendring": -100
-        },
-        {
-          "produkt": "Laxå Pellets 8 mm 16/832",
-          "maerke": "Laxå",
-          "fra": 20,
-          "til": 10,
-          "pctAendring": -50
         }
       ]
     },
@@ -137,12 +131,12 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-10-02",
+    "dato": "2026-10-03",
     "dieselDKEurPrLiter": 2.542,
     "dieselDEEurPrLiter": 2.437,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202026-09-21.xlsx",
     "pctAendring30dage": 12,
-    "sammenlignDato": "2026-09-02",
+    "sammenlignDato": "2026-09-03",
     "retning": "stigende"
   }
 }
