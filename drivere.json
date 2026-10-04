@@ -1,69 +1,62 @@
 {
-  "hentetUTC": "2026-10-03T10:25:34.377Z",
-  "hentetDanskTid": "03.10.2026, 12.25.34",
+  "hentetUTC": "2026-10-04T11:08:00.865Z",
+  "hentetDanskTid": "04.10.2026, 13.08.00",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 11.9,
-    "graddage14dage": 71,
-    "graddageSammeTidSidsteAar": 71,
-    "snitTempSidsteAar": 12,
-    "pctAendringGraddage": 0,
-    "gradForskelVsSidsteAar": -0.1,
+    "snitTemp14dage": 10.1,
+    "graddage14dage": 96,
+    "graddageSammeTidSidsteAar": 75,
+    "snitTempSidsteAar": 11.7,
+    "pctAendringGraddage": 28,
+    "gradForskelVsSidsteAar": -1.6,
     "fyringssaeson": true,
-    "retning": "normalt",
+    "retning": "koldere",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 12.3,
-    "graddage14dage": 66,
-    "graddageSammeTidSidsteAar": 81,
-    "snitTempSidsteAar": 11.2,
-    "pctAendringGraddage": -19,
-    "gradForskelVsSidsteAar": 1.1,
+    "snitTemp14dage": 10.8,
+    "graddage14dage": 86,
+    "graddageSammeTidSidsteAar": 77,
+    "snitTempSidsteAar": 11.5,
+    "pctAendringGraddage": 12,
+    "gradForskelVsSidsteAar": -0.7,
     "fyringssaeson": true,
-    "retning": "mildere",
+    "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 1.2,
-    "snitForrige7DageKrKwh": 1.38,
-    "pctAendring": -13,
-    "retning": "faldende",
+    "snitSeneste7DageKrKwh": 1.23,
+    "snitForrige7DageKrKwh": 1.19,
+    "pctAendring": 4,
+    "retning": "stabil",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
-  "elprisDE": {
-    "snitSeneste7DageEurMwh": 166.8,
-    "snitForrige7DageEurMwh": 128.1,
-    "pctAendring": 30,
-    "retning": "stigende",
-    "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
-  },
+  "elprisDE": null,
   "lager": {
     "antalPaaLager": 7,
     "antalTotal": 28,
     "andelProcent": 25,
     "tendens7dage": {
-      "fraDato": "2026-09-26",
-      "tilDato": "2026-10-03",
+      "fraDato": "2026-09-27",
+      "tilDato": "2026-10-04",
       "varerNu": 7,
-      "varerFoer": 3,
-      "pctAendring": 133,
+      "varerFoer": 2,
+      "pctAendring": 250,
       "maerkerGaaetUdsolgt": [
-        "Mix Pellets",
-        "Vildbjerg"
+        "Mix Pellets"
       ],
       "beholdning": {
         "sumNu": 293,
-        "sumFoer": 27,
-        "pctAendring": 985,
+        "sumFoer": 15,
+        "pctAendring": 1853,
         "varerMedTal": 7
       },
       "stoersteFald": [
         {
           "produkt": "6 mm Mix Pellets 16 kg 896 kg",
           "maerke": "Mix Pellets",
-          "fra": 20,
+          "fra": 10,
           "til": 0,
           "pctAendring": -100
         },
@@ -73,36 +66,29 @@
           "fra": 5,
           "til": 0,
           "pctAendring": -100
-        },
-        {
-          "produkt": "Vildbjerg Pellets 6 mm træpiller 16/896 kg",
-          "maerke": "Vildbjerg",
-          "fra": 2,
-          "til": 0,
-          "pctAendring": -100
         }
       ]
     },
     "tendens30dage": {
-      "fraDato": "2026-09-03",
-      "tilDato": "2026-10-03",
+      "fraDato": "2026-09-04",
+      "tilDato": "2026-10-04",
       "varerNu": 7,
-      "varerFoer": 3,
-      "pctAendring": 133,
+      "varerFoer": 2,
+      "pctAendring": 250,
       "maerkerGaaetUdsolgt": [
         "Mix Pellets"
       ],
       "beholdning": {
         "sumNu": 293,
-        "sumFoer": 114,
-        "pctAendring": 157,
+        "sumFoer": 120,
+        "pctAendring": 144,
         "varerMedTal": 7
       },
       "stoersteFald": [
         {
           "produkt": "6 mm Mix Pellets 16 kg 896 kg",
           "maerke": "Mix Pellets",
-          "fra": 4,
+          "fra": 20,
           "til": 0,
           "pctAendring": -100
         }
@@ -131,12 +117,12 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-10-03",
+    "dato": "2026-10-04",
     "dieselDKEurPrLiter": 2.542,
     "dieselDEEurPrLiter": 2.437,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202026-09-21.xlsx",
     "pctAendring30dage": 12,
-    "sammenlignDato": "2026-09-03",
+    "sammenlignDato": "2026-09-04",
     "retning": "stigende"
   }
 }

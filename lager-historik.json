@@ -2216,5 +2216,61 @@
         "antalErMindst": true
       }
     ]
+  },
+  {
+    "dato": "2026-10-04",
+    "antalPaaLager": 7,
+    "antalTotal": 28,
+    "varer": [
+      {
+        "produkt": "Barlinek 6 mm træpiller 15/990 kg.",
+        "maerke": "Barlinek",
+        "prisPrKg": 3.33,
+        "antal": 100,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Vida 8 mm Træpiller 16/896 kg",
+        "maerke": "Vida",
+        "prisPrKg": 2.97,
+        "antal": 100,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "6 mm Fågelfors 16/832 kg",
+        "maerke": "Fågelfors",
+        "prisPrKg": 3.12,
+        "antal": 20,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "8 mm Fågelfors træpiller 16/832 kg",
+        "maerke": "Fågelfors",
+        "prisPrKg": 3.12,
+        "antal": 50,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "Laxå Pellets 6 mm 16/832",
+        "maerke": "Laxå",
+        "prisPrKg": 2.88,
+        "antal": 3,
+        "antalErMindst": false
+      },
+      {
+        "produkt": "Laxå Pellets 8 mm 16/832",
+        "maerke": "Laxå",
+        "prisPrKg": 2.88,
+        "antal": 10,
+        "antalErMindst": true
+      },
+      {
+        "produkt": "6 mm i 1000 kg Big Bag",
+        "maerke": "i",
+        "prisPrKg": 2.9,
+        "antal": 10,
+        "antalErMindst": true
+      }
+    ]
   }
 ]
