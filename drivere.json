@@ -1,98 +1,79 @@
 {
-  "hentetUTC": "2026-10-04T11:08:00.865Z",
-  "hentetDanskTid": "04.10.2026, 13.08.00",
+  "hentetUTC": "2026-10-05T12:16:57.684Z",
+  "hentetDanskTid": "05.10.2026, 14.16.57",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 10.1,
-    "graddage14dage": 96,
-    "graddageSammeTidSidsteAar": 75,
-    "snitTempSidsteAar": 11.7,
-    "pctAendringGraddage": 28,
-    "gradForskelVsSidsteAar": -1.6,
+    "snitTemp14dage": 11.7,
+    "graddage14dage": 75,
+    "graddageSammeTidSidsteAar": 81,
+    "snitTempSidsteAar": 11.2,
+    "pctAendringGraddage": -7,
+    "gradForskelVsSidsteAar": 0.5,
     "fyringssaeson": true,
-    "retning": "koldere",
+    "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 10.8,
-    "graddage14dage": 86,
-    "graddageSammeTidSidsteAar": 77,
-    "snitTempSidsteAar": 11.5,
-    "pctAendringGraddage": 12,
-    "gradForskelVsSidsteAar": -0.7,
+    "snitTemp14dage": 10.6,
+    "graddage14dage": 89,
+    "graddageSammeTidSidsteAar": 81,
+    "snitTempSidsteAar": 11.2,
+    "pctAendringGraddage": 10,
+    "gradForskelVsSidsteAar": -0.6,
     "fyringssaeson": true,
     "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 1.23,
-    "snitForrige7DageKrKwh": 1.19,
-    "pctAendring": 4,
-    "retning": "stabil",
+    "snitSeneste7DageKrKwh": 1.28,
+    "snitForrige7DageKrKwh": 1.16,
+    "pctAendring": 11,
+    "retning": "stigende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": null,
   "lager": {
-    "antalPaaLager": 7,
+    "antalPaaLager": 8,
     "antalTotal": 28,
-    "andelProcent": 25,
+    "andelProcent": 29,
     "tendens7dage": {
-      "fraDato": "2026-09-27",
-      "tilDato": "2026-10-04",
-      "varerNu": 7,
-      "varerFoer": 2,
-      "pctAendring": 250,
-      "maerkerGaaetUdsolgt": [
-        "Mix Pellets"
-      ],
+      "fraDato": "2026-09-28",
+      "tilDato": "2026-10-05",
+      "varerNu": 8,
+      "varerFoer": 3,
+      "pctAendring": 167,
+      "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 293,
-        "sumFoer": 15,
-        "pctAendring": 1853,
-        "varerMedTal": 7
+        "sumNu": 350,
+        "sumFoer": 74,
+        "pctAendring": 373,
+        "varerMedTal": 8
       },
       "stoersteFald": [
         {
-          "produkt": "6 mm Mix Pellets 16 kg 896 kg",
-          "maerke": "Mix Pellets",
-          "fra": 10,
-          "til": 0,
-          "pctAendring": -100
-        },
-        {
           "produkt": "Barlinek Træbriketter 10/960 kg",
           "maerke": "Barlinek",
-          "fra": 5,
+          "fra": 4,
           "til": 0,
           "pctAendring": -100
         }
       ]
     },
     "tendens30dage": {
-      "fraDato": "2026-09-04",
-      "tilDato": "2026-10-04",
-      "varerNu": 7,
-      "varerFoer": 2,
-      "pctAendring": 250,
-      "maerkerGaaetUdsolgt": [
-        "Mix Pellets"
-      ],
+      "fraDato": "2026-09-05",
+      "tilDato": "2026-10-05",
+      "varerNu": 8,
+      "varerFoer": 1,
+      "pctAendring": 700,
+      "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 293,
-        "sumFoer": 120,
-        "pctAendring": 144,
-        "varerMedTal": 7
+        "sumNu": 350,
+        "sumFoer": 100,
+        "pctAendring": 250,
+        "varerMedTal": 8
       },
-      "stoersteFald": [
-        {
-          "produkt": "6 mm Mix Pellets 16 kg 896 kg",
-          "maerke": "Mix Pellets",
-          "fra": 20,
-          "til": 0,
-          "pctAendring": -100
-        }
-      ]
+      "stoersteFald": []
     },
     "retning": "middel",
     "kilde": "Pillemadsen.dk"
@@ -117,12 +98,12 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-10-04",
+    "dato": "2026-10-05",
     "dieselDKEurPrLiter": 2.542,
     "dieselDEEurPrLiter": 2.437,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202026-09-21.xlsx",
     "pctAendring30dage": 12,
-    "sammenlignDato": "2026-09-04",
+    "sammenlignDato": "2026-09-05",
     "retning": "stigende"
   }
 }
