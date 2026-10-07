@@ -1,6 +1,6 @@
 {
-  "beregnetUTC": "2026-10-06T12:03:02.380Z",
-  "beregnetDanskTid": "6.10.2026, 14.03.02",
+  "beregnetUTC": "2026-10-07T11:49:12.313Z",
+  "beregnetDanskTid": "7.10.2026, 13.49.12",
   "koebsvurdering": {
     "niveau": "fornuftigt",
     "overskrift": "Fornuftigt tidspunkt",
@@ -16,15 +16,15 @@
     "tekst": "DEPI er gået ned 7% over de seneste to målte måneder."
   },
   "lokal": {
-    "dataDato": "2026-10-06",
+    "dataDato": "2026-10-07",
     "billigstePaaLager": 2.88,
-    "gnsPris6mm": 3.08,
-    "pctEgenPris30dage": 12.8,
-    "paaLager": 7,
+    "gnsPris6mm": 3.04,
+    "pctEgenPris30dage": 11.4,
+    "paaLager": 8,
     "antalTotal": 28
   },
   "transport": {
-    "dataDato": "2026-10-06",
+    "dataDato": "2026-10-07",
     "dieselDKEurPrLiter": 2.542,
     "note": "Påvirker din leverede pris, ikke pelletmarkedet."
   },
@@ -54,19 +54,19 @@
     },
     {
       "navn": "Pillemadsens egen pris",
-      "status": "+12.8% på 30 dage",
+      "status": "+11.4% på 30 dage",
       "effekt": "taler for køb",
       "vaegt": 0.4,
-      "dato": "2026-10-06",
+      "dato": "2026-10-07",
       "aktiv": true,
       "note": null
     },
     {
       "navn": "Lagerbevægelse",
-      "status": "+224% på 7 dage",
+      "status": "+42% på 7 dage",
       "effekt": "under observation",
       "vaegt": 0,
-      "dato": "06.10.2026, 14.02.54",
+      "dato": "07.10.2026, 13.49.05",
       "aktiv": false,
       "note": "Vises, men tæller ikke med. Signalet skal ses gennem en fyringssæson, før vi stoler på det."
     }
