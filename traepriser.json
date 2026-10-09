@@ -1,6 +1,6 @@
 {
-  "hentetUTC": "2026-10-08T12:02:43.276Z",
-  "hentetDanskTid": "08.10.2026, 14.02.43",
+  "hentetUTC": "2026-10-09T11:54:46.815Z",
+  "hentetDanskTid": "09.10.2026, 13.54.46",
   "hjemmeside": "https://www.pillemadsen.dk/shop/traepiller-33s1.html",
   "antalProdukter": 28,
   "priser": [
@@ -192,10 +192,10 @@
       "prisPrKg": 2.94,
       "prisPrPalle": 2635,
       "kgPrPalle": 896,
-      "paaLager": false,
+      "paaLager": true,
       "forlaengetLevering": false,
-      "antalPaaLager": null,
-      "antalErMindst": false,
+      "antalPaaLager": 10,
+      "antalErMindst": true,
       "braendvaerdiMinKwhKg": 4.9,
       "braendvaerdiMaxKwhKg": 4.9,
       "fugtMaxProcent": 5,
