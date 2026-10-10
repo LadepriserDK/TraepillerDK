@@ -1,42 +1,42 @@
 {
-  "hentetUTC": "2026-10-09T11:54:57.009Z",
-  "hentetDanskTid": "09.10.2026, 13.54.57",
+  "hentetUTC": "2026-10-10T11:11:39.548Z",
+  "hentetDanskTid": "10.10.2026, 13.11.39",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 10.7,
-    "graddage14dage": 88,
-    "graddageSammeTidSidsteAar": 92,
+    "snitTemp14dage": 10.5,
+    "graddage14dage": 90,
+    "graddageSammeTidSidsteAar": 93,
     "snitTempSidsteAar": 10.4,
-    "pctAendringGraddage": -4,
-    "gradForskelVsSidsteAar": 0.3,
+    "pctAendringGraddage": -3,
+    "gradForskelVsSidsteAar": 0.1,
     "fyringssaeson": true,
     "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 10.2,
-    "graddage14dage": 95,
+    "snitTemp14dage": 9,
+    "graddage14dage": 112,
     "graddageSammeTidSidsteAar": 90,
     "snitTempSidsteAar": 10.6,
-    "pctAendringGraddage": 6,
-    "gradForskelVsSidsteAar": -0.4,
+    "pctAendringGraddage": 24,
+    "gradForskelVsSidsteAar": -1.6,
     "fyringssaeson": true,
-    "retning": "normalt",
+    "retning": "koldere",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 1.26,
+    "snitSeneste7DageKrKwh": 1.14,
     "snitForrige7DageKrKwh": 1.27,
-    "pctAendring": 0,
+    "pctAendring": -10,
     "retning": "stabil",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 161.4,
-    "snitForrige7DageEurMwh": 164.1,
-    "pctAendring": -2,
-    "retning": "stabil",
+    "snitSeneste7DageEurMwh": 143.1,
+    "snitForrige7DageEurMwh": 165.4,
+    "pctAendring": -13,
+    "retning": "faldende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
@@ -44,28 +44,19 @@
     "antalTotal": 28,
     "andelProcent": 36,
     "tendens7dage": {
-      "fraDato": "2026-10-02",
-      "tilDato": "2026-10-09",
+      "fraDato": "2026-10-03",
+      "tilDato": "2026-10-10",
       "varerNu": 10,
-      "varerFoer": 9,
-      "pctAendring": 11,
-      "maerkerGaaetUdsolgt": [
-        "Pellets"
-      ],
+      "varerFoer": 7,
+      "pctAendring": 43,
+      "maerkerGaaetUdsolgt": [],
       "beholdning": {
         "sumNu": 422,
-        "sumFoer": 209,
-        "pctAendring": 102,
+        "sumFoer": 293,
+        "pctAendring": 44,
         "varerMedTal": 10
       },
       "stoersteFald": [
-        {
-          "produkt": "Pellets 6 mm 15/1260 kg",
-          "maerke": "Pellets",
-          "fra": 20,
-          "til": 0,
-          "pctAendring": -100
-        },
         {
           "produkt": "Laxå Pellets 8 mm 16/832",
           "maerke": "Laxå",
@@ -83,19 +74,29 @@
       ]
     },
     "tendens30dage": {
-      "fraDato": "2026-09-09",
-      "tilDato": "2026-10-09",
+      "fraDato": "2026-09-10",
+      "tilDato": "2026-10-10",
       "varerNu": 10,
-      "varerFoer": 2,
-      "pctAendring": 400,
-      "maerkerGaaetUdsolgt": [],
+      "varerFoer": 5,
+      "pctAendring": 100,
+      "maerkerGaaetUdsolgt": [
+        "Polar"
+      ],
       "beholdning": {
         "sumNu": 422,
-        "sumFoer": 55,
-        "pctAendring": 667,
+        "sumFoer": 125,
+        "pctAendring": 238,
         "varerMedTal": 10
       },
-      "stoersteFald": []
+      "stoersteFald": [
+        {
+          "produkt": "Polar Power 6 mm 10/900 kg",
+          "maerke": "Polar",
+          "fra": 10,
+          "til": 0,
+          "pctAendring": -100
+        }
+      ]
     },
     "retning": "middel",
     "kilde": "Pillemadsen.dk"
@@ -120,12 +121,12 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-10-09",
+    "dato": "2026-10-10",
     "dieselDKEurPrLiter": 2.488,
     "dieselDEEurPrLiter": 2.254,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202026-09-21.xlsx",
-    "pctAendring30dage": 9,
-    "sammenlignDato": "2026-09-09",
-    "retning": "stigende"
+    "pctAendring30dage": 2,
+    "sammenlignDato": "2026-09-10",
+    "retning": "stabil"
   }
 }
