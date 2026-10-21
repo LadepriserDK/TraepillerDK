@@ -1,68 +1,68 @@
 {
-  "hentetUTC": "2026-10-20T10:02:56.635Z",
-  "hentetDanskTid": "20.10.2026, 12.02.56",
+  "hentetUTC": "2026-10-21T10:07:56.079Z",
+  "hentetDanskTid": "21.10.2026, 12.07.56",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 9.5,
-    "graddage14dage": 105,
+    "snitTemp14dage": 9.2,
+    "graddage14dage": 109,
     "graddageSammeTidSidsteAar": 106,
     "snitTempSidsteAar": 9.4,
-    "pctAendringGraddage": -1,
-    "gradForskelVsSidsteAar": 0.1,
+    "pctAendringGraddage": 3,
+    "gradForskelVsSidsteAar": -0.2,
     "fyringssaeson": true,
     "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 8.1,
-    "graddage14dage": 125,
+    "snitTemp14dage": 7.5,
+    "graddage14dage": 133,
     "graddageSammeTidSidsteAar": 110,
-    "snitTempSidsteAar": 9.2,
-    "pctAendringGraddage": 14,
-    "gradForskelVsSidsteAar": -1.1,
+    "snitTempSidsteAar": 9.1,
+    "pctAendringGraddage": 21,
+    "gradForskelVsSidsteAar": -1.6,
     "fyringssaeson": true,
-    "retning": "normalt",
+    "retning": "koldere",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 1.29,
-    "snitForrige7DageKrKwh": 0.91,
-    "pctAendring": 41,
+    "snitSeneste7DageKrKwh": 1.34,
+    "snitForrige7DageKrKwh": 1.09,
+    "pctAendring": 24,
     "retning": "stigende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 186.4,
-    "snitForrige7DageEurMwh": 142.6,
-    "pctAendring": 31,
+    "snitSeneste7DageEurMwh": 194.1,
+    "snitForrige7DageEurMwh": 136.3,
+    "pctAendring": 42,
     "retning": "stigende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
-    "antalPaaLager": 11,
+    "antalPaaLager": 12,
     "antalTotal": 28,
-    "andelProcent": 39,
+    "andelProcent": 43,
     "tendens7dage": {
-      "fraDato": "2026-10-13",
-      "tilDato": "2026-10-20",
-      "varerNu": 11,
-      "varerFoer": 7,
-      "pctAendring": 57,
+      "fraDato": "2026-10-14",
+      "tilDato": "2026-10-21",
+      "varerNu": 12,
+      "varerFoer": 8,
+      "pctAendring": 50,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 470,
-        "sumFoer": 250,
-        "pctAendring": 88,
-        "varerMedTal": 11
+        "sumNu": 500,
+        "sumFoer": 210,
+        "pctAendring": 138,
+        "varerMedTal": 12
       },
       "stoersteFald": [
         {
-          "produkt": "Laxå Pellets 6 mm 16/832",
-          "maerke": "Laxå",
-          "fra": 50,
-          "til": 20,
-          "pctAendring": -60
+          "produkt": "6 mm Samba træpiller 16/896 kg",
+          "maerke": "Samba",
+          "fra": 20,
+          "til": 5,
+          "pctAendring": -75
         },
         {
           "produkt": "6 mm i 1000 kg Big Bag",
@@ -73,7 +73,29 @@
         }
       ]
     },
-    "tendens30dage": null,
+    "tendens30dage": {
+      "fraDato": "2026-09-21",
+      "tilDato": "2026-10-21",
+      "varerNu": 12,
+      "varerFoer": 2,
+      "pctAendring": 500,
+      "maerkerGaaetUdsolgt": [],
+      "beholdning": {
+        "sumNu": 500,
+        "sumFoer": 60,
+        "pctAendring": 733,
+        "varerMedTal": 12
+      },
+      "stoersteFald": [
+        {
+          "produkt": "Barlinek Træbriketter 10/960 kg",
+          "maerke": "Barlinek",
+          "fra": 10,
+          "til": 0,
+          "pctAendring": -100
+        }
+      ]
+    },
     "retning": "middel",
     "kilde": "Pillemadsen.dk"
   },
@@ -97,12 +119,12 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-10-20",
+    "dato": "2026-10-21",
     "dieselDKEurPrLiter": 2.502,
     "dieselDEEurPrLiter": 2.27,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202026-09-21.xlsx",
     "pctAendring30dage": 0,
-    "sammenlignDato": "2026-09-20",
+    "sammenlignDato": "2026-09-21",
     "retning": "stabil"
   }
 }
