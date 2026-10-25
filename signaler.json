@@ -1,6 +1,6 @@
 {
-  "beregnetUTC": "2026-10-25T13:29:00.207Z",
-  "beregnetDanskTid": "25.10.2026, 14.29.00",
+  "beregnetUTC": "2026-10-25T13:45:40.446Z",
+  "beregnetDanskTid": "25.10.2026, 14.45.40",
   "koebsvurdering": {
     "niveau": "fornuftigt",
     "overskrift": "Fornuftigt tidspunkt",
@@ -63,10 +63,10 @@
     },
     {
       "navn": "Lagerbevægelse",
-      "status": "+45% på 7 dage",
+      "status": "+31% på 7 dage",
       "effekt": "under observation",
       "vaegt": 0,
-      "dato": "25.10.2026, 14.28.54",
+      "dato": "25.10.2026, 14.45.31",
       "aktiv": false,
       "note": "Vises, men tæller ikke med. Signalet skal ses gennem en fyringssæson, før vi stoler på det."
     }

@@ -1,14 +1,14 @@
 {
-  "hentetUTC": "2026-10-25T13:28:54.962Z",
-  "hentetDanskTid": "25.10.2026, 14.28.54",
+  "hentetUTC": "2026-10-25T13:45:31.346Z",
+  "hentetDanskTid": "25.10.2026, 14.45.31",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 8.3,
-    "graddage14dage": 122,
+    "snitTemp14dage": 8.2,
+    "graddage14dage": 123,
     "graddageSammeTidSidsteAar": 108,
     "snitTempSidsteAar": 9.3,
-    "pctAendringGraddage": 13,
-    "gradForskelVsSidsteAar": -1,
+    "pctAendringGraddage": 14,
+    "gradForskelVsSidsteAar": -1.1,
     "fyringssaeson": true,
     "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
@@ -33,7 +33,7 @@
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 137.3,
+    "snitSeneste7DageEurMwh": 137.2,
     "snitForrige7DageEurMwh": 174.1,
     "pctAendring": -21,
     "retning": "faldende",
@@ -51,9 +51,9 @@
       "pctAendring": 10,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 528,
+        "sumNu": 478,
         "sumFoer": 365,
-        "pctAendring": 45,
+        "pctAendring": 31,
         "varerMedTal": 11
       },
       "stoersteFald": [
@@ -88,9 +88,9 @@
       "pctAendring": 175,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 528,
+        "sumNu": 478,
         "sumFoer": 75,
-        "pctAendring": 604,
+        "pctAendring": 537,
         "varerMedTal": 11
       },
       "stoersteFald": [
