@@ -1420,11 +1420,16 @@ function renderAiAnalyse(){
     tekstEl.style.display = "none";
     tidEl.textContent = "";
     advEl.style.display = "";
+    // Sidste sætning nævnes kun, hvis der rent faktisk ER en vurdering nedenfor.
+    // Mangler signaler.json, ville den ellers pege på noget, der ikke står der.
+    const vurdering = aktuelVurderingHtml();
     advEl.innerHTML =
       '<div class="ai-stale rod"><strong>Markedsanalysen er ' + alderDage + ' dage gammel</strong>' +
-      'Robotten har ikke kunnet hente en ny tekst siden ' + (AI_DATA.genereretDanskTid || "sidste gang den virkede") +
-      '. Den gamle tekst beskriver et andet marked med andre tal, så den vises ikke her.' +
-      fejlLinje + '</div>' + aktuelVurderingHtml();
+      'Robotten har ikke kunnet skrive en ny siden ' +
+      (AI_DATA.genereretDanskTid || "sidste gang den virkede") +
+      ', hvorfor der ikke vises en analyse, da den ville være forældet.' +
+      (vurdering ? ' Vurderingen herunder er beregnet i dag og er upåvirket.' : '') +
+      fejlLinje + '</div>' + vurdering;
     return;
   }
 
@@ -1449,10 +1454,13 @@ function aktuelVurderingHtml(){
   if (!SIGNALER || !SIGNALER.koebsvurdering) return "";
   const k = SIGNALER.koebsvurdering, p = SIGNALER.prognose;
   const stor = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+  // Begrundelsen fra signaler.json slutter nogle gange selv med punktum. Uden
+  // dette tjek blev det til "sat priserne op..".
+  const punktum = s => /[.!?]$/.test(s) ? s : s + ".";
   return '<div class="ai-fallback">' +
     '<div class="k">Systemets egen vurdering · ' + (SIGNALER.beregnetDanskTid || "") + '</div>' +
     '<div class="v">' + k.overskrift + '</div>' +
-    '<div class="b">' + stor(k.begrundelse) + '.</div>' +
+    '<div class="b">' + punktum(stor(k.begrundelse)) + '</div>' +
     (p ? '<div class="b">Prognose ' + p.horisont + ': ' + p.retning + '. ' + p.tekst + '</div>' : '') +
     '</div>';
 }

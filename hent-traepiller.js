@@ -258,59 +258,87 @@ const TYSKE_MAANEDSNAVNE = {
 // har ændret sidestruktur), springer vi det bare over - det må aldrig vælte hovedkørslen.
 async function hentTyskMarkedsindeks(browser) {
     const page = await browser.newPage({ locale: "de-DE" });
+
+    // Skriv fejlen ind i selve datafilen. Indtil nu blev et fejlet DEPI-opslag
+    // kun skrevet til GitHub-loggen, og serien stod derfor stille fra juni til
+    // oktober 2026 uden at nogen opdagede det. Samme princip som ai-analyse.json.
+    const noterFejl = (besked) => {
+        try {
+            let d = {};
+            try { d = JSON.parse(fs.readFileSync("tysk-markedsindeks.json", "utf8")); } catch (e) { /* ingen fil */ }
+            d.sidsteForsoegUTC = new Date().toISOString();
+            d.sidsteForsoegDanskTid = danskTid();
+            d.sidsteFejl = String(besked).slice(0, 300);
+            fs.writeFileSync("tysk-markedsindeks.json", JSON.stringify(d, null, 2), "utf8");
+        } catch (e) { /* kan ikke skrive - lad filen være */ }
+    };
+
     try {
         await page.goto("https://www.depi.de/mediathek/", { waitUntil: "networkidle", timeout: 60000 });
+
+        // DEPI skriver snart "Pelletpreis", snart "Pelletspreis" med et s indimellem.
+        // Det gamle filter krævede ordret "pelletpreis" i linkteksten og sprang
+        // derfor en hel sæsons artikler over. Nu matches begge stavemåder, og
+        // både linkteksten og selve adressen gennemsøges.
         const links = await page.evaluate(() => {
+            const MATCH = /pellets?preis/i;
             return Array.from(document.querySelectorAll('a[href*="/mediathek/d/"]'))
-                .map(a => ({ href: a.getAttribute("href"), tekst: (a.textContent || "").toLowerCase() }))
-                .filter(l => l.href && l.tekst.includes("pelletpreis"));
+                .map(a => ({ href: a.getAttribute("href"), tekst: (a.textContent || "").trim() }))
+                .filter(l => l.href && (MATCH.test(l.tekst) || MATCH.test(l.href)));
         });
-        if (!links.length) throw new Error("Fandt ingen artikler om pelletpris på DEPI's oversigtsside");
+        if (!links.length) {
+            throw new Error("Fandt ingen artikler om pelletpris på DEPI's oversigtsside - sidestrukturen kan være ændret");
+        }
 
-        const url = new URL(links[0].href, "https://www.depi.de/").toString();
-        await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
-        const tekst = (await page.locator("body").textContent().catch(() => "")) || "";
-
-        // Måned og pris skal stå i SAMME sætning. Tidligere blev de to hentet
-        // hver for sig et vilkårligt sted i artiklen, og så kunne fx maj-prisen
-        // ende under overskriftens "Juli 2026". Vi deler derfor op i sætninger
-        // og kræver, at begge dele findes i den samme.
+        // Tidligere blev kun det nyeste indlæg læst, og kun én måned gemt pr.
+        // kørsel. Gik en måned tabt, blev hullet aldrig fyldt igen. Nu gennemgås
+        // de nyeste indlæg, så manglende måneder samles op af sig selv.
         const MAANED_RE = /\b(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s+(20\d{2})\b/i;
-        const PRIS_RE = /durchschnittlich\s+([\d.,]+)\s*Euro/i;
-
-        let dato = null, eurPrTon = null;
-        for (const saetning of tekst.split(/(?<=[.!?])\s+/)) {
-            const p = saetning.match(PRIS_RE);
-            const m = saetning.match(MAANED_RE);
-            if (p && m) {
-                eurPrTon = Number(p[1].replace(/\./g, "").replace(",", "."));
-                dato = m[2] + "-" + String(TYSKE_MAANEDSNAVNE[m[1].toLowerCase()]).padStart(2, "0");
-                break;
-            }
-        }
-        if (dato === null || eurPrTon === null) {
-            throw new Error("Fandt ikke måned og pris i samme sætning i DEPI-artiklen: " + url);
-        }
-
-        // Rimelighedstjek. Uden dem kan en enkelt underlig artikel forgifte hele
-        // serien, og en forkert måned vender prisretningen på hovedet i appen.
-        if (!(eurPrTon > 150 && eurPrTon < 900)) {
-            throw new Error("DEPI-pris uden for rimeligt interval: " + eurPrTon + " €/t (" + url + ")");
-        }
+        const PRIS_RE = /(?:durchschnittlich|im Mittel|Durchschnittspreis[^.]{0,40}?)\s*([\d.,]+)\s*Euro/i;
         const nu = new Date();
         const senesteRimelige = nu.getFullYear() * 12 + nu.getMonth();      // indeværende måned
-        const [dAar, dMdr] = dato.split("-").map(Number);
-        const datoIndeks = dAar * 12 + (dMdr - 1);
-        if (datoIndeks > senesteRimelige) {
-            throw new Error("DEPI-artikel angiver en fremtidig måned (" + dato + ") - ignoreret");
-        }
 
-        const nytPunkt = {
-            dato,
-            eurPrTon: Math.round(eurPrTon * 100) / 100,
-            dkkPrKg: Math.round((eurPrTon / 1000 * EUR_TIL_DKK) * 100) / 100,
-            kilde: url
-        };
+        const fundne = [], afviste = [];
+        const kandidater = links.slice(0, 10);
+        for (const link of kandidater) {
+            const url = new URL(link.href, "https://www.depi.de/").toString();
+            try {
+                await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+                const tekst = (await page.locator("body").textContent().catch(() => "")) || "";
+
+                // Måned og pris skal stå i SAMME sætning. Hentes de hver for sig,
+                // kan fx maj-prisen ende under overskriftens "Juli 2026".
+                let dato = null, eurPrTon = null;
+                for (const saetning of tekst.split(/(?<=[.!?])\s+/)) {
+                    const p = saetning.match(PRIS_RE);
+                    const m = saetning.match(MAANED_RE);
+                    if (p && m) {
+                        eurPrTon = Number(p[1].replace(/\./g, "").replace(",", "."));
+                        dato = m[2] + "-" + String(TYSKE_MAANEDSNAVNE[m[1].toLowerCase()]).padStart(2, "0");
+                        break;
+                    }
+                }
+
+                // Rimelighedstjek. Uden dem kan en enkelt underlig artikel forgifte
+                // serien, og en forkert måned vender prisretningen på hovedet i appen.
+                if (dato === null || eurPrTon === null) { afviste.push("ingen måned+pris i samme sætning: " + url); continue; }
+                if (!(eurPrTon > 150 && eurPrTon < 900)) { afviste.push("pris uden for interval (" + eurPrTon + " €/t): " + url); continue; }
+                const [dAar, dMdr] = dato.split("-").map(Number);
+                if (dAar * 12 + (dMdr - 1) > senesteRimelige) { afviste.push("fremtidig måned (" + dato + "): " + url); continue; }
+
+                fundne.push({
+                    dato,
+                    eurPrTon: Math.round(eurPrTon * 100) / 100,
+                    dkkPrKg: Math.round((eurPrTon / 1000 * EUR_TIL_DKK) * 100) / 100,
+                    kilde: url
+                });
+            } catch (e) {
+                afviste.push("kunne ikke læse " + url + ": " + e.message);
+            }
+        }
+        if (!fundne.length) {
+            throw new Error("Læste " + kandidater.length + " DEPI-artikler uden at finde en gyldig pris. " + (afviste[0] || ""));
+        }
 
         let data;
         try {
@@ -322,7 +350,8 @@ async function hentTyskMarkedsindeks(browser) {
 
         // Fjern måneder vi ved er skrevet forkert, medmindre de netop nu er
         // bekræftet igen fra DEPI's egen artikel.
-        data.maaneder = data.maaneder.filter(m => !(FEJLRAMTE_MAANEDER.includes(m.dato) && m.dato !== dato));
+        const nyeDatoer = fundne.map(p => p.dato);
+        data.maaneder = data.maaneder.filter(m => !(FEJLRAMTE_MAANEDER.includes(m.dato) && !nyeDatoer.includes(m.dato)));
 
         // Seed'en er facit. Tidligere rettede vi kun huller, så en forkert værdi
         // blev liggende for evigt - nu overskrives den også.
@@ -338,15 +367,27 @@ async function hentTyskMarkedsindeks(browser) {
             }
         }
 
-        const idx = data.maaneder.findIndex(m => m.dato === dato);
-        if (idx >= 0) data.maaneder[idx] = nytPunkt;
-        else data.maaneder.push(nytPunkt);
+        // Aflæste måneder lægges ind efter seed'en, så en frisk artikel vinder
+        // over et gammelt fast tal.
+        for (const punkt of fundne) {
+            const i = data.maaneder.findIndex(m => m.dato === punkt.dato);
+            if (i >= 0) data.maaneder[i] = punkt;
+            else data.maaneder.push(punkt);
+        }
         data.maaneder.sort((a, b) => a.dato.localeCompare(b.dato));
 
+        // Ryd fejlstatus fra en tidligere kørsel, nu hvor det lykkedes.
+        delete data.sidsteFejl;
+        delete data.sidsteForsoegUTC;
+        delete data.sidsteForsoegDanskTid;
+        if (afviste.length) data.bemaerkninger = afviste.slice(0, 5);
+        else delete data.bemaerkninger;
+
         fs.writeFileSync("tysk-markedsindeks.json", JSON.stringify(data, null, 2), "utf8");
-        console.log("Tysk markedsindeks opdateret for", dato, "->", eurPrTon, "€/t");
+        console.log("Tysk markedsindeks opdateret med " + fundne.length + " måned(er): " + nyeDatoer.join(", "));
     } catch (err) {
-        console.warn("Kunne ikke opdatere tysk markedsindeks (springer over):", err.message);
+        console.warn("Kunne ikke opdatere tysk markedsindeks:", err.message);
+        noterFejl(err.message);
     } finally {
         await page.close();
     }
@@ -615,7 +656,10 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
         }
         if (drivere && drivere.produktion) {
             const p = drivere.produktion;
-            let l = `Tysk pelletproduktion ${p.kvartal}: ${p.produktionTon.toLocaleString("da-DK")} ton`;
+            // Sendes som "1,03 mio. ton" og ikke "1.034.000". Danske tusindtals-
+            // punktummer forvirrer modellen, som skrev det tilbage som "1,034 000".
+            const mioTon = (p.produktionTon / 1000000).toFixed(2).replace(".", ",");
+            let l = `Tysk pelletproduktion ${p.kvartal}: ${mioTon} mio. ton`;
             if (p.pctVsSammeKvartalSidsteAar !== null) l += `, ${p.pctVsSammeKvartalSidsteAar >= 0 ? "+" : ""}${p.pctVsSammeKvartalSidsteAar}% vs. samme kvartal sidste år`;
             else if (p.pctVsForrigeKvartal !== null) l += `, ${p.pctVsForrigeKvartal >= 0 ? "+" : ""}${p.pctVsForrigeKvartal}% vs. forrige kvartal`;
             l += p.retning === "ukendt"
