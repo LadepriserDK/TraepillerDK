@@ -737,8 +737,14 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
             "Pillemadsen, fordi kunderne er danske - det tømmer deres lager hurtigere, uden at det tyske " +
             "marked nødvendigvis flytter sig. Faldende lagerbeholdning er derfor et tidligt lokalt varsel. " +
             "Stigende energipriser trækker produktionsomkostningerne op. Høj tysk pelletproduktion betyder god " +
-            "forsyning og dæmper prisen; lav produktion strammer markedet. Polens statstilskud til pilleovne " +
-            "fra 2025 har reduceret polsk eksport til det tyske marked.\n\n" +
+            "forsyning og dæmper prisen; lav produktion strammer markedet.\n\n" +
+            // FJERNET 25.10.2026: "Polens statstilskud til pilleovne fra 2025 har reduceret polsk eksport
+            // til det tyske marked." Den stod som en tidløs sandhed i prompten, men vi måler intet om
+            // polsk eksport - AI'en kunne kun gentage den som en påstand. Pillemadsen har desuden fjernet
+            // deres varsel om begrænset vinterudvalg og har mange mærker hjemme igen, så præmissen holder
+            // ikke længere. Samme fejltype som de fire årsagspåstande, der blev luget ud tidligere:
+            // en forklaring uden måling bag. Skal forsyningen fra Polen med igen, skal den ind som en
+            // dateret post i drivere.json med kilde - ikke som en sætning i prompten.
             "Brugeren får pillerne hentet hjem af en dansk vognmand, så dieselprisen påvirker den samlede " +
             "leverede pris - også selvom Pillemadsens hyldepris ikke ændrer sig. Nævn kun diesel, hvis den " +
             "har flyttet sig mærkbart.\n\n" +
@@ -758,7 +764,11 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
                 "Authorization": "Bearer " + apiKey
             },
             body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
+                // llama-3.3-70b-versatile blev lukket af Groq den 16.08.2026, og
+                // reservemodellen llama-3.1-8b-instant samme dag. Derfor fejlede
+                // AI-analysen hver eneste morgen fra 17.08 og frem, uden at det
+                // kunne ses i appen. Groq anbefaler gpt-oss-120b som afløser.
+                model: "openai/gpt-oss-120b",
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt }
@@ -772,7 +782,8 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
             // Falder tilbage til en mindre model. Den er lidt kortere i spyttet,
             // men bedre end slet ingen markedsanalyse, hvis hovedmodellen er
             // optaget eller minutkvoten er opbrugt.
-            console.warn("Hovedmodellen svarede " + res.status + " - forsøger med mindre model.");
+            const fejlKrop = await res.text().catch(() => "");
+            console.warn("Hovedmodellen svarede " + res.status + " - forsøger med mindre model. " + fejlKrop.slice(0, 300));
             const reserveRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -780,7 +791,7 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
                     "Authorization": "Bearer " + apiKey
                 },
                 body: JSON.stringify({
-                    model: "llama-3.1-8b-instant",
+                    model: "openai/gpt-oss-20b",
                     messages: [
                         { role: "system", content: systemPrompt },
                         { role: "user", content: userPrompt }
@@ -789,7 +800,11 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
                     max_tokens: 400
                 })
             });
-            if (!reserveRes.ok) throw new Error("Groq API svarede med status " + res.status + " (og reserve: " + reserveRes.status + ")");
+            if (!reserveRes.ok) {
+                const reserveKrop = await reserveRes.text().catch(() => "");
+                throw new Error("Groq svarede " + res.status + " (reserve: " + reserveRes.status + "). " +
+                    (fejlKrop || reserveKrop).slice(0, 200));
+            }
             const reserveJson = await reserveRes.json();
             const reserveTekst = reserveJson.choices && reserveJson.choices[0] && reserveJson.choices[0].message && reserveJson.choices[0].message.content;
             if (!reserveTekst) throw new Error("Intet svar-indhold fra reservemodellen");
@@ -812,7 +827,23 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
         }, null, 2), "utf8");
         console.log("Markedsanalyse gemt.");
     } catch (err) {
-        console.warn("Kunne ikke hente AI-analyse (springer over):", err.message);
+        console.warn("Kunne ikke hente AI-analyse:", err.message);
+        // Tidligere blev fejlen bare sprunget over, og den gamle ai-analyse.json
+        // blev liggende urørt. Appen viste den så videre som dagens analyse - i
+        // to måneder, uden at nogen kunne se det. Nu skriver vi fejlen ind i
+        // filen, så både appen og GitHub-loggen kan vise, at teksten er gammel.
+        try {
+            let gammel = {};
+            try { gammel = JSON.parse(fs.readFileSync("ai-analyse.json", "utf8")); } catch (e) { /* ingen fil endnu */ }
+            fs.writeFileSync("ai-analyse.json", JSON.stringify({
+                ...gammel,
+                sidsteForsoegUTC: new Date().toISOString(),
+                sidsteForsoegDanskTid: danskTid(),
+                sidsteFejl: String(err.message || err).slice(0, 300)
+            }, null, 2), "utf8");
+        } catch (e) {
+            console.warn("Kunne heller ikke skrive fejlstatus til ai-analyse.json:", e.message);
+        }
     }
 }
 
