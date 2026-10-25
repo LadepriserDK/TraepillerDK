@@ -1188,11 +1188,43 @@ function renderHistorik(){
 }
 
 /* ---------- Marked ---------- */
+// Stående søjler virker kun, så længe der er plads til et navn under hver.
+// Med ti mærker på en telefon er der ca. 30 px pr. navn, og så lagde de sig
+// oven i hinanden. Over fem søjler lægges diagrammet derfor ned: én linje pr.
+// mærke, fuldt navn til venstre, pris for enden af søjlen. Det skalerer til
+// lige så mange mærker, Pillemadsen finder på at have hjemme.
 function svgBarChart(data, height){
-  // Smal viewBox, så teksten ikke skrumper til ulæselighed på en telefon
+  if (!data.length) return "";
+  return data.length > 5 ? vandretteSoejler(data) : staaendeSoejler(data, height);
+}
+
+function vandretteSoejler(data){
+  const width = 340;
+  const labelW = 86;      // plads til mærkenavnet
+  const vaerdiW = 42;     // plads til prisen for enden
+  const raekkeH = 26, top = 6, bund = 6;
+  const hoejde = top + bund + data.length * raekkeH;
+  const sporW = width - labelW - vaerdiW - 6;
+  const maxVal = Math.max(...data.map(d => d.value), 0.1);
+
+  // Søjlerne starter i nul, så længdeforholdet mellem dem er ærligt.
+  let out = "";
+  data.forEach((d,i) => {
+    const y = top + i*raekkeH;
+    const midt = y + raekkeH/2;
+    const bredde = Math.max((d.value/maxVal) * sporW, 2);
+    out += `<text x="${labelW-8}" y="${(midt+4).toFixed(1)}" text-anchor="end" font-size="11.5" font-family="IBM Plex Sans, system-ui, sans-serif" fill="#1e2b22">${d.label}</text>`;
+    out += `<rect x="${labelW}" y="${(y+5).toFixed(1)}" width="${sporW.toFixed(1)}" height="${(raekkeH-10).toFixed(1)}" rx="3" fill="#f1ece0"/>`;
+    out += `<rect x="${labelW}" y="${(y+5).toFixed(1)}" width="${bredde.toFixed(1)}" height="${(raekkeH-10).toFixed(1)}" rx="3" fill="#2f6b45"/>`;
+    out += `<text x="${(labelW+sporW+6).toFixed(1)}" y="${(midt+4).toFixed(1)}" text-anchor="start" font-size="11.5" font-weight="600" font-family="IBM Plex Mono, monospace" fill="#1e2b22">${d.value.toFixed(2)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${width} ${hoejde}" width="100%" style="display:block;height:auto" role="img" aria-label="Pris pr. mærke, ${data.length} mærker fra ${data[0].value.toFixed(2)} til ${data[data.length-1].value.toFixed(2)} kr/kg">${out}</svg>
+  <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-top:6px">kr/kg · billigste øverst</div>`;
+}
+
+function staaendeSoejler(data, height){
   const width = 340;
   const padding = { top: 20, right: 4, bottom: 30, left: 4 };
-  if (!data.length) return "";
   const maxVal = Math.max(...data.map(d => d.value), 0.1);
   const gap = 6;
   const barW = (width - padding.left - padding.right - gap*(data.length-1)) / Math.max(data.length,1);
@@ -1475,8 +1507,10 @@ function renderMarked(){
   const medPris = paaLager.filter(p => p.prisPrKg !== null);
   const perMaerke = {};
   medPris.forEach(p => { if (!perMaerke[p.maerke]) perMaerke[p.maerke] = []; perMaerke[p.maerke].push(p.prisPrKg); });
+  // Liggende søjler har plads til hele mærkenavnet. Før blev alt over 7 tegn
+  // hugget af, så "Vildbjerg" blev til "Vildbj." helt uden grund.
   const barData = Object.keys(perMaerke).map(m => ({
-    label: m.length > 7 ? m.slice(0,6)+"." : m,
+    label: m.length > 13 ? m.slice(0,12)+"." : m,
     value: perMaerke[m].reduce((s,v)=>s+v,0)/perMaerke[m].length
   })).sort((a,b) => a.value - b.value);
   document.getElementById("brandBarChart").innerHTML = barData.length

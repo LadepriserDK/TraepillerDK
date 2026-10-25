@@ -42,8 +42,15 @@ function maerkeFraNavn(navn) {
     // produktnavn som "6 mm Mix Pellets" ikke ender med mærket "6"
     const uden = navn.replace(/^\s*\d{1,2}\s*mm\s*/i, "").trim();
     const foerste = (uden || navn).split(/\s+/)[0];
-    // Et rent tal er aldrig et mærke
-    return /^\d+$/.test(foerste) ? "Ukendt mærke" : foerste;
+    // Et rent tal er aldrig et mærke. Det er småord heller ikke: produktet
+    // "6 mm i 1000 kg Big Bag" gav mærket "i", fordi forholdsordet stod først.
+    // Varer uden rigtigt mærke samles under én fælles etiket i stedet.
+    const SMAAORD = ["i", "a", "á", "og", "til", "med", "pr", "stk", "kg", "mm", "x", "-", "/"];
+    if (/^\d+$/.test(foerste)) return "Ukendt mærke";
+    if (foerste.length < 3 || SMAAORD.includes(foerste.toLowerCase().replace(/[.,]$/, ""))) {
+        return /big\s*bag/i.test(navn) ? "Big Bags" : "Ukendt mærke";
+    }
+    return foerste;
 }
 
 // "15/990 kg" eller "16/832" -> 990 / 832 kg pr. palle
