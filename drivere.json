@@ -1,16 +1,16 @@
 {
-  "hentetUTC": "2026-10-25T09:49:00.674Z",
-  "hentetDanskTid": "25.10.2026, 10.49.00",
+  "hentetUTC": "2026-10-25T13:28:54.962Z",
+  "hentetDanskTid": "25.10.2026, 14.28.54",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 8,
-    "graddage14dage": 126,
+    "snitTemp14dage": 8.3,
+    "graddage14dage": 122,
     "graddageSammeTidSidsteAar": 108,
     "snitTempSidsteAar": 9.3,
-    "pctAendringGraddage": 17,
-    "gradForskelVsSidsteAar": -1.3,
+    "pctAendringGraddage": 13,
+    "gradForskelVsSidsteAar": -1,
     "fyringssaeson": true,
-    "retning": "koldere",
+    "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
@@ -33,8 +33,8 @@
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 137.9,
-    "snitForrige7DageEurMwh": 174.2,
+    "snitSeneste7DageEurMwh": 137.3,
+    "snitForrige7DageEurMwh": 174.1,
     "pctAendring": -21,
     "retning": "faldende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"

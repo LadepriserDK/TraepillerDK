@@ -1,6 +1,6 @@
 {
-  "beregnetUTC": "2026-10-25T09:49:08.221Z",
-  "beregnetDanskTid": "25.10.2026, 10.49.08",
+  "beregnetUTC": "2026-10-25T13:29:00.207Z",
+  "beregnetDanskTid": "25.10.2026, 14.29.00",
   "koebsvurdering": {
     "niveau": "fornuftigt",
     "overskrift": "Fornuftigt tidspunkt",
@@ -11,7 +11,7 @@
   "marked": {
     "status": "faldende",
     "dataDato": "2026-06",
-    "alderDage": 117,
+    "alderDage": 118,
     "pctVs12Maaneder": 0,
     "tekst": "DEPI er gået ned 7% over de seneste to målte måneder."
   },
@@ -66,13 +66,13 @@
       "status": "+45% på 7 dage",
       "effekt": "under observation",
       "vaegt": 0,
-      "dato": "25.10.2026, 10.49.00",
+      "dato": "25.10.2026, 14.28.54",
       "aktiv": false,
       "note": "Vises, men tæller ikke med. Signalet skal ses gennem en fyringssæson, før vi stoler på det."
     }
   ],
   "forbehold": [
-    "DEPI's nyeste offentliggjorte tal er fra 2026-06 og altså omkring 117 dage gammelt. Det beskriver retningen, ikke dagens pris.",
+    "DEPI's nyeste offentliggjorte tal er fra 2026-06 og altså omkring 118 dage gammelt. Det beskriver retningen, ikke dagens pris.",
     "DEPI måler løst indblæste piller inkl. moms leveret inden for 50 km. Pillemadsen sælger sække på paller, du selv henter. De to tal kan sammenlignes i retning, aldrig i niveau."
   ]
 }
