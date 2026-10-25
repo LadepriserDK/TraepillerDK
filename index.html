@@ -157,6 +157,18 @@
 
   /* Marked */
   .ai-text{font-size:13px;line-height:1.65;color:var(--text)}
+
+  /* Advarsel når markedsanalysen ikke er blevet fornyet. En analyse er en
+     øjebliksbeskrivelse - står den uden alder, ligner gammel tekst dagens. */
+  .ai-stale{border-radius:10px;padding:11px 13px;font-size:12.5px;line-height:1.55;margin-bottom:12px}
+  .ai-stale strong{display:block;font-size:13px;margin-bottom:3px}
+  .ai-stale.gul{background:var(--amber-soft);border:1px solid #e8c892;color:#6d4a14}
+  .ai-stale.rod{background:var(--red-soft);border:1px solid #e3b3a4;color:#7d2f1b}
+  .ai-stale .fejl{font-family:var(--font-mono);font-size:11px;margin-top:6px;opacity:.85;word-break:break-word}
+  .ai-fallback{border:1px solid var(--line-strong);border-radius:10px;padding:13px;background:var(--bg)}
+  .ai-fallback .k{font-family:var(--font-mono);font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.03em}
+  .ai-fallback .v{font-family:var(--font-display);font-weight:700;font-size:19px;margin:5px 0 7px}
+  .ai-fallback .b{font-size:12.5px;line-height:1.6;color:var(--muted);margin-top:5px}
   .driver-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .driver-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
   .driver-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
@@ -214,18 +226,28 @@
   .vagt-label span{font-size:11px;color:var(--muted)}
   .vagt-label input:checked + span{color:var(--green);font-weight:600}
 
+  /* Navigationen er det primære man kan på siden, så de fire faner tegnes som
+     rigtige knapper med kant og flade - ikke som små ikoner der flyder i luften. */
   nav.bottomnav{
-    position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);
-    display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:20;
+    position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line-strong);
+    display:flex;gap:7px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));z-index:20;
+    box-shadow:0 -5px 18px rgba(31,58,44,0.08);
   }
   nav.bottomnav button{
-    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-    background:transparent;border:0;color:var(--muted-2);font-family:var(--font-mono);font-size:11px;
-    padding:6px 2px;cursor:pointer;border-radius:10px;
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    background:var(--bg);border:1.5px solid var(--line-strong);
+    color:var(--muted);font-family:var(--font-mono);font-size:11.5px;font-weight:500;
+    padding:9px 2px 8px;cursor:pointer;border-radius:12px;min-height:58px;
+    transition:background .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
   }
-  nav.bottomnav button svg{width:20px;height:20px}
-  nav.bottomnav button.active{color:var(--green)}
-  nav.bottomnav button.active svg{color:var(--green)}
+  nav.bottomnav button svg{width:21px;height:21px}
+  nav.bottomnav button:active{transform:scale(0.95)}
+  nav.bottomnav button.active{
+    background:var(--green);border-color:var(--green);color:#ffffff;font-weight:600;
+    box-shadow:0 2px 9px rgba(47,107,69,0.32);
+  }
+  nav.bottomnav button.active svg{color:#ffffff;stroke-width:2.3}
+  nav.bottomnav button:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 
   footer.credit{text-align:center;padding:14px;color:var(--muted-2);font-size:11.5px;font-family:var(--font-mono)}
 </style>
@@ -357,6 +379,7 @@
     </div>
     <div class="card" style="margin-top:12px">
       <div class="section-title">Markedsanalyse</div>
+      <div id="aiAdvarsel" style="display:none"></div>
       <div class="ai-text" id="aiTekstMarked">Henter…</div>
       <div style="font-size:11.5px;color:var(--muted-2);font-family:var(--font-mono);margin-top:8px" id="aiTidMarked"></div>
     </div>
@@ -878,40 +901,100 @@ function renderSignalListe(){
   }
 }
 
+// Tegner en kurve, der kan AFLÆSES. Den tidligere version satte et pristal og en
+// dato på hvert eneste punkt - med 80+ dage i historikken lagde de sig oven i
+// hinanden til en sort klat. Nu bærer y-aksen aflæsningen, og kun de punkter, der
+// faktisk betyder noget (laveste, højeste, seneste), får et tal på.
 function svgTrendChart(punkter, height, key, farve){
-  const width = 340;
-  const padding = { top: 28, right: 34, bottom: 30, left: 10 };
   if (!punkter.length) return "";
+  // viewBox-bredden holdes tæt på en telefons faktiske bredde. Ellers skaleres
+  // hele tegningen ned, og skriftstørrelserne med den.
+  const width = 360;
+  const padding = { top: 22, right: 14, bottom: 34, left: 44 };
   const vals = punkter.map(p => p[key]);
-  const min = Math.min(...vals), max = Math.max(...vals);
-  const span = (max - min) || 0.1;
+  const raaMin = Math.min(...vals), raaMax = Math.max(...vals);
+  const raaSpan = (raaMax - raaMin) || 0.1;
+
+  // Lidt luft over og under, så kurven ikke klistrer til rammen
+  const luft = raaSpan * 0.14;
+  const min = raaMin - luft, max = raaMax + luft;
+  const span = max - min;
+
   const chartW = width - padding.left - padding.right;
   const chartH = height - padding.top - padding.bottom;
-  const pts = punkter.map((p,i) => {
-    const x = padding.left + (i/(Math.max(punkter.length-1,1))) * chartW;
-    const y = padding.top + chartH - ((p[key] - min)/span) * chartH;
-    return [x,y];
-  });
-  const path = pts.map((p,i) => (i===0?"M":"L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const bund = padding.top + chartH;
+  const n = punkter.length;
+  const xAt = i => padding.left + (n === 1 ? chartW/2 : (i/(n-1)) * chartW);
+  const yAt = v => padding.top + chartH - ((v - min)/span) * chartH;
 
-  // Uden en synlig skala kan et udsving på 5 øre ligne et dramatisk udsving.
-  // Derfor tegnes øverste og nederste værdi som stiplede linjer med tal på.
-  const yTop = padding.top, yBund = padding.top + chartH;
-  const skala =
-    `<line x1="${padding.left}" y1="${yTop}" x2="${width-padding.right}" y2="${yTop}" stroke="#e8e1d0" stroke-width="1" stroke-dasharray="3 3"/>` +
-    `<line x1="${padding.left}" y1="${yBund}" x2="${width-padding.right}" y2="${yBund}" stroke="#e8e1d0" stroke-width="1" stroke-dasharray="3 3"/>` +
-    `<text x="${width-padding.right}" y="${yTop-4}" text-anchor="end" font-size="9" font-family="IBM Plex Mono, monospace" fill="#9a9f8f">${max.toFixed(2)}</text>` +
-    `<text x="${width-padding.right}" y="${yBund+11}" text-anchor="end" font-size="9" font-family="IBM Plex Mono, monospace" fill="#9a9f8f">${min.toFixed(2)}</text>`;
-  const dots = pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="${farve}"/>`).join("");
-  const vLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${(p[1]-8).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="600" font-family="IBM Plex Mono, monospace" fill="#1e2b22">${punkter[i][key].toFixed(2)}</text>`).join("");
-  const dLabels = pts.map((p,i) => `<text x="${p[0].toFixed(1)}" y="${height-8}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace" fill="#6b7568">${datoKort(punkter[i].dato)}</text>`).join("");
-  const spaend = (max - min).toFixed(2).replace(".", ",");
-  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">
-    ${skala}
-    <path d="${path}" fill="none" stroke="${farve}" stroke-width="2"/>
-    ${dots}${vLabels}${dLabels}
+  const pts = punkter.map((p,i) => [xAt(i), yAt(p[key])]);
+  const path = pts.map((p,i) => (i===0?"M":"L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const areaId = "omr" + Math.random().toString(36).slice(2,8);
+  const area = path + ` L ${pts[n-1][0].toFixed(1)} ${bund.toFixed(1)} L ${pts[0][0].toFixed(1)} ${bund.toFixed(1)} Z`;
+
+  // Y-akse: fire streger med kronebeløb. Det er dem, der gør udsvinget læsbart,
+  // uden at der skal stå et tal ved hvert punkt.
+  const antalLinjer = 4;
+  let gitter = "";
+  for (let i = 0; i < antalLinjer; i++){
+    const v = raaMin + (raaSpan * i / (antalLinjer - 1));
+    const y = yAt(v);
+    gitter += `<line x1="${padding.left}" y1="${y.toFixed(1)}" x2="${width-padding.right}" y2="${y.toFixed(1)}" stroke="#e8e1d0" stroke-width="1" stroke-dasharray="2 4"/>`
+           +  `<text x="${(padding.left-7).toFixed(1)}" y="${(y+3.8).toFixed(1)}" text-anchor="end" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="#6b7060">${v.toFixed(2)}</text>`;
+  }
+
+  // Kun laveste, højeste og seneste punkt markeres og får et tal.
+  const iMin = vals.indexOf(raaMin), iMax = vals.indexOf(raaMax), iSidst = n - 1;
+  const vigtige = Array.from(new Set([iMin, iMax, iSidst]));
+  const visAllePrikker = n <= 26;
+
+  const prikker = pts.map((p,i) => {
+    const vigtig = vigtige.includes(i);
+    if (!vigtig && !visAllePrikker) return "";
+    return vigtig
+      ? `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="${farve}" stroke="#fff" stroke-width="1.5"/>`
+      : `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.4" fill="#fff" stroke="${farve}" stroke-width="1.4"/>`;
+  }).join("");
+
+  // Hvid kontur bag teksten (paint-order), så tallet kan læses selv hvor det
+  // lander oven på kurven.
+  const vLabels = vigtige.map(i => {
+    const p = pts[i];
+    const oppe = p[1] - padding.top > 20;
+    const y = oppe ? p[1] - 13 : p[1] + 21;
+    let anchor = "middle", x = p[0];
+    if (p[0] < padding.left + 18){ anchor = "start"; x = padding.left; }
+    else if (p[0] > width - padding.right - 18){ anchor = "end"; x = width - padding.right; }
+    return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${anchor}" font-size="12.5" font-weight="600" font-family="IBM Plex Mono, monospace" fill="#1e2b22" stroke="#fff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">${punkter[i][key].toFixed(2)}</text>`;
+  }).join("");
+
+  // Højst fem datoer langs bunden, jævnt fordelt, altid med den seneste med.
+  const maxDatoer = 5;
+  const skridt = Math.max(1, Math.ceil(n / maxDatoer));
+  const dIdx = [];
+  for (let i = 0; i < n; i += skridt) dIdx.push(i);
+  if (dIdx[dIdx.length-1] !== n-1) dIdx.push(n-1);
+  if (dIdx.length > 1 && (xAt(dIdx[dIdx.length-1]) - xAt(dIdx[dIdx.length-2])) < 42) dIdx.splice(dIdx.length-2, 1);
+  const dLabels = dIdx.map(i => {
+    let anchor = "middle", x = xAt(i);
+    if (i === 0){ anchor = "start"; x = padding.left; }
+    else if (i === n-1){ anchor = "end"; x = width - padding.right; }
+    return `<text x="${x.toFixed(1)}" y="${(height-10).toFixed(1)}" text-anchor="${anchor}" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="#6b7060">${datoKort(punkter[i].dato)}</text>`;
+  }).join("");
+
+  const spaend = raaSpan.toFixed(2).replace(".", ",");
+  const pct = Math.round((raaSpan / raaMin) * 100);
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" style="display:block;height:auto" role="img" aria-label="Prisudvikling over ${n} målinger, fra ${raaMin.toFixed(2)} til ${raaMax.toFixed(2)} kr">
+    <defs><linearGradient id="${areaId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${farve}" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="${farve}" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${gitter}
+    <path d="${area}" fill="url(#${areaId})" stroke="none"/>
+    <path d="${path}" fill="none" stroke="${farve}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${prikker}${vLabels}${dLabels}
   </svg>
-  <div style="font-size:10.5px;color:var(--muted);font-family:var(--font-mono);text-align:right;margin-top:2px">Grafen er zoomet ind: hele udsvinget er ${spaend} kr</div>`;
+  <div style="font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-top:6px">${n} målinger · hele udsvinget er ${spaend} kr (${pct}%)</div>`;
 }
 
 function renderTrendInto(id){
@@ -1303,13 +1386,79 @@ function renderDrivers(){
   });
 }
 
-function renderMarked(){
-  if (AI_DATA && AI_DATA.tekst){
-    document.getElementById("aiTekstMarked").textContent = AI_DATA.tekst;
-    document.getElementById("aiTidMarked").textContent = "Genereret " + (AI_DATA.genereretDanskTid || "");
-  } else {
-    document.getElementById("aiTekstMarked").textContent = "Ingen markedsanalyse endnu. Den dukker op, når robotten har kørt mindst én gang med en gyldig API-nøgle sat op som GitHub Secret.";
+// Markedsanalysen er en AI-tekst om HVORDAN MARKEDET SER UD I DAG. Fejler kaldet
+// til Groq, blev den gamle fil liggende - og appen viste den uændret, som om den
+// var dagens. Det skete fra 17.08.2026, hvor Groq lukkede den model robotten
+// brugte, og teksten stod derefter og talte om "sommerbunden" midt i oktober.
+// Nu måles alderen, og teksten skjules helt, når den er for gammel til at passe.
+function renderAiAnalyse(){
+  const tekstEl = document.getElementById("aiTekstMarked");
+  const tidEl = document.getElementById("aiTidMarked");
+  const advEl = document.getElementById("aiAdvarsel");
+  advEl.style.display = "none";
+  advEl.innerHTML = "";
+  tekstEl.style.display = "";
+
+  if (!AI_DATA || !AI_DATA.tekst){
+    tekstEl.textContent = "Ingen markedsanalyse endnu. Den dukker op, når robotten har kørt mindst én gang med en gyldig API-nøgle sat op som GitHub Secret.";
+    tidEl.textContent = "";
+    return;
   }
+
+  const genereret = AI_DATA.genereretUTC ? new Date(AI_DATA.genereretUTC) : null;
+  const alderDage = (genereret && !isNaN(genereret))
+    ? Math.floor((Date.now() - genereret.getTime()) / 86400000)
+    : null;
+  const fejlLinje = AI_DATA.sidsteFejl
+    ? '<div class="fejl">Robottens seneste forsøg: ' + AI_DATA.sidsteFejl + '</div>'
+    : "";
+
+  // Over en uge gammel: teksten beskriver et andet marked. Så skjuler vi den og
+  // viser systemets egen vurdering i stedet - den regnes lokalt hver morgen og
+  // er altid frisk, uanset om AI-tjenesten svarer.
+  if (alderDage !== null && alderDage > 7){
+    tekstEl.style.display = "none";
+    tidEl.textContent = "";
+    advEl.style.display = "";
+    advEl.innerHTML =
+      '<div class="ai-stale rod"><strong>Markedsanalysen er ' + alderDage + ' dage gammel</strong>' +
+      'Robotten har ikke kunnet hente en ny tekst siden ' + (AI_DATA.genereretDanskTid || "sidste gang den virkede") +
+      '. Den gamle tekst beskriver et andet marked med andre tal, så den vises ikke her.' +
+      fejlLinje + '</div>' + aktuelVurderingHtml();
+    return;
+  }
+
+  tekstEl.textContent = AI_DATA.tekst;
+  tidEl.textContent = "Genereret " + (AI_DATA.genereretDanskTid || "");
+
+  // 2-7 dage: teksten kan stadig bruges, men brugeren skal vide, at tallene i
+  // den er fra dengang og ikke fra i dag.
+  if (alderDage !== null && alderDage >= 2){
+    advEl.style.display = "";
+    advEl.innerHTML =
+      '<div class="ai-stale gul"><strong>Teksten er ' + alderDage + ' dage gammel</strong>' +
+      'Robotten har ikke hentet en ny analyse siden da. Priser og lagertal nævnt nedenfor er fra dengang - se Overblik for dagens tal.' +
+      fejlLinje + '</div>';
+  }
+}
+
+// Vurderingen i signaler.json regnes af robotten selv ud fra sæson, prisniveau og
+// pristrend. Den spørger ingen AI og kan derfor ikke blive hængende på et gammelt
+// svar. Den træder ind, når AI-teksten må skjules.
+function aktuelVurderingHtml(){
+  if (!SIGNALER || !SIGNALER.koebsvurdering) return "";
+  const k = SIGNALER.koebsvurdering, p = SIGNALER.prognose;
+  const stor = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+  return '<div class="ai-fallback">' +
+    '<div class="k">Systemets egen vurdering · ' + (SIGNALER.beregnetDanskTid || "") + '</div>' +
+    '<div class="v">' + k.overskrift + '</div>' +
+    '<div class="b">' + stor(k.begrundelse) + '.</div>' +
+    (p ? '<div class="b">Prognose ' + p.horisont + ': ' + p.retning + '. ' + p.tekst + '</div>' : '') +
+    '</div>';
+}
+
+function renderMarked(){
+  renderAiAnalyse();
 
   renderDrivers();
 
