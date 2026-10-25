@@ -757,73 +757,67 @@ async function hentAiAnalyse(produkter, dagensOpsummering, drivere, signaler) {
             "Højst tre sætninger pr. afsnit. Nævn kun drivere, der faktisk peger i en retning, og spring de " +
             "neutrale over. Udtal dig ikke om mere end nogle få uger frem.";
 
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + apiKey
-            },
-            body: JSON.stringify({
-                // llama-3.3-70b-versatile blev lukket af Groq den 16.08.2026, og
-                // reservemodellen llama-3.1-8b-instant samme dag. Derfor fejlede
-                // AI-analysen hver eneste morgen fra 17.08 og frem, uden at det
-                // kunne ses i appen. Groq anbefaler gpt-oss-120b som afløser.
-                model: "openai/gpt-oss-120b",
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: userPrompt }
-                ],
-                temperature: 0.4,
-                max_tokens: 400
-            })
-        });
-
-        if (!res.ok) {
-            // Falder tilbage til en mindre model. Den er lidt kortere i spyttet,
-            // men bedre end slet ingen markedsanalyse, hvis hovedmodellen er
-            // optaget eller minutkvoten er opbrugt.
-            const fejlKrop = await res.text().catch(() => "");
-            console.warn("Hovedmodellen svarede " + res.status + " - forsøger med mindre model. " + fejlKrop.slice(0, 300));
-            const reserveRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        // llama-3.3-70b-versatile blev lukket af Groq den 16.08.2026, og
+        // reservemodellen llama-3.1-8b-instant samme dag. Afløseren gpt-oss-120b
+        // er en RÆSONNERENDE model: den bruger først en pulje tokens på at tænke
+        // (message.reasoning) og skriver derefter svaret (message.content). Begge
+        // dele tages fra det samme budget. Med de gamle max_tokens: 400 gik hele
+        // budgettet til tænkningen, og content kom tomt tilbage - derfor fejlen
+        // "Intet svar-indhold fra AI'en" med HTTP 200. Derfor: lav tænkeindsats
+        // (opgaven er at forklare en færdig vurdering, ikke at regne den ud) og
+        // et budget med rigelig plads til begge dele.
+        async function kaldGroq(model) {
+            const svar = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": "Bearer " + apiKey
                 },
                 body: JSON.stringify({
-                    model: "openai/gpt-oss-20b",
+                    model,
                     messages: [
                         { role: "system", content: systemPrompt },
                         { role: "user", content: userPrompt }
                     ],
                     temperature: 0.4,
-                    max_tokens: 400
+                    reasoning_effort: "low",
+                    max_completion_tokens: 2500
                 })
             });
-            if (!reserveRes.ok) {
-                const reserveKrop = await reserveRes.text().catch(() => "");
-                throw new Error("Groq svarede " + res.status + " (reserve: " + reserveRes.status + "). " +
-                    (fejlKrop || reserveKrop).slice(0, 200));
+            if (!svar.ok) {
+                const krop = await svar.text().catch(() => "");
+                return { tekst: null, grund: model + " svarede HTTP " + svar.status + ". " + krop.slice(0, 180) };
             }
-            const reserveJson = await reserveRes.json();
-            const reserveTekst = reserveJson.choices && reserveJson.choices[0] && reserveJson.choices[0].message && reserveJson.choices[0].message.content;
-            if (!reserveTekst) throw new Error("Intet svar-indhold fra reservemodellen");
-            fs.writeFileSync("ai-analyse.json", JSON.stringify({
-                genereretUTC: new Date().toISOString(),
-                genereretDanskTid: danskTid(),
-                tekst: reserveTekst.trim()
-            }, null, 2), "utf8");
-            console.log("Markedsanalyse gemt (reservemodel).");
-            return;
+            const json = await svar.json();
+            const valg = json.choices && json.choices[0];
+            const tekst = valg && valg.message && valg.message.content;
+            if (tekst && tekst.trim()) return { tekst: tekst.trim(), grund: null };
+            // Tomt svar: skriv hvorfor, så det kan ses i filen næste gang.
+            // finish_reason "length" betyder, at budgettet slap op undervejs.
+            const brug = json.usage || {};
+            return {
+                tekst: null,
+                grund: model + " returnerede tomt svar (finish_reason: " +
+                    ((valg && valg.finish_reason) || "ukendt") + ", tokens: " +
+                    (brug.completion_tokens ?? "?") + " af " + (brug.total_tokens ?? "?") + ")"
+            };
         }
-        const json = await res.json();
-        const tekst = json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content;
-        if (!tekst) throw new Error("Intet svar-indhold fra AI'en");
+
+        let resultat = await kaldGroq("openai/gpt-oss-120b");
+        if (!resultat.tekst) {
+            // Falder tilbage til den mindre model, hvis hovedmodellen er optaget,
+            // kvoten er brugt, eller svaret kom tomt tilbage.
+            console.warn("Hovedmodellen gav intet brugbart svar: " + resultat.grund + " - forsøger med mindre model.");
+            const reserve = await kaldGroq("openai/gpt-oss-20b");
+            if (!reserve.tekst) throw new Error(resultat.grund + " | reserve: " + reserve.grund);
+            resultat = reserve;
+            console.log("Markedsanalyse hentet fra reservemodellen.");
+        }
 
         fs.writeFileSync("ai-analyse.json", JSON.stringify({
             genereretUTC: new Date().toISOString(),
             genereretDanskTid: danskTid(),
-            tekst: tekst.trim()
+            tekst: resultat.tekst
         }, null, 2), "utf8");
         console.log("Markedsanalyse gemt.");
     } catch (err) {
