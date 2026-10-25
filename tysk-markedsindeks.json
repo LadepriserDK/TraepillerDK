@@ -94,5 +94,8 @@
     }
   ],
   "metode": "Landsdækkende gennemsnitspris i Tyskland for 1 t ENplus A1-træpiller ved 6 t afhentning, inkl. leveringsomkostninger og moms. Offentliggøres månedligt af DEPI.",
-  "note": "Sammenhængende serie aflæst fra DEPI pristabel 2025-01 til 2026-06. Robotten supplerer selv med nye måneder og retter afvigelser."
+  "note": "Sammenhængende serie aflæst fra DEPI pristabel 2025-01 til 2026-06. Robotten supplerer selv med nye måneder og retter afvigelser.",
+  "sidsteForsoegUTC": "2026-10-25T14:46:27.789Z",
+  "sidsteForsoegDanskTid": "25.10.2026, 15.46.27",
+  "sidsteFejl": "Læste 1 DEPI-artikler uden at finde en gyldig pris. ingen måned+pris i samme sætning: https://www.depi.de/mediathek/d/pelletpreis-im-oktober-steigt-weniger-stark/?"
 }
