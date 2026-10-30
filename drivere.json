@@ -1,41 +1,41 @@
 {
-  "hentetUTC": "2026-10-29T11:31:27.104Z",
-  "hentetDanskTid": "29.10.2026, 12.31.27",
+  "hentetUTC": "2026-10-30T11:24:21.673Z",
+  "hentetDanskTid": "30.10.2026, 12.24.21",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 7.3,
-    "graddage14dage": 135,
-    "graddageSammeTidSidsteAar": 111,
-    "snitTempSidsteAar": 9.1,
-    "pctAendringGraddage": 22,
-    "gradForskelVsSidsteAar": -1.8,
+    "snitTemp14dage": 7.7,
+    "graddage14dage": 131,
+    "graddageSammeTidSidsteAar": 110,
+    "snitTempSidsteAar": 9.2,
+    "pctAendringGraddage": 19,
+    "gradForskelVsSidsteAar": -1.5,
     "fyringssaeson": true,
     "retning": "koldere",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 3.7,
-    "graddage14dage": 187,
-    "graddageSammeTidSidsteAar": 136,
-    "snitTempSidsteAar": 7.3,
-    "pctAendringGraddage": 38,
-    "gradForskelVsSidsteAar": -3.6,
+    "snitTemp14dage": 4.6,
+    "graddage14dage": 173,
+    "graddageSammeTidSidsteAar": 140,
+    "snitTempSidsteAar": 7,
+    "pctAendringGraddage": 24,
+    "gradForskelVsSidsteAar": -2.4,
     "fyringssaeson": true,
     "retning": "koldere",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 0.76,
-    "snitForrige7DageKrKwh": 1.38,
-    "pctAendring": -45,
+    "snitSeneste7DageKrKwh": 0.9,
+    "snitForrige7DageKrKwh": 1.33,
+    "pctAendring": -32,
     "retning": "faldende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 147.5,
-    "snitForrige7DageEurMwh": 187.7,
-    "pctAendring": -21,
+    "snitSeneste7DageEurMwh": 159.8,
+    "snitForrige7DageEurMwh": 186.3,
+    "pctAendring": -14,
     "retning": "faldende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
@@ -44,8 +44,8 @@
     "antalTotal": 28,
     "andelProcent": 46,
     "tendens7dage": {
-      "fraDato": "2026-10-22",
-      "tilDato": "2026-10-29",
+      "fraDato": "2026-10-23",
+      "tilDato": "2026-10-30",
       "varerNu": 13,
       "varerFoer": 11,
       "pctAendring": 18,
@@ -53,9 +53,9 @@
         "i"
       ],
       "beholdning": {
-        "sumNu": 535,
+        "sumNu": 580,
         "sumFoer": 510,
-        "pctAendring": 5,
+        "pctAendring": 14,
         "varerMedTal": 13
       },
       "stoersteFald": [
@@ -65,36 +65,36 @@
           "fra": 50,
           "til": 10,
           "pctAendring": -80
-        },
-        {
-          "produkt": "Biomasa Premium 6 mm 15kg 975 kg",
-          "maerke": "Biomasa",
-          "fra": 10,
-          "til": 5,
-          "pctAendring": -50
         }
       ]
     },
     "tendens30dage": {
-      "fraDato": "2026-09-29",
-      "tilDato": "2026-10-29",
+      "fraDato": "2026-09-30",
+      "tilDato": "2026-10-30",
       "varerNu": 13,
-      "varerFoer": 3,
-      "pctAendring": 333,
+      "varerFoer": 5,
+      "pctAendring": 160,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 535,
-        "sumFoer": 71,
-        "pctAendring": 654,
+        "sumNu": 580,
+        "sumFoer": 193,
+        "pctAendring": 201,
         "varerMedTal": 13
       },
       "stoersteFald": [
         {
+          "produkt": "Laxå Pellets 8 mm 16/832",
+          "maerke": "Laxå",
+          "fra": 20,
+          "til": 0,
+          "pctAendring": -100
+        },
+        {
           "produkt": "Vida 8 mm Træpiller 16/896 kg",
           "maerke": "Vida",
-          "fra": 50,
+          "fra": 100,
           "til": 10,
-          "pctAendring": -80
+          "pctAendring": -90
         }
       ]
     },
@@ -121,12 +121,12 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-10-29",
+    "dato": "2026-10-30",
     "dieselDKEurPrLiter": 2.502,
     "dieselDEEurPrLiter": 2.298,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202026-09-21.xlsx",
     "pctAendring30dage": -2,
-    "sammenlignDato": "2026-09-29",
+    "sammenlignDato": "2026-09-30",
     "retning": "stabil"
   }
 }
