@@ -1,60 +1,60 @@
 {
-  "hentetUTC": "2026-11-01T11:50:19.859Z",
-  "hentetDanskTid": "01.11.2026, 12.50.19",
+  "hentetUTC": "2026-11-02T13:29:15.351Z",
+  "hentetDanskTid": "02.11.2026, 14.29.15",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 7.2,
-    "graddage14dage": 137,
-    "graddageSammeTidSidsteAar": 111,
-    "snitTempSidsteAar": 9.1,
-    "pctAendringGraddage": 23,
-    "gradForskelVsSidsteAar": -1.9,
+    "snitTemp14dage": 7.7,
+    "graddage14dage": 130,
+    "graddageSammeTidSidsteAar": 117,
+    "snitTempSidsteAar": 8.6,
+    "pctAendringGraddage": 11,
+    "gradForskelVsSidsteAar": -0.9,
     "fyringssaeson": true,
-    "retning": "koldere",
+    "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 4.8,
-    "graddage14dage": 171,
-    "graddageSammeTidSidsteAar": 134,
-    "snitTempSidsteAar": 7.4,
-    "pctAendringGraddage": 28,
-    "gradForskelVsSidsteAar": -2.6,
+    "snitTemp14dage": 5.8,
+    "graddage14dage": 156,
+    "graddageSammeTidSidsteAar": 136,
+    "snitTempSidsteAar": 7.3,
+    "pctAendringGraddage": 15,
+    "gradForskelVsSidsteAar": -1.5,
     "fyringssaeson": true,
-    "retning": "koldere",
+    "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 1.4,
-    "snitForrige7DageKrKwh": 0.76,
-    "pctAendring": 85,
+    "snitSeneste7DageKrKwh": 1.66,
+    "snitForrige7DageKrKwh": 0.55,
+    "pctAendring": 200,
     "retning": "stigende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 217.9,
-    "snitForrige7DageEurMwh": 146.1,
-    "pctAendring": 49,
+    "snitSeneste7DageEurMwh": 246.9,
+    "snitForrige7DageEurMwh": 129.6,
+    "pctAendring": 90,
     "retning": "stigende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
-    "antalPaaLager": 13,
+    "antalPaaLager": 12,
     "antalTotal": 28,
-    "andelProcent": 46,
+    "andelProcent": 43,
     "tendens7dage": {
-      "fraDato": "2026-10-25",
-      "tilDato": "2026-11-01",
-      "varerNu": 13,
+      "fraDato": "2026-10-26",
+      "tilDato": "2026-11-02",
+      "varerNu": 12,
       "varerFoer": 11,
-      "pctAendring": 18,
+      "pctAendring": 9,
       "maerkerGaaetUdsolgt": [],
       "beholdning": {
-        "sumNu": 565,
+        "sumNu": 515,
         "sumFoer": 478,
-        "pctAendring": 18,
-        "varerMedTal": 13
+        "pctAendring": 8,
+        "varerMedTal": 12
       },
       "stoersteFald": [
         {
@@ -63,23 +63,30 @@
           "fra": 20,
           "til": 5,
           "pctAendring": -75
+        },
+        {
+          "produkt": "6 mm Samba træpiller 16/896 kg",
+          "maerke": "Samba",
+          "fra": 10,
+          "til": 5,
+          "pctAendring": -50
         }
       ]
     },
     "tendens30dage": {
-      "fraDato": "2026-10-02",
-      "tilDato": "2026-11-01",
-      "varerNu": 13,
-      "varerFoer": 9,
-      "pctAendring": 44,
+      "fraDato": "2026-10-03",
+      "tilDato": "2026-11-02",
+      "varerNu": 12,
+      "varerFoer": 7,
+      "pctAendring": 71,
       "maerkerGaaetUdsolgt": [
         "i"
       ],
       "beholdning": {
-        "sumNu": 565,
-        "sumFoer": 209,
-        "pctAendring": 170,
-        "varerMedTal": 13
+        "sumNu": 515,
+        "sumFoer": 293,
+        "pctAendring": 76,
+        "varerMedTal": 12
       },
       "stoersteFald": [
         {
@@ -128,12 +135,12 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-11-01",
+    "dato": "2026-11-02",
     "dieselDKEurPrLiter": 2.502,
     "dieselDEEurPrLiter": 2.298,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202026-09-21.xlsx",
     "pctAendring30dage": -2,
-    "sammenlignDato": "2026-10-02",
+    "sammenlignDato": "2026-10-03",
     "retning": "stabil"
   }
 }
