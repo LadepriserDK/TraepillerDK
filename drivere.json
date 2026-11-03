@@ -1,107 +1,110 @@
 {
-  "hentetUTC": "2026-11-02T13:29:15.351Z",
-  "hentetDanskTid": "02.11.2026, 14.29.15",
+  "hentetUTC": "2026-11-03T12:47:07.547Z",
+  "hentetDanskTid": "03.11.2026, 13.47.07",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 7.7,
-    "graddage14dage": 130,
-    "graddageSammeTidSidsteAar": 117,
-    "snitTempSidsteAar": 8.6,
-    "pctAendringGraddage": 11,
-    "gradForskelVsSidsteAar": -0.9,
+    "snitTemp14dage": 6.5,
+    "graddage14dage": 146,
+    "graddageSammeTidSidsteAar": 125,
+    "snitTempSidsteAar": 8,
+    "pctAendringGraddage": 17,
+    "gradForskelVsSidsteAar": -1.5,
     "fyringssaeson": true,
-    "retning": "normalt",
+    "retning": "koldere",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 5.8,
-    "graddage14dage": 156,
-    "graddageSammeTidSidsteAar": 136,
-    "snitTempSidsteAar": 7.3,
-    "pctAendringGraddage": 15,
-    "gradForskelVsSidsteAar": -1.5,
+    "snitTemp14dage": 4.1,
+    "graddage14dage": 180,
+    "graddageSammeTidSidsteAar": 139,
+    "snitTempSidsteAar": 7.1,
+    "pctAendringGraddage": 29,
+    "gradForskelVsSidsteAar": -3,
     "fyringssaeson": true,
-    "retning": "normalt",
+    "retning": "koldere",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 1.66,
-    "snitForrige7DageKrKwh": 0.55,
-    "pctAendring": 200,
+    "snitSeneste7DageKrKwh": 1.85,
+    "snitForrige7DageKrKwh": 0.39,
+    "pctAendring": 367,
     "retning": "stigende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 246.9,
-    "snitForrige7DageEurMwh": 129.6,
-    "pctAendring": 90,
+    "snitSeneste7DageEurMwh": 261.9,
+    "snitForrige7DageEurMwh": 120.6,
+    "pctAendring": 117,
     "retning": "stigende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
-    "antalPaaLager": 12,
+    "antalPaaLager": 13,
     "antalTotal": 28,
-    "andelProcent": 43,
+    "andelProcent": 46,
     "tendens7dage": {
-      "fraDato": "2026-10-26",
-      "tilDato": "2026-11-02",
-      "varerNu": 12,
+      "fraDato": "2026-10-27",
+      "tilDato": "2026-11-03",
+      "varerNu": 13,
       "varerFoer": 11,
-      "pctAendring": 9,
-      "maerkerGaaetUdsolgt": [],
+      "pctAendring": 18,
+      "maerkerGaaetUdsolgt": [
+        "Vida"
+      ],
       "beholdning": {
-        "sumNu": 515,
-        "sumFoer": 478,
-        "pctAendring": 8,
-        "varerMedTal": 12
+        "sumNu": 560,
+        "sumFoer": 463,
+        "pctAendring": 21,
+        "varerMedTal": 13
       },
       "stoersteFald": [
         {
           "produkt": "Vida 8 mm Træpiller 16/896 kg",
           "maerke": "Vida",
-          "fra": 20,
-          "til": 5,
-          "pctAendring": -75
+          "fra": 10,
+          "til": 0,
+          "pctAendring": -100
         },
         {
-          "produkt": "6 mm Samba træpiller 16/896 kg",
-          "maerke": "Samba",
-          "fra": 10,
-          "til": 5,
+          "produkt": "Egetræpiller 8 mm 15 kg /990 kg",
+          "maerke": "Egetræpiller",
+          "fra": 20,
+          "til": 10,
           "pctAendring": -50
         }
       ]
     },
     "tendens30dage": {
-      "fraDato": "2026-10-03",
-      "tilDato": "2026-11-02",
-      "varerNu": 12,
+      "fraDato": "2026-10-04",
+      "tilDato": "2026-11-03",
+      "varerNu": 13,
       "varerFoer": 7,
-      "pctAendring": 71,
+      "pctAendring": 86,
       "maerkerGaaetUdsolgt": [
+        "Vida",
         "i"
       ],
       "beholdning": {
-        "sumNu": 515,
+        "sumNu": 560,
         "sumFoer": 293,
-        "pctAendring": 76,
-        "varerMedTal": 12
+        "pctAendring": 91,
+        "varerMedTal": 13
       },
       "stoersteFald": [
+        {
+          "produkt": "Vida 8 mm Træpiller 16/896 kg",
+          "maerke": "Vida",
+          "fra": 100,
+          "til": 0,
+          "pctAendring": -100
+        },
         {
           "produkt": "Laxå Pellets 8 mm 16/832",
           "maerke": "Laxå",
           "fra": 10,
           "til": 0,
           "pctAendring": -100
-        },
-        {
-          "produkt": "Vida 8 mm Træpiller 16/896 kg",
-          "maerke": "Vida",
-          "fra": 100,
-          "til": 5,
-          "pctAendring": -95
         },
         {
           "produkt": "6 mm i 1000 kg Big Bag",
@@ -135,12 +138,12 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-11-02",
+    "dato": "2026-11-03",
     "dieselDKEurPrLiter": 2.502,
     "dieselDEEurPrLiter": 2.298,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202026-09-21.xlsx",
     "pctAendring30dage": -2,
-    "sammenlignDato": "2026-10-03",
+    "sammenlignDato": "2026-10-04",
     "retning": "stabil"
   }
 }
