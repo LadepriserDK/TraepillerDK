@@ -1,64 +1,72 @@
 {
-  "hentetUTC": "2026-11-04T13:00:14.638Z",
-  "hentetDanskTid": "04.11.2026, 14.00.14",
+  "hentetUTC": "2026-11-05T13:11:20.716Z",
+  "hentetDanskTid": "05.11.2026, 14.11.20",
   "vejrDK": {
     "sted": "Østjylland",
-    "snitTemp14dage": 5.7,
-    "graddage14dage": 158,
-    "graddageSammeTidSidsteAar": 133,
-    "snitTempSidsteAar": 7.5,
-    "pctAendringGraddage": 19,
-    "gradForskelVsSidsteAar": -1.8,
+    "snitTemp14dage": 5.1,
+    "graddage14dage": 166,
+    "graddageSammeTidSidsteAar": 143,
+    "snitTempSidsteAar": 6.8,
+    "pctAendringGraddage": 16,
+    "gradForskelVsSidsteAar": -1.7,
     "fyringssaeson": true,
     "retning": "koldere",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "vejrDE": {
     "sted": "Midttyskland",
-    "snitTemp14dage": 5.5,
-    "graddage14dage": 160,
-    "graddageSammeTidSidsteAar": 144,
-    "snitTempSidsteAar": 6.7,
-    "pctAendringGraddage": 11,
-    "gradForskelVsSidsteAar": -1.2,
+    "snitTemp14dage": 5.3,
+    "graddage14dage": 163,
+    "graddageSammeTidSidsteAar": 152,
+    "snitTempSidsteAar": 6.1,
+    "pctAendringGraddage": 7,
+    "gradForskelVsSidsteAar": -0.8,
     "fyringssaeson": true,
     "retning": "normalt",
     "kilde": "Open-Meteo (DMI/ECMWF-modeller)"
   },
   "elprisDK": {
-    "snitSeneste7DageKrKwh": 1.95,
-    "snitForrige7DageKrKwh": 0.59,
-    "pctAendring": 229,
+    "snitSeneste7DageKrKwh": 1.96,
+    "snitForrige7DageKrKwh": 1.02,
+    "pctAendring": 93,
     "retning": "stigende",
     "kilde": "Energi Data Service (elspot DK1, uden afgifter)"
   },
   "elprisDE": {
-    "snitSeneste7DageEurMwh": 265.5,
-    "snitForrige7DageEurMwh": 124.3,
-    "pctAendring": 114,
+    "snitSeneste7DageEurMwh": 262.8,
+    "snitForrige7DageEurMwh": 132.8,
+    "pctAendring": 98,
     "retning": "stigende",
     "kilde": "Fraunhofer ISE / Energy-Charts (DE-LU day-ahead)"
   },
   "lager": {
-    "antalPaaLager": 14,
+    "antalPaaLager": 13,
     "antalTotal": 28,
-    "andelProcent": 50,
+    "andelProcent": 46,
     "tendens7dage": {
-      "fraDato": "2026-10-28",
-      "tilDato": "2026-11-04",
-      "varerNu": 14,
-      "varerFoer": 12,
-      "pctAendring": 17,
+      "fraDato": "2026-10-29",
+      "tilDato": "2026-11-05",
+      "varerNu": 13,
+      "varerFoer": 13,
+      "pctAendring": 0,
       "maerkerGaaetUdsolgt": [
+        "Heatlets",
         "Vida"
       ],
       "beholdning": {
-        "sumNu": 555,
-        "sumFoer": 515,
-        "pctAendring": 8,
-        "varerMedTal": 14
+        "sumNu": 529,
+        "sumFoer": 535,
+        "pctAendring": -1,
+        "varerMedTal": 13
       },
       "stoersteFald": [
+        {
+          "produkt": "Heatlets 6 mm træpiller 10/900 kg",
+          "maerke": "Heatlets",
+          "fra": 20,
+          "til": 0,
+          "pctAendring": -100
+        },
         {
           "produkt": "Vida 8 mm Træpiller 16/896 kg",
           "maerke": "Vida",
@@ -67,35 +75,35 @@
           "pctAendring": -100
         },
         {
-          "produkt": "Egetræpiller 8 mm 15 kg /990 kg",
-          "maerke": "Egetræpiller",
-          "fra": 20,
-          "til": 10,
-          "pctAendring": -50
+          "produkt": "Pellets 6 mm 15/1260 kg",
+          "maerke": "Pellets",
+          "fra": 50,
+          "til": 20,
+          "pctAendring": -60
         }
       ]
     },
     "tendens30dage": {
-      "fraDato": "2026-10-05",
-      "tilDato": "2026-11-04",
-      "varerNu": 14,
-      "varerFoer": 8,
-      "pctAendring": 75,
+      "fraDato": "2026-10-06",
+      "tilDato": "2026-11-05",
+      "varerNu": 13,
+      "varerFoer": 7,
+      "pctAendring": 86,
       "maerkerGaaetUdsolgt": [
         "Vida",
         "i"
       ],
       "beholdning": {
-        "sumNu": 555,
-        "sumFoer": 350,
-        "pctAendring": 59,
-        "varerMedTal": 14
+        "sumNu": 529,
+        "sumFoer": 230,
+        "pctAendring": 130,
+        "varerMedTal": 13
       },
       "stoersteFald": [
         {
           "produkt": "Vida 8 mm Træpiller 16/896 kg",
           "maerke": "Vida",
-          "fra": 100,
+          "fra": 50,
           "til": 0,
           "pctAendring": -100
         },
@@ -138,12 +146,12 @@
     "kilde": "Deutsches Pelletinstitut (DEPI)"
   },
   "diesel": {
-    "dato": "2026-11-04",
-    "dieselDKEurPrLiter": 2.502,
-    "dieselDEEurPrLiter": 2.298,
+    "dato": "2026-11-05",
+    "dieselDKEurPrLiter": 2.529,
+    "dieselDEEurPrLiter": 2.282,
     "kilde": "https://energy.ec.europa.eu/document/download/264c2d0f-f161-4ea3-a777-78faae59bea0_en?filename=Weekly%20Oil%20Bulletin%20Weekly%20prices%20with%20Taxes%20-%202026-09-21.xlsx",
-    "pctAendring30dage": -2,
-    "sammenlignDato": "2026-10-05",
+    "pctAendring30dage": -1,
+    "sammenlignDato": "2026-10-06",
     "retning": "stabil"
   }
 }
